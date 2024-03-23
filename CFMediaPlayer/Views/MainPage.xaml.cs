@@ -6,6 +6,7 @@ namespace CFMediaPlayer
     /// <summary>
     /// Main page view
     /// </summary>
+    [QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")] 
     public partial class MainPage : ContentPage
     {
         int count = 0;       
@@ -29,8 +30,19 @@ namespace CFMediaPlayer
             
             // Set default media location to internal storage
             _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);
-            _model.OnPropertyChanged("SelectedMediaLocation");
+            _model.OnPropertyChanged(nameof(_model.SelectedMediaLocation));
         }        
+
+        /// <summary>
+        /// Handle new playlist created. Automatically select it
+        /// </summary>
+        public string NewPlaylistName
+        {
+            set
+            {
+                _model.SelectPlaylist(value);                
+            }
+        }
    
         private void OnElapsedSliderValueChanged(object? sender, ValueChangedEventArgs e)
         {

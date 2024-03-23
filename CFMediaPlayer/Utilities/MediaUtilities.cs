@@ -1,5 +1,8 @@
 ﻿namespace CFMediaPlayer.Utilities
 {
+    /// <summary>
+    /// Media utilities
+    /// </summary>
     internal class MediaUtilities
     {
         /// <summary>

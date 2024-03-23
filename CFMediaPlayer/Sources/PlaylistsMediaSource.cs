@@ -68,7 +68,7 @@ namespace CFMediaPlayer.Sources
             var mediaItems = new List<MediaItem>();
 
             // Check each file
-            foreach (var file in Directory.GetFiles(_rootPath, "*"))
+            foreach (var file in Directory.GetFiles(_rootPath))
             {
                 // Get playlist handler
                 var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));

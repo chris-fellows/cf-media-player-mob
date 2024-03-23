@@ -61,6 +61,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        internal static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select an album.
         /// </summary>
         internal static string MainSelectAlbumText {
@@ -120,6 +129,24 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string MediaSourceSDCardText {
             get {
                 return ResourceManager.GetString("MediaSourceSDCardText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playlist name.
+        /// </summary>
+        internal static string NewPlaylistPlaylistNameLabel {
+            get {
+                return ResourceManager.GetString("NewPlaylistPlaylistNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        internal static string Save {
+            get {
+                return ResourceManager.GetString("Save", resourceCulture);
             }
         }
     }

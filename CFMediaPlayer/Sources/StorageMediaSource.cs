@@ -96,7 +96,7 @@ namespace CFMediaPlayer.Sources
                 {
                     if (Array.IndexOf(MediaUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
                     {
-                        mediaItems.Add(new MediaItem() { Path = file });
+                        mediaItems.Add(new MediaItem() { FilePath = file });
                     }
                 }
             }

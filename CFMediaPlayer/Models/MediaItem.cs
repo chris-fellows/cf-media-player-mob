@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CFMediaPlayer.Models
 {
@@ -11,8 +12,9 @@ namespace CFMediaPlayer.Models
     /// </summary>
     public class MediaItem
     {        
-        public string Path { get; set; } = String.Empty;
+        public string FilePath { get; set; } = String.Empty;
 
-        public string Name => System.IO.Path.GetFileName(Path);
+        [XmlIgnore] // Don't serialize
+        public string Name => System.IO.Path.GetFileName(FilePath);
     }
 }

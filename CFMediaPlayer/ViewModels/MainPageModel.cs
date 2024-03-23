@@ -75,7 +75,7 @@ namespace CFMediaPlayer.ViewModels
             PlayOrPauseCommand = new Command(DoPlayOrPause);
             StopCommand = new Command(DoStop);
         }
-
+      
         /// <summary>
         /// Command to play previous media item
         /// </summary>
@@ -391,7 +391,7 @@ namespace CFMediaPlayer.ViewModels
 
         private void PlayMediaItem(MediaItem mediaItem)
         {
-            PlayAudio(mediaItem.Path,
+            PlayAudio(mediaItem.FilePath,
                 (exception) =>
                 {
                     //StatusLabel.Text = exception.Message;
@@ -645,6 +645,30 @@ namespace CFMediaPlayer.ViewModels
             {
                 return SelectedMediaItem != null;
             }
+        }
+        
+        /// <summary>
+        /// Selects custom playlist.        
+        ///
+        /// TODO: Handle playlists with same name (Different file extensions for different file formats)
+        /// </summary>
+        /// <param name="playlistName"></param>
+        public void SelectPlaylist(string playlistName)
+        {
+            // Select playlists
+            SelectedMediaLocation = MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Playlist);
+
+            // Select playlist
+            var mediaItemCollection = MediaItemCollections.First(mic => mic.Name == playlistName);
+            SelectedMediaItemCollection = mediaItemCollection;
+
+            // Child items
+            OnPropertyChanged(nameof(Artists));
+            OnPropertyChanged(nameof(SelectedArtist));
+            OnPropertyChanged(nameof(MediaItemCollections));
+            OnPropertyChanged(nameof(SelectedMediaItemCollection));
+            OnPropertyChanged(nameof(MediaItems));
+            OnPropertyChanged(nameof(SelectedMediaItem));
         }
     }
 }

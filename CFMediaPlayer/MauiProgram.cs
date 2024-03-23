@@ -19,9 +19,16 @@ namespace CFMediaPlayer
                 });
 
             builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();
+            builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });
+            builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
+
+            // Register main page & model
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
-            builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });
+
+            // Register other pages & models
+            builder.Services.AddSingleton<NewPlaylistPageModel>();
+            builder.Services.AddSingleton<NewPlaylistPage>();            
 
 #if DEBUG
     		builder.Logging.AddDebug();

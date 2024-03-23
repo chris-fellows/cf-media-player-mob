@@ -1,5 +1,4 @@
-﻿using CFMediaPlayer.Interfaces;
-using CFMediaPlayer.ViewModels;
+﻿using CFMediaPlayer.ViewModels;
 
 namespace CFMediaPlayer
 {
