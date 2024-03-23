@@ -7,3 +7,5 @@ Currently only Android is targeted but iOS will be targeted later.
 Known Issues
 ------------
 - UI needs cleaning up.
+- Implement playlist management.
+- Implement unit tests.

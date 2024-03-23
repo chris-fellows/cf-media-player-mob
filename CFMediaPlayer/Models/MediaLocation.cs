@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CFMediaPlayer.Enums;
 
 namespace CFMediaPlayer.Models
 {
@@ -14,13 +10,13 @@ namespace CFMediaPlayer.Models
         /// <summary>
         /// Name
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = String.Empty;
 
         /// <summary>
         /// Indicates media source name (IMediaSource.Name) for accesing media items
         /// </summary>
-        public string MediaSourceName { get; set; }
+        public MediaSourceTypes MediaSourceType { get; set; }
 
-        public string RootFolderPath { get; set; }
+        public string RootFolderPath { get; set; } = String.Empty;
     }
 }

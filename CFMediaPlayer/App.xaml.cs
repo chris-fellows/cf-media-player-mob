@@ -1,5 +1,5 @@
 ﻿using CFMediaPlayer.Interfaces;
-using CFMediaPlayer.Models;
+using CFMediaPlayer.ViewModels;
 
 namespace CFMediaPlayer
 {
@@ -16,13 +16,13 @@ namespace CFMediaPlayer
             MainPage = new AppShell();            
         }
 
-        protected override void OnSleep()  // CMF Added
+        protected override void OnSleep()
         {
             // TODO: sleep
             base.OnSleep();
         }
 
-        protected override void OnResume()  // CMF Added
+        protected override void OnResume()
         {
             base.OnResume();
         }

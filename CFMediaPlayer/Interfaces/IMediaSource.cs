@@ -1,4 +1,5 @@
-﻿using CFMediaPlayer.Models;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Models;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -19,14 +20,29 @@ namespace CFMediaPlayer.Interfaces
         bool IsAvailable { get; }
 
         /// <summary>
-        /// Name
+        /// Media source type
         /// </summary>
-        string Name { get; }
+        MediaSourceTypes MediaSourceType { get; }
 
+        /// <summary>
+        /// Gets all artists
+        /// </summary>
+        /// <returns></returns>
         List<Artist> GetArtists();
         
+        /// <summary>
+        /// Gets media item collections for artist
+        /// </summary>
+        /// <param name="artistName"></param>
+        /// <returns></returns>
         List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName);
 
+        /// <summary>
+        /// Gets media items for artist and album
+        /// </summary>
+        /// <param name="artistName"></param>
+        /// <param name="albumName"></param>
+        /// <returns></returns>
         List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string albumName);
     }
 }

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lang="clr-namespace:CFMediaPlayer.Resources.Languages"
              x:Class="CFMediaPlayer.MainPage">
 
     <ScrollView>
@@ -30,28 +31,28 @@
                      ItemsSource="{Binding MediaLocations}"
                     ItemDisplayBinding="{Binding Name}"
                     SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
-                    Title="Select a media location">
+                    Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
             </Picker>
 
             <Picker x:Name="ArtistList" 
                       ItemsSource="{Binding Artists}"
                       ItemDisplayBinding="{Binding Name}"
                       SelectedItem="{Binding SelectedArtist, Mode=TwoWay}"
-                    Title="Select an artist">
+                    Title="{Binding LocalizationResources[MainSelectArtistText], Mode=OneWay}">
             </Picker>
 
             <Picker x:Name="MediaItemCollectionList" 
                     ItemsSource="{Binding MediaItemCollections}"
                     ItemDisplayBinding="{Binding Name}"
                     SelectedItem="{Binding SelectedMediaItemCollection, Mode=TwoWay}"
-                    Title="Select an album">
+                    Title="{Binding LocalizationResources[MainSelectAlbumText], Mode=OneWay}">
             </Picker>
 
             <Picker x:Name="MediaItemList"
                     ItemsSource="{Binding MediaItems}"
                     ItemDisplayBinding="{Binding Name}"
                     SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"
-                    Title="Select a media item">
+                    Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
             </Picker>
 
             <StackLayout Margin="0,0,0,0">

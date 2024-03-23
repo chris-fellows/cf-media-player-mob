@@ -1,12 +1,7 @@
-﻿using CFMediaPlayer.Interfaces;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-//using static Android.Provider.MediaStore.Audio;
+using CFMediaPlayer.Utilities;
 
 namespace CFMediaPlayer.Sources
 {
@@ -22,7 +17,7 @@ namespace CFMediaPlayer.Sources
             //_rootPath = rootPath;
         }
 
-        public string Name => "Storage";
+        public MediaSourceTypes MediaSourceType => MediaSourceTypes.Storage;
 
         public void SetSource(string source)
         {
@@ -51,7 +46,7 @@ namespace CFMediaPlayer.Sources
                     var isHasMediaItemCollections = false;
                     foreach (var subFolder in Directory.GetDirectories(folder))
                     {
-                        if (InternalUtilities.IsFolderHasAudioFiles(subFolder))
+                        if (MediaUtilities.IsFolderHasAudioFiles(subFolder))
                         {
                             isHasMediaItemCollections = true;
                             break;
@@ -78,7 +73,7 @@ namespace CFMediaPlayer.Sources
                 var folders = Directory.GetDirectories(path);
                 foreach (var folder in folders)
                 {
-                    if (InternalUtilities.IsFolderHasAudioFiles(folder))
+                    if (MediaUtilities.IsFolderHasAudioFiles(folder))
                     {
                         mediaItemCollections.Add(new MediaItemCollection() { Path = folder });
                     }
@@ -99,7 +94,7 @@ namespace CFMediaPlayer.Sources
                 var files = Directory.GetFiles(path);
                 foreach(var file in files)
                 {
-                    if (Array.IndexOf(InternalUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
+                    if (Array.IndexOf(MediaUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
                     {
                         mediaItems.Add(new MediaItem() { Path = file });
                     }

@@ -1,34 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
 using System.Windows.Input;
-using Android.Content;
-using CFMediaPlayer.Constants;
+using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
+using CFMediaPlayer.Models;
 
-namespace CFMediaPlayer.Models
+namespace CFMediaPlayer.ViewModels
 {
-    public class MainPageModel  : INotifyPropertyChanged
-    {      
+    /// <summary>
+    /// View model for main page
+    /// </summary>
+    public class MainPageModel : INotifyPropertyChanged
+    {
         private System.Timers.Timer _elapsedTimer;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private Action<string> _statusAction;
-        private Action<string> _debugAction;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        private Action<string>? _debugAction;
 
         public bool AutoPlayNext { get; set; }
 
         private IMediaPlayer _mediaPlayer { get; set; }
 
         private List<IMediaSource> _mediaSources { get; set; }
-
         private List<MediaLocation> _mediaLocations;
         private List<Artist> _artists = new List<Artist>();
-        private List<MediaItemCollection> _mediaItemCollections = new List<MediaItemCollection>();        
+        private List<MediaItemCollection> _mediaItemCollections = new List<MediaItemCollection>();
         private List<MediaItem> _mediaItems = new List<MediaItem>();
 
         public MainPageModel(IMediaPlayer mediaPlayer, IEnumerable<IMediaSource> mediaSources)
@@ -39,58 +37,71 @@ namespace CFMediaPlayer.Models
             // Set media locations
             _mediaLocations = new List<MediaLocation>()
             {
-                new MediaLocation() { Name = "Internal storage (Test)", MediaSourceName = MediaSourceNames.Storage,
+                new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString() + " (Test)",
+                                MediaSourceType = MediaSourceTypes.Storage,
                                 RootFolderPath = "/storage/emulated/0/Download" },      // TODO: Remove this
-                new MediaLocation() { Name = "Internal storage", MediaSourceName = MediaSourceNames.Storage,
+                new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString(),
+                                MediaSourceType = MediaSourceTypes.Storage,
                                 RootFolderPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
                 //new MediaLocation() { Name = "Internal storage", MediaSourceName = MediaSourceNames.Storage, 
                 //                RootFolderPath = Path.Combine(Android.OS.Environment.StorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
-                new MediaLocation() { Name = "SD card", MediaSourceName = MediaSourceNames.Storage,                                
+                new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceSDCardText"].ToString(),
+                                MediaSourceType = MediaSourceTypes.Storage,
                                 RootFolderPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
-                new MediaLocation() { Name = "Playlists", MediaSourceName = MediaSourceNames.Playlists, 
+                new MediaLocation() { Name = LocalizationResources.Instance["MediaSourcePlaylistsText"].ToString(),
+                                MediaSourceType = MediaSourceTypes.Playlist,
                                 RootFolderPath = FileSystem.AppDataDirectory }
-            };                                    
+            };
 
             foreach (var mediaLocation in _mediaLocations)
             {
-                _mediaSources.First(s => s.Name.Equals(mediaLocation.MediaSourceName)).SetSource(mediaLocation.RootFolderPath);
-            }           
-
-            //var music = Android.OS.Environment.ExternalStorageDirectory.Path;
-            //var music = Android.OS.Environment.StorageDirectory;
+                _mediaSources.First(s => s.MediaSourceType == mediaLocation.MediaSourceType).SetSource(mediaLocation.RootFolderPath);
+            }
 
             // Handle status change
             _mediaPlayer.SetStatusAction(OnMediaItemStatusChange);
 
             _mediaPlayer.SetDebugAction((action) => { });
-            
+
             // Set timer for elapsed play time
             _elapsedTimer = new System.Timers.Timer();
             _elapsedTimer.Elapsed += _timer_Elapsed;
-            _elapsedTimer.Interval = 1500;
+            _elapsedTimer.Interval = 1000;
             _elapsedTimer.Enabled = false;
 
             // Set commands
             NextCommand = new Command(DoNext);
             PrevCommand = new Command(DoPrev);
             PlayOrPauseCommand = new Command(DoPlayOrPause);
-            StopCommand = new Command(DoStop);            
-        }        
+            StopCommand = new Command(DoStop);
+        }
 
-        public ICommand PrevCommand { get; set; }        
+        /// <summary>
+        /// Command to play previous media item
+        /// </summary>
+        public ICommand PrevCommand { get; set; }
 
+        /// <summary>
+        /// Command to play next media item
+        /// </summary>
         public ICommand NextCommand { get; set; }
 
+        /// <summary>
+        /// Command to play or pause media item
+        /// </summary>
         public ICommand PlayOrPauseCommand { get; set; }
 
+        /// <summary>
+        /// Command to stop playing or pausing media item
+        /// </summary>
         public ICommand StopCommand { get; set; }
 
         private IMediaSource? CurrentMediaSource
         {
             get
             {
-                return (_selectedMediaLocation != null) ?
-                    _mediaSources.First(ms => ms.Name == _selectedMediaLocation.MediaSourceName) :
+                return _selectedMediaLocation != null ?
+                    _mediaSources.First(ms => ms.MediaSourceType == _selectedMediaLocation.MediaSourceType) :
                     null;
             }
         }
@@ -122,7 +133,7 @@ namespace CFMediaPlayer.Models
             OnPropertyChanged(nameof(SelectedArtist));
         }
 
-        private MediaLocation _selectedMediaLocation;
+        private MediaLocation? _selectedMediaLocation;
         public MediaLocation SelectedMediaLocation
         {
             get
@@ -136,67 +147,20 @@ namespace CFMediaPlayer.Models
 
                 // Display artists for media source
                 if (_selectedMediaLocation != null)
-                {                    
-                    //var debug = "MusicFolder=";
-                    //try
-                    //{
-                    //    var folder = Android.OS.Environment.GetExternalStoragePublicDirectory("#DIRECTORY_MUSIC").Path;
-                    //    if (folder == null)
-                    //    {
-                    //        debug += "null";
-                    //    }
-                    //    else
-                    //    {
-                    //        debug += folder;
-
-                    //        var isExists2 = Directory.Exists(folder);
-                    //        debug += $"; IsMusicExists={isExists2}";
-
-                    //    }                        
-                    //}
-                    //catch (Exception exception)
-                    //{
-                    //    debug += "Exception:" + exception.Message;
-                    //}
-
-                    //if (Directory.Exists(folder))
-                    //{
-                    //    debug += "; Does exist";
-                    //}
-                    //else
-                    //{
-                    //    debug += "; Does not exist";
-                    //}
-
-                    /*
-                    var debug = "";
-                    if (Directory.Exists(Android.OS.Environment.StorageDirectory.Path))
-                    {
-                        debug = Android.OS.Environment.StorageDirectory.Path + " does exist";
-                        //foreach (var folder in Directory.GetDirectories(Android.OS.Environment.StorageDirectory.Path))
-                        //{
-                        //    debug = debug + "|" + folder;
-                        //}
-                    }
-                    else
-                    {
-                        debug = Android.OS.Environment.StorageDirectory.Path + " does not exist";
-                    }
-                    */
-
+                {
                     var isExists = Directory.Exists(_selectedMediaLocation.RootFolderPath);
-                    _debugAction($"MediaLocation={_selectedMediaLocation.RootFolderPath}, Exists={isExists}");
+                    if (_debugAction != null) _debugAction($"MediaLocation={_selectedMediaLocation.RootFolderPath}, Exists={isExists}");
 
                     // Set source location for media source to read
                     CurrentMediaSource!.SetSource(_selectedMediaLocation.RootFolderPath);
 
-                    LoadMediaLocationDefaults();                    
+                    LoadMediaLocationDefaults();
                 }
                 else
                 {
-                    _debugAction("MediaLocation=None");
+                    if (_debugAction != null) _debugAction("MediaLocation=None");
                 }
-               
+
                 // Child items
                 OnPropertyChanged(nameof(Artists));
                 OnPropertyChanged(nameof(SelectedArtist));
@@ -210,8 +174,7 @@ namespace CFMediaPlayer.Models
                 OnPropertyChanged(nameof(IsPrevEnabled));
                 OnPropertyChanged(nameof(IsPlaying));
                 OnPropertyChanged(nameof(IsMediaItemSelected));
-                OnPropertyChanged(nameof(PlayButtonImageSource));
-                OnPropertyChanged(nameof(PlayButtonText));
+                OnPropertyChanged(nameof(PlayButtonImageSource));                
             }
         }
 
@@ -232,8 +195,7 @@ namespace CFMediaPlayer.Models
                 OnPropertyChanged(nameof(IsPrevEnabled));
                 OnPropertyChanged(nameof(IsPlaying));
                 OnPropertyChanged(nameof(IsMediaItemSelected));
-                OnPropertyChanged(nameof(PlayButtonImageSource));
-                OnPropertyChanged(nameof(PlayButtonText));
+                OnPropertyChanged(nameof(PlayButtonImageSource));                
             }
         }
 
@@ -259,15 +221,14 @@ namespace CFMediaPlayer.Models
 
                 // Child items
                 OnPropertyChanged(nameof(MediaItems));
-                OnPropertyChanged(nameof(SelectedMediaItem));                
+                OnPropertyChanged(nameof(SelectedMediaItem));
 
                 // Player buttons
                 OnPropertyChanged(nameof(IsNextEnabled));
                 OnPropertyChanged(nameof(IsPrevEnabled));
                 OnPropertyChanged(nameof(IsPlaying));
                 OnPropertyChanged(nameof(IsMediaItemSelected));
-                OnPropertyChanged(nameof(PlayButtonImageSource));
-                OnPropertyChanged(nameof(PlayButtonText));
+                OnPropertyChanged(nameof(PlayButtonImageSource));                
             }
         }
 
@@ -275,7 +236,7 @@ namespace CFMediaPlayer.Models
         {
             get
             {
-                if (_selectedMediaItemCollection != null && !String.IsNullOrEmpty(_selectedMediaItemCollection.ImagePath))
+                if (_selectedMediaItemCollection != null && !string.IsNullOrEmpty(_selectedMediaItemCollection.ImagePath))
                 {
                     return _selectedMediaItemCollection.ImagePath;
                 }
@@ -293,7 +254,7 @@ namespace CFMediaPlayer.Models
 
             set
             {
-                _selectedArtist = value;                               
+                _selectedArtist = value;
 
                 // Display albums & media items for artist, select default
                 if (_selectedArtist != null)
@@ -312,8 +273,7 @@ namespace CFMediaPlayer.Models
                 OnPropertyChanged(nameof(IsPrevEnabled));
                 OnPropertyChanged(nameof(IsPlaying));
                 OnPropertyChanged(nameof(IsMediaItemSelected));
-                OnPropertyChanged(nameof(PlayButtonImageSource));
-                OnPropertyChanged(nameof(PlayButtonText));
+                OnPropertyChanged(nameof(PlayButtonImageSource));                
             }
         }
 
@@ -327,7 +287,7 @@ namespace CFMediaPlayer.Models
             ClearMediaItems();
 
             // Do nothing if media source not available (E.g. SD card removed)
-            if (!CurrentMediaSource.IsAvailable)
+            if (CurrentMediaSource == null || !CurrentMediaSource.IsAvailable)
             {
                 return;
             }
@@ -382,21 +342,21 @@ namespace CFMediaPlayer.Models
         private void DoNext(object parameter)
         {
             var index = _mediaItems.IndexOf(SelectedMediaItem!);
-            this.SelectedMediaItem = _mediaItems[index + 1];
+            SelectedMediaItem = _mediaItems[index + 1];
 
             OnPropertyChanged(nameof(SelectedMediaItem));
 
-            PlayMediaItem(this.SelectedMediaItem);
+            PlayMediaItem(SelectedMediaItem);
         }
 
         private void DoPrev(object parameter)
         {
             var index = _mediaItems.IndexOf(SelectedMediaItem!);
-            this.SelectedMediaItem = _mediaItems[index - 1];
+            SelectedMediaItem = _mediaItems[index - 1];
 
             OnPropertyChanged(nameof(SelectedMediaItem));
 
-            PlayMediaItem(this.SelectedMediaItem);
+            PlayMediaItem(SelectedMediaItem);
         }
 
         private void DoStop(object parameter)
@@ -405,26 +365,34 @@ namespace CFMediaPlayer.Models
         }
 
         private void DoPlayOrPause(object parameter)
-        {            
+        {
+            if (IsPlaying)
+            {
+                Pause();
+            }
+            else
+            {
+                PlayMediaItem(SelectedMediaItem!);
+            }
+
+            /*
             switch (PlayButtonText)
             {
                 case "Play":
                 case "Resume":
-                    PlayMediaItem(this.SelectedMediaItem!);
-
-                    //SemanticScreenReader.Announce(PlayMediaBtn.Text);
+                    PlayMediaItem(SelectedMediaItem!);                    
                     break;
-                case "Pause":                  
-                    Pause();
-                    //_elapsedTimer.Enabled = false;  // No need to update elapsed time
+                case "Pause":
+                    Pause();                    
                     break;
             }
+            */
         }
 
         private void PlayMediaItem(MediaItem mediaItem)
         {
             PlayAudio(mediaItem.Path,
-                (System.Exception exception) =>
+                (exception) =>
                 {
                     //StatusLabel.Text = exception.Message;
                 });
@@ -448,7 +416,7 @@ namespace CFMediaPlayer.Models
         public List<MediaItemCollection> GetAlbumsForArtist(string artistName)
         {
             _mediaItemCollections = CurrentMediaSource!.GetMediaItemCollectionsForArtist(artistName);
-            OnPropertyChanged(nameof(MediaItemCollections));            
+            OnPropertyChanged(nameof(MediaItemCollections));
             return _mediaItemCollections;
         }
 
@@ -456,14 +424,14 @@ namespace CFMediaPlayer.Models
         {
             get { return _mediaLocations; }
         }
-        
+
         public IList<MediaItem> MediaItems
         {
             get
             {
                 return _mediaItems;
             }
-        }    
+        }
 
         public IList<MediaItemCollection> MediaItemCollections
         {
@@ -473,47 +441,27 @@ namespace CFMediaPlayer.Models
         public IList<Artist> Artists
         {
             get { return _artists; }
-        }
-
-        /// <summary>
-        /// Sets action for media item status. E.g. Play next item when media item completes.
-        /// </summary>
-        /// <param name="statusAction"></param>
-        public void SetMediaItemStatusAction(Action<string> statusAction)
-        {
-            _statusAction = statusAction;
-        }
+        }    
 
         public void SetDebugAction(Action<string> debugAction)
         {
-            _debugAction = debugAction;   
+            _debugAction = debugAction;
         }
 
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
-        {
-            // Update elapsed time
-            //if (IsPlaying || IsPaused)
-            //{
-                //var isPlaying = IsPlaying;
-                //var iPaused = IsPaused;
-
-                OnPropertyChanged(nameof(ElapsedTime));
-                OnPropertyChanged(nameof(ElapsedTimeInt));             
-            //}
+        {            
+            // TODO: Consider disabling timer when app not visible
+            OnPropertyChanged(nameof(ElapsedTime));
+            OnPropertyChanged(nameof(ElapsedTimeInt));            
         }        
 
-        //public void SetMediaSource(string rootPath)
-        //{
-        //    CurrentMediaSource.SetSource(rootPath);
-        //}
-
-        public void OnPropertyChanged([CallerMemberName] string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        public void OnPropertyChanged([CallerMemberName] string name = "") => 
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public void PlayAudio(string filePath,
-                            Action<System.Exception> errorAction)
+                            Action<Exception> errorAction)
         {
-            _mediaPlayer.PlayAudio(filePath, errorAction);
-            ///_elapsedTimer.Enabled = false;
+            _mediaPlayer.PlayAudio(filePath, errorAction);            
         }
 
         public string ElapsedTime
@@ -542,7 +490,6 @@ namespace CFMediaPlayer.Models
                 {
                     return (int)_mediaPlayer.GetTotalDuration().TotalMilliseconds;
                 }
-
                 return 1000;
             }
         }
@@ -584,7 +531,7 @@ namespace CFMediaPlayer.Models
         }
 
         public void Stop()
-        {           
+        {
             _mediaPlayer.Stop();
             _elapsedTimer.Enabled = false;
         }
@@ -601,33 +548,27 @@ namespace CFMediaPlayer.Models
             }
         }
 
-        public string PlayButtonText
-        {
-            get
-            {
-                /*
-                if (IsPlaying) return "Pause";
-                if (_mediaPlayer != null && _mediaPlayer.IsPaused) return "Resume";
-                return "Play";
-                */
-                return IsPlaying ? "Pause" : "Play";
-            }
-        }
+        //public string PlayButtonText
+        //{
+        //    get
+        //    {               
+        //        return IsPlaying ? "Pause" : "Play";
+        //    }
+        //}
 
         /// <summary>
         /// Handles media player status change
         /// </summary>
         /// <param name="status"></param>
-        private void OnMediaItemStatusChange(string status)
+        private void OnMediaItemStatusChange(MediaPlayerStatuses status)
         {
             System.Diagnostics.Debug.WriteLine($"{DateTimeOffset.UtcNow.ToString()} OnMediaItemStatusChange: {status}");
 
             switch (status)
             {
-                case "Completed":
+                case MediaPlayerStatuses.Completed:
                     OnPropertyChanged(nameof(IsPlaying));
-                    OnPropertyChanged(nameof(PlayButtonImageSource));
-                    OnPropertyChanged(nameof(PlayButtonText));
+                    OnPropertyChanged(nameof(PlayButtonImageSource));                                        
                     OnPropertyChanged(nameof(DurationInt));
                     OnPropertyChanged(nameof(ElapsedTime));
                     OnPropertyChanged(nameof(ElapsedTimeInt));
@@ -639,51 +580,28 @@ namespace CFMediaPlayer.Models
                     {
                         PlayMediaItem(_mediaItems[_mediaItems.IndexOf(SelectedMediaItem) + 1]);
                     }
-
-                        //_elapsedTimer.Enabled = false;
-
-                        //Task.Factory.StartNew(() =>
-                        //{
-                        //    Task.Delay(TimeSpan.FromMilliseconds(500));
-
-                        //// Play next
-                        //if (MediaItemList.SelectedIndex != MediaItemList.Items.Count - 1)
-                        //{
-                        //    System.Diagnostics.Debug.WriteLine($"{DateTimeOffset.UtcNow.ToString()} OnMediaItemStatusChange: Playing next media item");
-                        //    PlayMediaItem(MediaItemList.SelectedIndex + 1);
-                        //}
-                        //else
-                        //{
-                        //    System.Diagnostics.Debug.WriteLine($"{DateTimeOffset.UtcNow.ToString()} OnMediaItemStatusChange: Not playing next media item (SelectedIndex={MediaItemList.SelectedIndex}, Count={MediaItemList.Items.Count}");
-                        //}
-                        //});
-                        break;                    
-                case "Paused":
+                    break;
+                case MediaPlayerStatuses.Paused:
                     OnPropertyChanged(nameof(IsPlaying));
-                    OnPropertyChanged(nameof(PlayButtonImageSource));
-                    OnPropertyChanged(nameof(PlayButtonText));
+                    OnPropertyChanged(nameof(PlayButtonImageSource));                    
                     OnPropertyChanged(nameof(DurationInt));
                     OnPropertyChanged(nameof(ElapsedTime));
                     OnPropertyChanged(nameof(ElapsedTimeInt));
 
                     _elapsedTimer.Enabled = false;
                     break;
-                case "Playing":
+                case MediaPlayerStatuses.Playing:
                     OnPropertyChanged(nameof(IsPlaying));
-                    OnPropertyChanged(nameof(PlayButtonImageSource));
-                    OnPropertyChanged(nameof(PlayButtonText));
+                    OnPropertyChanged(nameof(PlayButtonImageSource));                    
                     OnPropertyChanged(nameof(DurationInt));
                     OnPropertyChanged(nameof(ElapsedTime));
                     OnPropertyChanged(nameof(ElapsedTimeInt));
 
                     _elapsedTimer.Enabled = true;
-                    break;
-                case "StartError":
-                    break;
-                case "Stopped":
+                    break;                
+                case MediaPlayerStatuses.Stopped:
                     OnPropertyChanged(nameof(IsPlaying));
-                    OnPropertyChanged(nameof(PlayButtonImageSource));
-                    OnPropertyChanged(nameof(PlayButtonText));
+                    OnPropertyChanged(nameof(PlayButtonImageSource));                    
                     OnPropertyChanged(nameof(DurationInt));
                     OnPropertyChanged(nameof(ElapsedTime));
                     OnPropertyChanged(nameof(ElapsedTimeInt));
@@ -692,20 +610,16 @@ namespace CFMediaPlayer.Models
                     break;
             }
 
-            // Pass status to parent
-            if (_statusAction != null)
-            {
-                _statusAction(status);
-            }
+            if (_debugAction != null) _debugAction($"Status={status}");
         }
 
         public bool IsPrevEnabled
         {
             get
             {
-                if (this.SelectedMediaItem != null)
+                if (SelectedMediaItem != null)
                 {
-                    var index = _mediaItems.IndexOf(this.SelectedMediaItem);
+                    var index = _mediaItems.IndexOf(SelectedMediaItem);
                     return index > 0;
                 }
                 return false;
@@ -716,9 +630,9 @@ namespace CFMediaPlayer.Models
         {
             get
             {
-                if (this.SelectedMediaItem != null)
+                if (SelectedMediaItem != null)
                 {
-                    var index = _mediaItems.IndexOf(this.SelectedMediaItem);
+                    var index = _mediaItems.IndexOf(SelectedMediaItem);
                     return index < _mediaItems.Count - 1;
                 }
                 return false;
@@ -729,7 +643,7 @@ namespace CFMediaPlayer.Models
         {
             get
             {
-                return this.SelectedMediaItem != null;
+                return SelectedMediaItem != null;
             }
         }
     }

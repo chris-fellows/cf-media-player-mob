@@ -1,10 +1,6 @@
-﻿using CFMediaPlayer.Interfaces;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Sources
 {
@@ -21,7 +17,7 @@ namespace CFMediaPlayer.Sources
             _playlists = playlists.ToList();
         }
 
-        public string Name => "Playlists";
+        public MediaSourceTypes MediaSourceType => MediaSourceTypes.Playlist;
 
         public bool IsAvailable
         {

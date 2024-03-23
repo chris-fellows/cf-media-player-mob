@@ -1,5 +1,5 @@
 ﻿using CFMediaPlayer.Interfaces;
-using CFMediaPlayer.Models;
+using CFMediaPlayer.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 

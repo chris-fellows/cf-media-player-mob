@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CFMediaPlayer.Enums;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -46,7 +42,7 @@ namespace CFMediaPlayer.Interfaces
         /// Sets status action
         /// </summary>
         /// <param name="action"></param>
-        void SetStatusAction(Action<string> action);
+        void SetStatusAction(Action<MediaPlayerStatuses> action);
 
         /// <summary>
         /// Sets debug action
