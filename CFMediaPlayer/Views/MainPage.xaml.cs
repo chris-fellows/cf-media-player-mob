@@ -81,5 +81,12 @@ namespace CFMediaPlayer
             // let ElapsedTimeInt to be set whenever the elapsed time is updated
             _model.ElapsedTimeInt = (int)ElapsedSlider.Value;            
         }
+
+        private void SearchResultTextCell_Tapped(object sender, EventArgs e)
+        {
+            TextCell textCell = (TextCell)sender;
+            _model.SelectSearchResult(textCell.Text);
+            int xxx = 1000;
+        }
     }
 }

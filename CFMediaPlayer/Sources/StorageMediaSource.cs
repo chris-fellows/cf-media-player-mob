@@ -109,23 +109,93 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<PlaylistAction> GetPlaylistActionsForMediaItem(bool isPlaylistMediaSourceSelected, MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
         {
-            var items = new List<PlaylistAction>();
+            var items = new List<MediaItemAction>();
 
-            // Add None
-            var itemNone = new PlaylistAction()
+            var item1 = new MediaItemAction()
             {
-                Name = "Playlist actions..."
+                Name = "Add to queue",
+                File = mediaItem.FilePath,
+                SelectedAction = MediaItemActions.AddToQueue
             };
-            items.Add(itemNone);
+            items.Add(item1);
+
+            var item2 = new MediaItemAction()
+            {
+                Name = "Clear queue",
+                File = mediaItem.FilePath,
+                SelectedAction = MediaItemActions.ClearQueue
+            };
+            items.Add(item2);
+
+            //// Add None
+            //if (!items.Any())
+            //{
+            //    var itemNone = new MediaItemAction()
+            //    {
+            //        Name = "Playlist actions..."
+            //    };
+            //    items.Add(itemNone);
+            //}
 
             return items;
         }
 
-        public void ExecutePlaylistAction(string playlistFile, MediaItem mediaItem, PlaylistActions playlistAction)
+        public void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions playlistAction)
         {
+            // No action
+        }
 
-        }     
+        public List<SearchResult> Search(SearchOptions searchOptions)
+        {
+            var searchResults = new List<SearchResult>();
+
+            var artists = GetArtists();
+
+            foreach(var artist in artists)
+            {
+                if (SearchUtilities.IsValidSearchResult(artist, searchOptions))
+                {
+                    searchResults.Add(new SearchResult()
+                    {
+                        EntityType = EntityTypes.Artist,
+                        Name = artist.Name,
+                        Artist = artist
+                    });
+                }
+
+                // Get media item collections
+                var mediaItemCollections = GetMediaItemCollectionsForArtist(artist.Name);
+
+                searchResults.AddRange(mediaItemCollections.Where(mic => SearchUtilities.IsValidSearchResult(mic, searchOptions))
+                    .Select(mic => new SearchResult()
+                    {
+                        EntityType = EntityTypes.MediaItemCollection,
+                        Name = mic.Name,
+                        Artist = artist,
+                        MediaItemCollection = mic
+                    }));
+                
+                // Check each media item collection
+                foreach(var mediaItemCollection in mediaItemCollections)
+                {
+                    // Get media items for collection
+                    var mediaItems = GetMediaItemsForMediaItemCollection(artist.Name, mediaItemCollection.Name);
+
+                    searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
+                        .Select(mi => new SearchResult()
+                        {
+                            EntityType = EntityTypes.MediaItem,
+                            Name = mi.Name,
+                            Artist = artist,
+                            MediaItemCollection = mediaItemCollection,
+                            MediaItem = mi
+                        }));
+                }
+            }
+            
+            return searchResults;
+        }        
     }
 }

@@ -133,6 +133,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Queue.
+        /// </summary>
+        internal static string MediaSourceQueueText {
+            get {
+                return ResourceManager.GetString("MediaSourceQueueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SD card.
         /// </summary>
         internal static string MediaSourceSDCardText {

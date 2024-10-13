@@ -24,10 +24,13 @@ namespace CFMediaPlayer
             builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
 
             // Config services           
+            builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddScoped<IUserSettingsService>((scope) =>
             {
                 return new UserSettingsService(FileSystem.AppDataDirectory);
             });
+
+            builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();
 
             // Register main page & model
             builder.Services.AddSingleton<MainPageModel>();

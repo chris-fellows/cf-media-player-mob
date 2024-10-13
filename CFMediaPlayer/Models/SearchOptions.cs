@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CFMediaPlayer.Enums
+namespace CFMediaPlayer.Models
 {
-    public enum PlaylistActions
+    public class SearchOptions
     {
-        AddToPlaylist,
-        RemoveFromPlaylist
+        public string Text { get; set; } = String.Empty;
     }
 }

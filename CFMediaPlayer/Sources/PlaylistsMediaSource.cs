@@ -1,6 +1,7 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 
 namespace CFMediaPlayer.Sources
 {
@@ -100,46 +101,43 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<PlaylistAction> GetPlaylistActionsForMediaItem(bool isPlaylistMediaSourceSelected, MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
         {
-            var items = new List<PlaylistAction>();          
+            var items = new List<MediaItemAction>();
 
-            if (!isPlaylistMediaSourceSelected && mediaItem != null)
+            // Check each file
+            foreach (var file in Directory.GetFiles(_rootPath))
             {
-                // Check each file
-                foreach (var file in Directory.GetFiles(_rootPath))
+                // Get playlist handler
+                var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
+                if (playlist != null)   // Playlist
                 {
-                    // Get playlist handler
-                    var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                    if (playlist != null)   // Playlist
+                    // Check if media item in playlist
+                    playlist.SetFile(file);
+                    var mediaItems = playlist.GetAll();
+                    var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
+
+                    // TODO: Set language resources
+                    var item = new MediaItemAction()
                     {
-                        // Check if media item in playlist
-                        playlist.SetFile(file);
-                        var mediaItems = playlist.GetAll();
-                        var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
+                        Name = isFoundMediaItem ?
+                                $"Remove from playlist {Path.GetFileNameWithoutExtension(file)}" :
+                                $"Add to playlist {Path.GetFileNameWithoutExtension(file)}",
+                        File = file,
+                        SelectedAction = isFoundMediaItem ?
+                                MediaItemActions.RemoveFromPlaylist :
+                                MediaItemActions.AddToPlaylist
+                    };
+                    items.Add(item);
 
-                        // TODO: Set language resources
-                        var item = new PlaylistAction()
-                        {
-                            Name =  isFoundMediaItem ?
-                                    $"Remove from playlist {Path.GetFileNameWithoutExtension(file)}" :
-                                    $"Add to playlist {Path.GetFileNameWithoutExtension(file)}",
-                            File = file,
-                            SelectedAction = isFoundMediaItem ? 
-                                    PlaylistActions.RemoveFromPlaylist : 
-                                    PlaylistActions.AddToPlaylist
-                        };         
-                        items.Add(item);
-
-                        playlist.SetFile("");
-                    }
+                    playlist.SetFile("");
                 }
             }
 
             // Add header
             if (!items.Any())
             {
-                var itemNone = new PlaylistAction()
+                var itemNone = new MediaItemAction()
                 {
                     Name = "Playlist actions..."
                 };
@@ -149,7 +147,7 @@ namespace CFMediaPlayer.Sources
             return items;
         }
 
-        public void ExecutePlaylistAction(string playlistFile, MediaItem mediaItem, PlaylistActions playlistAction)
+        public void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions mediaItemAction)
         {
             var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
             if (playlist != null)
@@ -158,15 +156,15 @@ namespace CFMediaPlayer.Sources
                 var mediaItems = playlist.GetAll();
 
                 // Add or remove playlist item
-                switch (playlistAction)
+                switch (mediaItemAction)
                 {
-                    case PlaylistActions.AddToPlaylist:
+                    case MediaItemActions.AddToPlaylist:
                         if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))  // Not in playlist already
                         {
                             mediaItems.Add(mediaItem);                            
                         }
                         break;
-                    case PlaylistActions.RemoveFromPlaylist:
+                    case MediaItemActions.RemoveFromPlaylist:
                         mediaItems.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);
                         break;
                 }
@@ -175,6 +173,41 @@ namespace CFMediaPlayer.Sources
 
                 playlist.SetFile("");
             }
-        }     
+        }
+
+        public List<SearchResult> Search(SearchOptions searchOptions)
+        {
+            var searchResults = new List<SearchResult>();
+
+            var mediaItemCollections = GetMediaItemCollectionsForArtist("");    // Playlists
+
+            foreach(var mediaItemCollection in mediaItemCollections)
+            {
+                if (SearchUtilities.IsValidSearchResult(mediaItemCollection, searchOptions))
+                {
+                    searchResults.Add(new SearchResult()
+                    {
+                        EntityType = EntityTypes.MediaItemCollection,
+                        Name = mediaItemCollection.Name,
+                        Artist = new Artist() { Name = "None" },
+                        MediaItemCollection = mediaItemCollection
+                    });
+                }
+
+                var mediaItems = GetMediaItemsForMediaItemCollection("", mediaItemCollection.Name);
+
+                searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
+                       .Select(mi => new SearchResult()
+                       {
+                           EntityType = EntityTypes.MediaItem,
+                           Name = mi.Name,
+                           Artist = new Artist() { Name = "None" },
+                           MediaItemCollection = mediaItemCollection,
+                           MediaItem = mi
+                       }));
+            }
+
+            return searchResults;
+        }
     }
 }

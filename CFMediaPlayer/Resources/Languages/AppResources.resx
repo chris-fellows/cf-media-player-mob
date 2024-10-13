@@ -150,4 +150,7 @@
   <data name="MainAddMediaItemToPlaylistText" xml:space="preserve">
     <value>Add to playlist</value>
   </data>
+  <data name="MediaSourceQueueText" xml:space="preserve">
+    <value>Queue</value>
+  </data>
 </root>

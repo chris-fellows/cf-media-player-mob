@@ -1,7 +1,9 @@
-﻿namespace CFMediaPlayer.Enums
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CFMediaPlayer.Enums
 {
     public enum PlayModes
-    {
+    {        
         SingleMediaItem,
         NextMediaItem,
         ShuffleMediaItemCollection, // Random media item in current album

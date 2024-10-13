@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Models
 {
-    public class PlaylistAction
+    public class MediaItemAction
     {
         public string Name { get; set; } = String.Empty;
 
         public string File { get; set; } = String.Empty;
 
-        public PlaylistActions SelectedAction { get; set; }
+        public MediaItemActions SelectedAction { get; set; }
     }
 }

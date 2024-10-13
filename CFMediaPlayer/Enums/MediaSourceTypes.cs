@@ -3,6 +3,7 @@
     public enum MediaSourceTypes
     {
         Playlist,
+        Queue,
         Storage
     }
 }
