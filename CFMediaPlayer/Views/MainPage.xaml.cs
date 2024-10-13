@@ -20,7 +20,7 @@ namespace CFMediaPlayer
             this.BindingContext = _model;
             
             // Default to auto-play next media item on completion
-            _model.AutoPlayNext = true;       
+            //_model.AutoPlayNext = true;       
 
             // Handle debug messages
             _model.SetDebugAction((debug) =>
@@ -31,6 +31,8 @@ namespace CFMediaPlayer
             // Set default media location to internal storage
             _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);
             _model.OnPropertyChanged(nameof(_model.SelectedMediaLocation));
+
+            var xxx = 1000;
         }        
 
         /// <summary>
@@ -49,17 +51,17 @@ namespace CFMediaPlayer
             System.Diagnostics.Debug.WriteLine($"{DateTimeOffset.UtcNow.ToString()} OnElapsedSliderValueChanged Old={e.OldValue}, New={e.NewValue}");
         }
      
-        private void OnCounterClicked(object sender, EventArgs e)
-        {
-            count++;
+        //private void OnCounterClicked(object sender, EventArgs e)
+        //{            
+        //    count++;
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
+        //    if (count == 1)
+        //        CounterBtn.Text = $"Clicked {count} time";
+        //    else
+        //        CounterBtn.Text = $"Clicked {count} times";
 
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+        //    SemanticScreenReader.Announce(CounterBtn.Text);
+        //}
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
@@ -71,7 +73,13 @@ namespace CFMediaPlayer
             {
                 StatusLabel.Text = $"Collections=" + _model.MediaItemCollections.Count;
             }
-        }      
-    }
+        }
 
+        private void ElapsedSlider_DragCompleted(object sender, EventArgs e)
+        {
+            // Advance to particular time player media item. We can't set the slider to be TwoWay because that causes
+            // let ElapsedTimeInt to be set whenever the elapsed time is updated
+            _model.ElapsedTimeInt = (int)ElapsedSlider.Value;            
+        }
+    }
 }

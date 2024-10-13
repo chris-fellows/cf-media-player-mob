@@ -33,6 +33,7 @@ namespace CFMediaPlayer.ViewModels
 
             // Set commands
             CreatePlaylistCommand = new Command(CreatePlaylist);
+            CancelCreatePlaylistCommand = new Command(CancelCreatePlaylist);
         }
 
         private string _name = String.Empty;
@@ -54,6 +55,13 @@ namespace CFMediaPlayer.ViewModels
             _playlist.SaveAll(new());
 
             Shell.Current.GoToAsync($"//{nameof(MainPage)}?NewPlaylistName={Name}");
+        }
+
+        public ICommand CancelCreatePlaylistCommand { get; set; }
+
+        private void CancelCreatePlaylist()
+        {
+            Shell.Current.GoToAsync($"//{nameof(MainPage)}");
         }
     }
 }

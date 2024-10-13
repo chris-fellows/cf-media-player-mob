@@ -70,6 +70,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to playlist.
+        /// </summary>
+        internal static string MainAddMediaItemToPlaylistText {
+            get {
+                return ResourceManager.GetString("MainAddMediaItemToPlaylistText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select an album.
         /// </summary>
         internal static string MainSelectAlbumText {

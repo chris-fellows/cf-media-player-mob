@@ -147,4 +147,7 @@
   <data name="Save" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="MainAddMediaItemToPlaylistText" xml:space="preserve">
+    <value>Add to playlist</value>
+  </data>
 </root>

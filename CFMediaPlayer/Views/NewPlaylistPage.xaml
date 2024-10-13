@@ -23,7 +23,7 @@
                 Text="{Binding LocalizationResources[Save], Mode=OneWay}" />
 
             <Button x:Name="CancelBtn"
-                Clicked="CancelBtn_Clicked"
+                Command="{Binding CancelCreatePlaylistCommand}"
                 Text="{Binding LocalizationResources[Cancel], Mode=OneWay}" />
         </HorizontalStackLayout>
     </VerticalStackLayout>

@@ -44,5 +44,21 @@ namespace CFMediaPlayer.Interfaces
         /// <param name="albumName"></param>
         /// <returns></returns>
         List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string albumName);
+
+        /// <summary>
+        /// Gets playlists that media item can be added to
+        /// </summary>
+        /// <param name="isPlaylistMediaSourceSelected"></param>
+        /// <param name="mediaItem"></param>
+        /// <returns></returns>
+        List<PlaylistAction> GetPlaylistActionsForMediaItem(bool isPlaylistMediaSourceSelected, MediaItem mediaItem);
+
+        /// <summary>
+        /// Executes action for adding/removing media item for playlist
+        /// </summary>
+        /// <param name="playlistFile"></param>
+        /// <param name="mediaItem"></param>
+        /// <param name="playlistAction"></param>
+        void ExecutePlaylistAction(string playlistFile, MediaItem mediaItem, PlaylistActions playlistAction);        
     }
 }

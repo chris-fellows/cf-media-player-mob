@@ -7,7 +7,7 @@
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
-            Spacing="25">
+            Spacing="12">
             
             <Label
                 Text="CF Media Player"
@@ -16,16 +16,9 @@
 
             <Image
                 Source="{Binding MainLogoImage}"
-                HeightRequest="185"
+                HeightRequest="80"
                 Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a race car number eight" />            
-
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me" 
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Fill" IsVisible="False" />
+                SemanticProperties.Description="CF Media Player" />                        
 
             <Picker x:Name="MediaLocation" 
                      ItemsSource="{Binding MediaLocations}"
@@ -55,12 +48,19 @@
                     Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
             </Picker>
 
+            <Picker x:Name="PlayModeList"
+              ItemsSource="{Binding PlayModes}"
+              ItemDisplayBinding="{Binding Name}"
+              SelectedItem="{Binding SelectedPlayMode, Mode=TwoWay}"
+              Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
+            </Picker>
+
             <StackLayout Margin="0,0,0,0">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="Center" >
 
                     <ImageButton 
                         x:Name="PrevMediaImageBtn"
-                        Source="ic_media_rew.png" 
+                        Source="ic_media_rew.png"                         
                         Command="{Binding PrevCommand}"
                         IsEnabled="{Binding Mode=OneWay, Path=IsPrevEnabled}"
                         HorizontalOptions="Fill" />
@@ -71,34 +71,51 @@
                        SemanticProperties.Hint="Plays media"
                        Command="{Binding PlayOrPauseCommand}"
                        IsEnabled="{Binding Mode=OneWay, Path=IsMediaItemSelected}"
-                       HorizontalOptions="Fill" />                        
-                 
+                       HorizontalOptions="Fill" />
+
                     <ImageButton
                          x:Name="NextMediaImageBtn"
                          Source="ic_media_ff.png"
                          SemanticProperties.Hint="Next item"
                          Command="{Binding NextCommand}"
                          IsEnabled="{Binding Mode=OneWay, Path=IsNextEnabled}"
-                         HorizontalOptions="Fill" />            
+                         HorizontalOptions="Fill" />
                 </StackLayout>
             </StackLayout>
+            
+                    <Label
+                    x:Name="ElapsedLabel"               
+                    Text="{Binding Mode=OneWay, Path=ElapsedTime}"
+                    SemanticProperties.HeadingLevel="Level1" />
+
+            <Slider x:Name="ElapsedSlider"                    
+                    IsEnabled="{Binding Mode=OneWay, Path=IsMediaItemSelected}"
+                    Minimum="0"
+                    Maximum="{Binding Mode=OneWay, Path=DurationInt}"
+                    DragCompleted="ElapsedSlider_DragCompleted"
+                    Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
+
+            <HorizontalStackLayout  
+                      IsVisible="{Binding Mode=OneWay, Path=IsPlaylistActionsEnabled}">
+                <Picker x:Name="PlaylistsForMediaItem" 
+                      ItemsSource="{Binding PlaylistActionsForMediaItem}"
+                      ItemDisplayBinding="{Binding Name}"                      
+                      SelectedItem="{Binding SelectedPlaylistActionForMediaItem, Mode=TwoWay}"
+                      Title="{Binding LocalizationResources[MainAddMediaItemToPlaylistText], Mode=OneWay}">
+                </Picker>
+
+                <Button
+                      x:Name="PlaylistActionBtn"
+                      Text="Update Playlist"                 
+                      SemanticProperties.Hint="Executes playlist action"
+                      Command="{Binding ExecutePlaylistActionCommand}"                    
+                      HorizontalOptions="Fill" />
+            </HorizontalStackLayout>
 
             <Label
                 x:Name="StatusLabel"
                 Text="Ready"                    
-                    SemanticProperties.HeadingLevel="Level1" />
-            
-            <Label
-                x:Name="ElapsedLabel"               
-                Text="{Binding Mode=OneWay, Path=ElapsedTime}"
                 SemanticProperties.HeadingLevel="Level1" />
-            
-
-            <Slider x:Name="ElapsedSlider"                    
-                IsEnabled="{Binding Mode=OneWay, Path=IsMediaItemSelected}"
-                Minimum="0"
-                Maximum="{Binding Mode=OneWay, Path=DurationInt}"
-                Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
 
             <Label
               x:Name="DebugLabel"
@@ -107,7 +124,7 @@
 
             <Button
               x:Name="DebugInfoBtn"
-              Text="Debug info" 
+              Text="Debug info"                 
               SemanticProperties.Hint="Displays debug info"
               Clicked="OnDebugInfoClicked"
               HorizontalOptions="Fill" />       

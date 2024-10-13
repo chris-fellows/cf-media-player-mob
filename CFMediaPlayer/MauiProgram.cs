@@ -1,4 +1,5 @@
 ﻿using CFMediaPlayer.Interfaces;
+using CFMediaPlayer.Services;
 using CFMediaPlayer.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -22,6 +23,12 @@ namespace CFMediaPlayer
             builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });
             builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
 
+            // Config services           
+            builder.Services.AddScoped<IUserSettingsService>((scope) =>
+            {
+                return new UserSettingsService(FileSystem.AppDataDirectory);
+            });
+
             // Register main page & model
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
@@ -29,9 +36,11 @@ namespace CFMediaPlayer
             // Register other pages & models
             builder.Services.AddSingleton<NewPlaylistPageModel>();
             builder.Services.AddSingleton<NewPlaylistPage>();            
+            builder.Services.AddSingleton<UserSettingsPageModel>();
+            builder.Services.AddSingleton<UserSettingsPage>();
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

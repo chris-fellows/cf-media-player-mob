@@ -37,7 +37,7 @@ namespace CFMediaPlayer.Sources
         public List<Artist> GetArtists()
         {
             var artists = new List<Artist>();
-            artists.Add(new Artist() { Path = "None" });   // Dummy artists
+            artists.Add(new Artist() { Path = "None", Name = "None" });   // Dummy artists
             return artists;
         }
 
@@ -54,11 +54,19 @@ namespace CFMediaPlayer.Sources
                 {
                     var itemCollection = new MediaItemCollection()
                     {
-                        Path = file
+                        Path = file,
+                        Name = Path.GetFileNameWithoutExtension(file)
                     };
                     mediaItemCollections.Add(itemCollection);
                 }
             }
+
+            // Add New Playlist option
+            var newPlaylistItemCollection = new MediaItemCollection()
+            {
+                Name = "[New Playlist]"
+            };
+            mediaItemCollections.Add(newPlaylistItemCollection);
 
             return mediaItemCollections;
         }
@@ -67,7 +75,7 @@ namespace CFMediaPlayer.Sources
         {
             var mediaItems = new List<MediaItem>();
 
-            // Check each file
+            // Check each file            
             foreach (var file in Directory.GetFiles(_rootPath))
             {
                 // Get playlist handler
@@ -76,11 +84,14 @@ namespace CFMediaPlayer.Sources
                 {
                     var itemCollection = new MediaItemCollection()
                     {
-                        Path = file
+                        Path = file,
+                        Name = Path.GetFileNameWithoutExtension(file)
                     };
                     if (mediaItemCollectionName == itemCollection.Name)   // IPlaylist found
                     {
+                        playlist.SetFile(file);
                         mediaItems.AddRange(playlist.GetAll());
+                        playlist.SetFile("");
                         break;
                     }
                 }
@@ -88,5 +99,82 @@ namespace CFMediaPlayer.Sources
 
             return mediaItems;
         }
+
+        public List<PlaylistAction> GetPlaylistActionsForMediaItem(bool isPlaylistMediaSourceSelected, MediaItem mediaItem)
+        {
+            var items = new List<PlaylistAction>();          
+
+            if (!isPlaylistMediaSourceSelected && mediaItem != null)
+            {
+                // Check each file
+                foreach (var file in Directory.GetFiles(_rootPath))
+                {
+                    // Get playlist handler
+                    var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
+                    if (playlist != null)   // Playlist
+                    {
+                        // Check if media item in playlist
+                        playlist.SetFile(file);
+                        var mediaItems = playlist.GetAll();
+                        var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
+
+                        // TODO: Set language resources
+                        var item = new PlaylistAction()
+                        {
+                            Name =  isFoundMediaItem ?
+                                    $"Remove from playlist {Path.GetFileNameWithoutExtension(file)}" :
+                                    $"Add to playlist {Path.GetFileNameWithoutExtension(file)}",
+                            File = file,
+                            SelectedAction = isFoundMediaItem ? 
+                                    PlaylistActions.RemoveFromPlaylist : 
+                                    PlaylistActions.AddToPlaylist
+                        };         
+                        items.Add(item);
+
+                        playlist.SetFile("");
+                    }
+                }
+            }
+
+            // Add header
+            if (!items.Any())
+            {
+                var itemNone = new PlaylistAction()
+                {
+                    Name = "Playlist actions..."
+                };
+                items.Add(itemNone);
+            }
+
+            return items;
+        }
+
+        public void ExecutePlaylistAction(string playlistFile, MediaItem mediaItem, PlaylistActions playlistAction)
+        {
+            var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+            if (playlist != null)
+            {
+                playlist.SetFile(playlistFile);
+                var mediaItems = playlist.GetAll();
+
+                // Add or remove playlist item
+                switch (playlistAction)
+                {
+                    case PlaylistActions.AddToPlaylist:
+                        if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))  // Not in playlist already
+                        {
+                            mediaItems.Add(mediaItem);                            
+                        }
+                        break;
+                    case PlaylistActions.RemoveFromPlaylist:
+                        mediaItems.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);
+                        break;
+                }
+
+                playlist.SaveAll(mediaItems);
+
+                playlist.SetFile("");
+            }
+        }     
     }
 }

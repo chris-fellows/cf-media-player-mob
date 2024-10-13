@@ -18,6 +18,11 @@
             Title="New playlist"
             ContentTemplate="{DataTemplate local:NewPlaylistPage}"
             Route="NewPlaylistPage" />
+
+        <ShellContent
+            Title="Settings"
+            ContentTemplate="{DataTemplate local:UserSettingsPage}"
+            Route="UserSettingsPage" />  
     </FlyoutItem>
 
 </Shell>

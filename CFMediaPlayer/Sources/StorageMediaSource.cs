@@ -2,6 +2,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.Sources
 {
@@ -10,11 +11,11 @@ namespace CFMediaPlayer.Sources
     /// </summary>
     internal class StorageMediaSource : IMediaSource
     {
-        private string _rootPath;
+        private string _rootPath = String.Empty;
 
         public StorageMediaSource()
         {
-            //_rootPath = rootPath;
+            
         }
 
         public MediaSourceTypes MediaSourceType => MediaSourceTypes.Storage;
@@ -55,7 +56,7 @@ namespace CFMediaPlayer.Sources
 
                     if (isHasMediaItemCollections)
                     {
-                        artists.Add(new Artist() { Path = folder });
+                        artists.Add(new Artist() { Path = folder, Name = new DirectoryInfo(folder).Name });
                     }
                 }
             }
@@ -75,7 +76,11 @@ namespace CFMediaPlayer.Sources
                 {
                     if (MediaUtilities.IsFolderHasAudioFiles(folder))
                     {
-                        mediaItemCollections.Add(new MediaItemCollection() { Path = folder });
+                        mediaItemCollections.Add(new MediaItemCollection() 
+                            { 
+                                Path = folder,
+                                Name = new DirectoryInfo(folder).Name
+                            });
                     }
                 }
             }
@@ -103,5 +108,24 @@ namespace CFMediaPlayer.Sources
 
             return mediaItems;
         }
+
+        public List<PlaylistAction> GetPlaylistActionsForMediaItem(bool isPlaylistMediaSourceSelected, MediaItem mediaItem)
+        {
+            var items = new List<PlaylistAction>();
+
+            // Add None
+            var itemNone = new PlaylistAction()
+            {
+                Name = "Playlist actions..."
+            };
+            items.Add(itemNone);
+
+            return items;
+        }
+
+        public void ExecutePlaylistAction(string playlistFile, MediaItem mediaItem, PlaylistActions playlistAction)
+        {
+
+        }     
     }
 }

@@ -13,7 +13,7 @@ namespace CFMediaPlayer.Playlists
         private string? _file;
 
         public List<MediaItem> GetAll()
-        {
+        {            
             var playlist = XmlUtilities.DeserializeFromString<Playlist>(File.ReadAllText(_file, System.Text.Encoding.UTF8));
 
             return playlist.Items.Select(item =>
