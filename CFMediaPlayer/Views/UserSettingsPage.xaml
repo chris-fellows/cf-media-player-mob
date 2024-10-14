@@ -13,7 +13,7 @@
             ItemsSource="{Binding UIThemes}"
            ItemDisplayBinding="{Binding Name}"
            SelectedItem="{Binding SelectedUITheme, Mode=TwoWay}"
-           Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+           Title="{Binding LocalizationResources[SelectThemeText], Mode=OneWay}">
         </Picker>
 
         <Button

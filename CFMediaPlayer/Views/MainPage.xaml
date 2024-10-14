@@ -67,7 +67,7 @@
               ItemsSource="{Binding PlayModes}"
               ItemDisplayBinding="{Binding Name}"
               SelectedItem="{Binding SelectedPlayMode, Mode=TwoWay}"
-              Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
+              Title="{Binding LocalizationResources[MainSelectPlayModeText], Mode=OneWay}">
             </Picker>
 
             <StackLayout Margin="0,0,0,0">
@@ -110,11 +110,11 @@
                     DragCompleted="ElapsedSlider_DragCompleted"
                     Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
 
-            <Picker x:Name="MyActionsForMediaItem" 
+            <Picker x:Name="MediaItemActionsList" 
                       ItemsSource="{Binding MediaItemActions}"                                    
                       ItemDisplayBinding="{Binding Name}"
                       SelectedItem="{Binding SelectedMediaItemAction, Mode=TwoWay}"
-                      Title="{Binding LocalizationResources[MainAddMediaItemToPlaylistText], Mode=OneWay}">
+                      Title="{Binding LocalizationResources[MainSelectActionText], Mode=OneWay}">
             </Picker>
 
             <Button

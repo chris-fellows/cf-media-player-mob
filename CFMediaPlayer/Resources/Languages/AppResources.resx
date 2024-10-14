@@ -165,4 +165,13 @@
   <data name="NewPlaylistText" xml:space="preserve">
     <value>[New Playlist]</value>
   </data>
+  <data name="SelectThemeText" xml:space="preserve">
+    <value>Select them</value>
+  </data>
+  <data name="MainSelectActionText" xml:space="preserve">
+    <value>Select action</value>
+  </data>
+  <data name="MainSelectPlayModeText" xml:space="preserve">
+    <value>Select play mode</value>
+  </data>
 </root>

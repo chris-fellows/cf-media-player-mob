@@ -79,6 +79,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select action.
+        /// </summary>
+        internal static string MainSelectActionText {
+            get {
+                return ResourceManager.GetString("MainSelectActionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select an album.
         /// </summary>
         internal static string MainSelectAlbumText {
@@ -111,6 +120,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string MainSelectMediaLocationText {
             get {
                 return ResourceManager.GetString("MainSelectMediaLocationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select play mode.
+        /// </summary>
+        internal static string MainSelectPlayModeText {
+            get {
+                return ResourceManager.GetString("MainSelectPlayModeText", resourceCulture);
             }
         }
         
@@ -201,6 +219,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string Save {
             get {
                 return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select them.
+        /// </summary>
+        internal static string SelectThemeText {
+            get {
+                return ResourceManager.GetString("SelectThemeText", resourceCulture);
             }
         }
     }
