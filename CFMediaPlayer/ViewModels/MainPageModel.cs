@@ -6,6 +6,8 @@ using System.Windows.Input;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Services;
+using CFMediaPlayer.Sources;
 using Java.Util.Concurrent.Locks;
 using static Java.Util.Jar.Attributes;
 
@@ -23,42 +25,46 @@ namespace CFMediaPlayer.ViewModels
         
         private Action<string>? _debugAction;        
 
-        private NameValuePair<PlayModes> _selectedPlayMode;
+        private NameValuePair<MediaPlayModes> _selectedPlayMode;
 
         private IMediaPlayer _mediaPlayer { get; set; }
 
         private readonly IMediaLocationService _mediaLocationService;
         private readonly IMediaSearchService _mediaSearchService;
-        private readonly IUserSettingsService _userSettingsService;
+        private readonly IMediaSourceService _mediaSourceService;
+        private readonly IUIThemeService _uiThemeService;
+        private readonly IUserSettingsService _userSettingsService; 
 
-        private List<IMediaSource> _mediaSources { get; set; }
+        //private List<IMediaSource> _mediaSources { get; set; }
         private List<MediaLocation> _mediaLocations;
         private List<Artist> _artists = new List<Artist>();
         private List<MediaItemCollection> _mediaItemCollections = new List<MediaItemCollection>();
         private List<MediaItem> _mediaItems = new List<MediaItem>();
 
-        private List<NameValuePair<PlayModes>> _playModes = new List<NameValuePair<PlayModes>>();
-        private List<MediaItemAction> _mediaItemActions = new List<MediaItemAction>();        
+        private List<NameValuePair<MediaPlayModes>> _playModes = new List<NameValuePair<MediaPlayModes>>();
+        private List<MediaItemAction> _mediaItemActions = new List<MediaItemAction>();
+
+        private UITheme _uiTheme;
 
         public MainPageModel(IMediaLocationService mediaLocationService,
                          IMediaPlayer mediaPlayer, 
                          IMediaSearchService mediaSearchService,
-                         IEnumerable<IMediaSource> mediaSources,
+                         IMediaSourceService mediaSourceService,
+                         IUIThemeService uiThemeService,
                         IUserSettingsService userSettingsService)
         {
             _mediaLocationService = mediaLocationService;
             _mediaSearchService = mediaSearchService;
+            _uiThemeService = uiThemeService;
             _userSettingsService = userSettingsService;
 
             _mediaPlayer = mediaPlayer;
-            _mediaSources = mediaSources.ToList();
+            _mediaSourceService = mediaSourceService;            
 
-            _mediaLocations = mediaLocationService.GetAll();
-
-            foreach (var mediaLocation in _mediaLocations)
-            {
-                _mediaSources.First(s => s.MediaSourceType == mediaLocation.MediaSourceType).SetSource(mediaLocation.RootFolderPath);
-            }
+            //foreach (var mediaLocation in _mediaLocations)
+            //{
+            //    _mediaSources.First(s => s.MediaSourceType == mediaLocation.MediaSourceType).SetSource(mediaLocation.Source);
+            //}
 
             // Handle status change
             _mediaPlayer.SetStatusAction(OnMediaItemStatusChange);
@@ -78,19 +84,26 @@ namespace CFMediaPlayer.ViewModels
             StopCommand = new Command(DoStop);
             ExecuteMediaItemActionCommand = new Command(ExecuteMediaItemAction);
             
-            _playModes = new List<NameValuePair<PlayModes>>()
+            _playModes = new List<NameValuePair<MediaPlayModes>>()
             {
-                new NameValuePair<PlayModes>() { Name = "Single play", Value = Enums.PlayModes.SingleMediaItem },
-                new NameValuePair<PlayModes>() { Name = "Next item", Value = Enums.PlayModes.NextMediaItem },
-                new NameValuePair<PlayModes>() { Name = "Shuffle (Album)", Value = Enums.PlayModes.ShuffleMediaItemCollection },
-                new NameValuePair<PlayModes>() { Name = "Shuffle (Artist)", Value = Enums.PlayModes.ShuffleArtist },
-                new NameValuePair<PlayModes>() { Name = "Shuffle (Storage)", Value = Enums.PlayModes.ShuffleStorage }                
+                new NameValuePair<MediaPlayModes>() { Name = "Single play", Value = Enums.MediaPlayModes.SingleMediaItem },
+                new NameValuePair<MediaPlayModes>() { Name = "Sequential play", Value = Enums.MediaPlayModes.Sequential },
+                new NameValuePair<MediaPlayModes>() { Name = "Shuffle (Album)", Value = Enums.MediaPlayModes.ShuffleMediaItemCollection },
+                new NameValuePair<MediaPlayModes>() { Name = "Shuffle (Artist)", Value = Enums.MediaPlayModes.ShuffleArtist },
+                new NameValuePair<MediaPlayModes>() { Name = "Shuffle (Storage)", Value = Enums.MediaPlayModes.ShuffleStorage }                
             };
 
             // Set default play mode
             SelectedPlayMode = _playModes.First();
-        }
 
+            // Load available media locations
+            LoadAvailableMediaLocations();
+
+            // Get UI theme
+            var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
+            _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);            
+        }
+       
         /// <summary>
         /// Command to play previous media item
         /// </summary>
@@ -111,12 +124,12 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         public ICommand StopCommand { get; set; }
 
-        public ICommand ExecuteMediaItemActionCommand { get; set; }
+        public ICommand ExecuteMediaItemActionCommand { get; set; }    
 
         /// <summary>
         /// Selected play mode
         /// </summary>
-        public NameValuePair<PlayModes> SelectedPlayMode
+        public NameValuePair<MediaPlayModes> SelectedPlayMode
         {
             get { return _selectedPlayMode; }
             set
@@ -125,7 +138,7 @@ namespace CFMediaPlayer.ViewModels
             }
         }
 
-        public List<NameValuePair<PlayModes>> PlayModes
+        public List<NameValuePair<MediaPlayModes>> PlayModes
         {
             get { return _playModes; }
         }
@@ -135,9 +148,16 @@ namespace CFMediaPlayer.ViewModels
             get
             {
                 return _selectedMediaLocation != null ?
-                    _mediaSources.First(ms => ms.MediaSourceType == _selectedMediaLocation.MediaSourceType) :
-                    null;
+                    _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaLocation.Name) :
+                    null;                
             }
+        }
+      
+        private void LoadAvailableMediaLocations()
+        {
+            _mediaLocations = null;
+            _mediaLocations = _mediaLocationService.GetAll().Where(ml =>
+                    _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == ml.Name).IsAvailable).ToList();
         }
 
         private void ClearMediaItems()
@@ -191,11 +211,11 @@ namespace CFMediaPlayer.ViewModels
                 // Display artists for media source
                 if (_selectedMediaLocation != null)
                 {
-                    var isExists = Directory.Exists(_selectedMediaLocation.RootFolderPath);
-                    if (_debugAction != null) _debugAction($"MediaLocation={_selectedMediaLocation.RootFolderPath}, Exists={isExists}");
+                    var isExists = Directory.Exists(_selectedMediaLocation.Source);
+                    if (_debugAction != null) _debugAction($"MediaLocation={_selectedMediaLocation.Source}, Exists={isExists}");
 
                     // Set source location for media source to read
-                    CurrentMediaSource!.SetSource(_selectedMediaLocation.RootFolderPath);
+                    //CurrentMediaSource!.SetSource(_selectedMediaLocation.Source);
 
                     LoadMediaLocationDefaults();
                 }
@@ -219,7 +239,7 @@ namespace CFMediaPlayer.ViewModels
                 OnPropertyChanged(nameof(IsMediaItemSelected));
                 OnPropertyChanged(nameof(PlayButtonImageSource));
 
-                OnPropertyChanged(nameof(IsPlaylistActionsEnabled));
+                OnPropertyChanged(nameof(IsMediaItemActionsEnabled));
             }
         }
 
@@ -229,27 +249,49 @@ namespace CFMediaPlayer.ViewModels
         /// <param name="mediaItem"></param>
         private void LoadMediaItemActions(MediaItem mediaItem)
         {
+            SelectedMediaItemAction = null;
+
+            _mediaItemActions.Clear();
+            _mediaItemActions = new();
+
+            /*
+            OnPropertyChanged(nameof(NewMediaItemActions));
+            OnPropertyChanged(nameof(SelectedMediaItemAction));
+            */
+
             // Get media item actions
-            // TODO: Clean this up. It's confusing how it works.
+            // TODO: Clean this up. It's confusing how it works
             var mediaItemActions = new List<MediaItemAction>();
-            switch (CurrentMediaSource!.MediaSourceType)
+            switch (CurrentMediaSource!.MediaLocation.MediaSourceType)
             {
-                case MediaSourceTypes.Playlist:
-                    //mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Playlist)
-                    //            .GetActionsForMediaItem(mediaItem));
-                    break;
+                //case MediaSourceTypes.Playlist:
+                //    mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Playlist)
+                //                .GetActionsForMediaItem(mediaItem));                    
+                //    break;
                 case MediaSourceTypes.Queue:
-                    //mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Queue)
-                    //            .GetActionsForMediaItem(mediaItem));
+                    // Bit of a hack. Just adds the "Clear queue" item
+                    mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue)
+                                .GetActionsForMediaItem(null));                    
                     break;
                 case MediaSourceTypes.Storage:
-                    mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Playlist)
+                    // Add playlist actions
+                    mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
                                 .GetActionsForMediaItem(mediaItem));
 
-                    mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Queue)
+                    // Add queue actions
+                    mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue)
                                 .GetActionsForMediaItem(mediaItem));
                     break;
-            }     
+            }         
+            if (!mediaItemActions.Any())
+            {
+                var itemNone = new MediaItemAction()
+                {
+                    Name = LocalizationResources.Instance["None"].ToString()
+                };
+                mediaItemActions.Add(itemNone);
+            }
+            _mediaItemActions.AddRange(mediaItemActions);            
 
             // Select default playlist action
             var action = _mediaItemActions.FirstOrDefault(p => !String.IsNullOrEmpty(p.File));
@@ -275,15 +317,23 @@ namespace CFMediaPlayer.ViewModels
             {
                 _selectedMediaItem = value;
 
-                // Set playlist actions for media item (Add/Remove from playlist)
+                // Stop current media
+                var isWasPlaying = IsPlaying;
+                if (isWasPlaying || IsPaused)
+                {
+                    Stop();
+                }
+                
                 if (_selectedMediaItem != null)
                 {
+                    // Set actions for media item (Add to playlist X etc)
                     LoadMediaItemActions(_selectedMediaItem);
 
-                    // Select "Playlist actions..."
-                    //SelectedPlaylistActionForMediaItem = _playlistActionsForAddMediaItem.First(p => p.Name.Equals("Playlist actions..."));
-
-                    //OnPropertyChanged(nameof(SelectedPlaylistActionForMediaItem));
+                    // Respect previous play state. Only play if was playing. Don't play if was paused or stopped.
+                    if (isWasPlaying)
+                    {
+                        PlayMediaItem(_selectedMediaItem);
+                    }
                 }
 
                 // Player buttons
@@ -291,7 +341,7 @@ namespace CFMediaPlayer.ViewModels
                 OnPropertyChanged(nameof(IsPrevEnabled));
                 OnPropertyChanged(nameof(IsPlaying));
                 OnPropertyChanged(nameof(IsMediaItemSelected));
-                OnPropertyChanged(nameof(PlayButtonImageSource));
+                OnPropertyChanged(nameof(PlayButtonImageSource));                
             }
         }
 
@@ -311,7 +361,7 @@ namespace CFMediaPlayer.ViewModels
                 if (_selectedMediaItemCollection != null)
                 {
                     // Display New Playlist page if selected
-                    if (_selectedMediaItemCollection.Name.Equals("[New Playlist]"))
+                    if (_selectedMediaItemCollection.Name.Equals(LocalizationResources.Instance["NewPlaylistText"].ToString()))
                     {
                         Shell.Current.GoToAsync($"//{nameof(NewPlaylistPage)}");
                     }
@@ -511,18 +561,6 @@ namespace CFMediaPlayer.ViewModels
         {
             _artists = CurrentMediaSource!.GetArtists();
 
-            //// Add "New Playlist" option
-            //if (_selectedMediaLocation != null &&
-            //    _selectedMediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
-            //{
-            //    var artist = new Artist()
-            //    {
-            //        Name = "[New Playlist]",
-            //        Path = ""
-            //    };
-            //    _artists.Add(artist);
-            //}
-
             OnPropertyChanged(nameof(Artists));            
         }
 
@@ -714,19 +752,19 @@ namespace CFMediaPlayer.ViewModels
             {
                 //case Enums.PlayModes.SingleMediaItem:
                 //    break;
-                case Enums.PlayModes.NextMediaItem:
+                case Enums.MediaPlayModes.Sequential:
                     if (SelectedMediaItem != _mediaItems.Last())
                     {
                         PlayMediaItem(_mediaItems[_mediaItems.IndexOf(SelectedMediaItem) + 1]);
                     }
                     break;
-                case Enums.PlayModes.ShuffleMediaItemCollection:
+                case Enums.MediaPlayModes.ShuffleMediaItemCollection:
                     {
                         int mediaItemIndex = new Random().Next(0, _mediaItems.Count - 1);   // TODO: Keep track of which items played
                         PlayMediaItem(_mediaItems[mediaItemIndex]);
                     }
                     break;
-                case Enums.PlayModes.ShuffleArtist:
+                case Enums.MediaPlayModes.ShuffleArtist:
                     {
                         // Select random media item collection
                         int mediaCollectionIndex = new Random().Next(0, _mediaItemCollections.Count - 1);
@@ -737,7 +775,7 @@ namespace CFMediaPlayer.ViewModels
                         PlayMediaItem(_mediaItems[mediaItemIndex]);
                     }
                     break;
-                case Enums.PlayModes.ShuffleStorage:
+                case Enums.MediaPlayModes.ShuffleStorage:
                     {
                         // Select random artist
                         int artistIndex = new Random().Next(0, _artists.Count - 1);
@@ -817,9 +855,10 @@ namespace CFMediaPlayer.ViewModels
             if (_debugAction != null) _debugAction($"Status={status}");
         }
 
-        public bool IsPlaylistActionsEnabled
+        public bool IsMediaItemActionsEnabled
         {
-            get { return _selectedMediaLocation != null && _selectedMediaLocation.MediaSourceType != MediaSourceTypes.Playlist; }
+            get { return _selectedMediaLocation != null && 
+                        _selectedMediaLocation.MediaSourceType != MediaSourceTypes.Playlist; }
         }
 
         /// <summary>
@@ -907,38 +946,37 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         /// <param name="parameter"></param>
         private void ExecuteMediaItemAction(object parameter)
-        {
-            // Clear queue
-            if (_selectedMediaItemAction != null &&
-                _selectedMediaItemAction.SelectedAction == Enums.MediaItemActions.ClearQueue)
-            {
-                var mediaSource = _mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Queue);                
-                mediaSource.ExecuteMediaItemAction("", null, Enums.MediaItemActions.ClearQueue);                                
-                return;
-            }
-
-            if (_selectedMediaItemAction != null &&
-                !String.IsNullOrEmpty(_selectedMediaItemAction.File) &&   // Ignore "None"
+        {                        
+            if (_selectedMediaItemAction != null &&        
+                _selectedMediaItemAction.Name != LocalizationResources.Instance["None"].ToString() &&
                 _selectedMediaItem != null)
-            {
-                // Execute playlist action
-                _mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Playlist)
-                    .ExecuteMediaItemAction(_selectedMediaItemAction.File,
-                            _selectedMediaItem,
-                            _selectedMediaItemAction.SelectedAction);
+            {                
+                _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaItemAction.MediaLocationName)
+                    .ExecuteMediaItemAction(_selectedMediaItem, _selectedMediaItemAction);
              
                 // Refresh actions
                 LoadMediaItemActions(_selectedMediaItem);
             }
         }
         
+        /// <summary>
+        /// Command to execute search.
+        /// </summary>
+        /// <remarks>We could search all media locations but that could be slow</remarks>
         public ICommand SearchCommand => new Command<string>((string text) =>
         {
-            var results = _mediaSearchService.Search(new SearchOptions() { Text = text }).Result;
+            // Set search options            
+            var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
+
+            // Get results
+            var results = _mediaSearchService.Search(searchOptions).Result;
 
             SearchResults = results;
         });
 
+        /// <summary>
+        /// Search results
+        /// </summary>
         private List<SearchResult> _searchResults = new List<SearchResult>();
         public List<SearchResult> SearchResults
         {
@@ -954,6 +992,10 @@ namespace CFMediaPlayer.ViewModels
             }
         }
 
+        /// <summary>
+        /// Selects search result
+        /// </summary>
+        /// <param name="name"></param>
         public void SelectSearchResult(string name)
         {
             // Get search result
@@ -961,10 +1003,6 @@ namespace CFMediaPlayer.ViewModels
 
             // Get media location
             var mediaLocation = _mediaLocations.First(ml => ml.Name == searchResult.MediaLocationName);
-
-            // Get media source
-            //var mediaSource = _mediaSources.First(ms => ms.MediaSourceType == mediaLocation.MediaSourceType);
-            //mediaSource.SetSource(mediaLocation.RootFolderPath);
 
             // Select media location. Sets media source
             SelectedMediaLocation = mediaLocation;
@@ -993,12 +1031,6 @@ namespace CFMediaPlayer.ViewModels
             OnPropertyChanged(nameof(SelectedArtist));
             OnPropertyChanged(nameof(SelectedMediaItemCollection));
             OnPropertyChanged(nameof(SelectedMediaItem));
-        }
-
-        //public ICommand SelectSearchResultCommand => new Command<string>((string text) =>
-        //{
-        //    int xxx = 1000;
-        //    var result = text;
-        //});
+        }        
     }
 }

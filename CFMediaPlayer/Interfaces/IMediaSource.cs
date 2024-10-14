@@ -9,20 +9,14 @@ namespace CFMediaPlayer.Interfaces
     public interface IMediaSource
     {
         /// <summary>
-        /// Sets source location (E.g. Root path)
+        /// Media location
         /// </summary>
-        /// <param name="source"></param>
-        void SetSource(string source);
-
+        MediaLocation MediaLocation { get; }
+        
         /// <summary>
         /// Whether media source is currently available. E.g. User may unmount SD card.
         /// </summary>
         bool IsAvailable { get; }
-
-        /// <summary>
-        /// Media source type
-        /// </summary>
-        MediaSourceTypes MediaSourceType { get; }
 
         /// <summary>
         /// Gets all artists
@@ -53,13 +47,17 @@ namespace CFMediaPlayer.Interfaces
         List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem);
 
         /// <summary>
-        /// Executes action for adding/removing media item for playlist
-        /// </summary>
-        /// <param name="playlistFile"></param>
+        /// Executes action for media item. E.g. Add to playlist, add to queue etc
+        /// </summary>        
         /// <param name="mediaItem"></param>
-        /// <param name="playlistAction"></param>
-        void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions playlistAction);
+        /// <param name="mediaItemAction"></param>
+        void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction);
 
+        /// <summary>
+        /// Search media source
+        /// </summary>
+        /// <param name="searchOptions"></param>
+        /// <returns></returns>
         List<SearchResult> Search(SearchOptions searchOptions);
     }
 }

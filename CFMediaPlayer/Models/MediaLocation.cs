@@ -3,7 +3,7 @@
 namespace CFMediaPlayer.Models
 {
     /// <summary>
-    /// Location of media (Local store, playlist etc)
+    /// Location of media (Local store, playlist, queue etc)
     /// </summary>
     public class MediaLocation
     {
@@ -17,6 +17,9 @@ namespace CFMediaPlayer.Models
         /// </summary>
         public MediaSourceTypes MediaSourceType { get; set; }
 
-        public string RootFolderPath { get; set; } = String.Empty;
+        /// <summary>
+        /// Source for location. Either local folder or cloud URL
+        /// </summary>
+        public string Source { get; set; } = String.Empty;
     }
 }

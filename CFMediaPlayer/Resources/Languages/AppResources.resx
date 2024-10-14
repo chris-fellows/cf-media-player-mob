@@ -153,4 +153,16 @@
   <data name="MediaSourceQueueText" xml:space="preserve">
     <value>Queue</value>
   </data>
+  <data name="MediaSourceOneDriveText" xml:space="preserve">
+    <value>OneDrive</value>
+  </data>
+  <data name="MediaSourceGoogleText" xml:space="preserve">
+    <value>Google cloud</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="NewPlaylistText" xml:space="preserve">
+    <value>[New Playlist]</value>
+  </data>
 </root>

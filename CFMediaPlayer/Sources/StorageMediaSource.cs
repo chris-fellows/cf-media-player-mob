@@ -11,26 +11,29 @@ namespace CFMediaPlayer.Sources
     /// </summary>
     internal class StorageMediaSource : IMediaSource
     {
-        private string _rootPath = String.Empty;
+        private readonly MediaLocation _mediaLocation;
+        //private string _rootPath = String.Empty;
 
-        public StorageMediaSource()
+        public StorageMediaSource(MediaLocation mediaLocation)
         {
-            
+            _mediaLocation = mediaLocation;
         }
 
-        public MediaSourceTypes MediaSourceType => MediaSourceTypes.Storage;
+        public MediaLocation MediaLocation => _mediaLocation;
 
-        public void SetSource(string source)
-        {
-            _rootPath = source;
-        }
+        //public MediaSourceTypes MediaSourceType => MediaSourceTypes.Storage;
+
+        //public void SetSource(string source)
+        //{
+        //    _rootPath = source;
+        //}
 
         public bool IsAvailable
         {
             get
             {
-                return !String.IsNullOrEmpty(_rootPath) &&
-                    Directory.Exists(_rootPath);
+                return !String.IsNullOrEmpty(_mediaLocation.Source) &&
+                    Directory.Exists(_mediaLocation.Source);                
             }
         }
 
@@ -38,9 +41,9 @@ namespace CFMediaPlayer.Sources
         {
             var artists = new List<Artist>();
 
-            if (Directory.Exists(_rootPath))
+            if (IsAvailable)
             {
-                var folders = Directory.GetDirectories(_rootPath);
+                var folders = Directory.GetDirectories(_mediaLocation.Source);
                 foreach (var folder in folders)
                 {
                     // Check that folder contains albums
@@ -68,7 +71,7 @@ namespace CFMediaPlayer.Sources
         {
             var mediaItemCollections = new List<MediaItemCollection>();
 
-            var path = Path.Combine(_rootPath, artistName);
+            var path = Path.Combine(_mediaLocation.Source, artistName);
             if (Directory.Exists(path))
             {
                 var folders = Directory.GetDirectories(path);
@@ -93,7 +96,7 @@ namespace CFMediaPlayer.Sources
             var mediaItems = new List<MediaItem>();
 
             // TODO: Filter by extension
-            var path = Path.Combine(_rootPath, artistName, mediaItemCollectionName);
+            var path = Path.Combine(_mediaLocation.Source, artistName, mediaItemCollectionName);
             if (Directory.Exists(path))
             {
                 var files = Directory.GetFiles(path);
@@ -113,21 +116,21 @@ namespace CFMediaPlayer.Sources
         {
             var items = new List<MediaItemAction>();
 
-            var item1 = new MediaItemAction()
-            {
-                Name = "Add to queue",
-                File = mediaItem.FilePath,
-                SelectedAction = MediaItemActions.AddToQueue
-            };
-            items.Add(item1);
+            //var item1 = new MediaItemAction()
+            //{
+            //    Name = "Add to queue",
+            //    File = mediaItem.FilePath,
+            //    SelectedAction = MediaItemActions.AddToQueue
+            //};
+            //items.Add(item1);
 
-            var item2 = new MediaItemAction()
-            {
-                Name = "Clear queue",
-                File = mediaItem.FilePath,
-                SelectedAction = MediaItemActions.ClearQueue
-            };
-            items.Add(item2);
+            //var item2 = new MediaItemAction()
+            //{
+            //    Name = "Clear queue",
+            //    File = mediaItem.FilePath,
+            //    SelectedAction = MediaItemActions.ClearQueue
+            //};
+            //items.Add(item2);
 
             //// Add None
             //if (!items.Any())
@@ -142,7 +145,7 @@ namespace CFMediaPlayer.Sources
             return items;
         }
 
-        public void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions playlistAction)
+        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction playlistAction)
         {
             // No action
         }

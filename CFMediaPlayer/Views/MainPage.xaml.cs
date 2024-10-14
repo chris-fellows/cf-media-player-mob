@@ -30,9 +30,7 @@ namespace CFMediaPlayer
             
             // Set default media location to internal storage
             _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);
-            _model.OnPropertyChanged(nameof(_model.SelectedMediaLocation));
-
-            var xxx = 1000;
+            _model.OnPropertyChanged(nameof(_model.SelectedMediaLocation));            
         }        
 
         /// <summary>
@@ -65,28 +63,29 @@ namespace CFMediaPlayer
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
-            if (_model.MediaItemCollections == null)
-            {
-                StatusLabel.Text = $"Collections=null";
-            }
-            else
-            {
-                StatusLabel.Text = $"Collections=" + _model.MediaItemCollections.Count;
-            }
+            //StatusLabel.Text = $"MediaItemActions=" + _model.MediaItemActions.Count;            
+
+        //    if (_model.MediaItemCollections == null)
+        //    {
+        //        StatusLabel.Text = $"Collections=null";
+        //    }
+        //    else
+        //    {
+        //        StatusLabel.Text = $"Collections=" + _model.MediaItemCollections.Count;
+        //    }
         }
 
         private void ElapsedSlider_DragCompleted(object sender, EventArgs e)
         {
             // Advance to particular time player media item. We can't set the slider to be TwoWay because that causes
-            // let ElapsedTimeInt to be set whenever the elapsed time is updated
+            // let ElapsedTimeInt to be set whenever the elapsed time is updated and that causes jumpy playback
             _model.ElapsedTimeInt = (int)ElapsedSlider.Value;            
         }
 
         private void SearchResultTextCell_Tapped(object sender, EventArgs e)
         {
             TextCell textCell = (TextCell)sender;
-            _model.SelectSearchResult(textCell.Text);
-            int xxx = 1000;
+            _model.SelectSearchResult(textCell.Text);            
         }
     }
 }

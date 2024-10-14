@@ -1,5 +1,8 @@
-﻿using CFMediaPlayer.Interfaces;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Interfaces;
+using CFMediaPlayer.Models;
 using CFMediaPlayer.Services;
+using CFMediaPlayer.Sources;
 using CFMediaPlayer.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -20,14 +23,78 @@ namespace CFMediaPlayer
                 });
 
             builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();
-            builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });
+            //builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });   // We want one IMediaSource per MediaLocation
             builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
 
-            // Config services           
+            // Config services                       
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
+            builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
             builder.Services.AddScoped<IUserSettingsService>((scope) =>
+            {                
+                var userSettingsService = new UserSettingsService(FileSystem.AppDataDirectory);
+
+                // Create user if not exists
+                var userSettings = userSettingsService.GetByUsername(Environment.UserName);
+                if (userSettings == null)
+                {
+                    var uiThemes = scope.GetRequiredService<IUIThemeService>().GetAll();
+                    var systemSettings = scope.GetService<ISystemSettingsService>().GetAll().FirstOrDefault();
+                    userSettings = new UserSettings()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Username = Environment.UserName,
+                        UIThemeId = systemSettings.DefaultUIThemeId,
+                        CloudCredentialList = new List<CloudCredentials>(),
+                        PlayMode = systemSettings.DefaultPlayMode
+                    };
+                    userSettingsService.Update(userSettings);
+                }
+                return userSettingsService;
+            });
+            builder.Services.AddScoped<ISystemSettingsService>((scope) =>
             {
-                return new UserSettingsService(FileSystem.AppDataDirectory);
+                var systemSettingsService = new SystemSettingsService(FileSystem.AppDataDirectory);
+
+                // Create system settings if not exists
+                var systemSettings = systemSettingsService.GetAll().FirstOrDefault();
+                if (systemSettings == null)
+                {
+                    var uiThemes = scope.GetRequiredService<IUIThemeService>().GetAll();
+                    systemSettings = new SystemSettings()
+                    {                        
+                        DefaultUIThemeId = uiThemes.First().Id,
+                        DefaultPlayMode = MediaPlayModes.Sequential
+                    };
+                    systemSettingsService.Update(systemSettings);
+                }
+                return systemSettingsService;
+            });
+            builder.Services.AddSingleton<IUIThemeService, UIThemeService>();
+
+            // Register IMediaSources to provide one IMediaSource per MediaLocation
+            builder.Services.AddSingleton<IMediaSourceService>((scope) =>
+            {
+                List<IMediaSource> mediaSources = new List<IMediaSource>();
+                var mediaLocationService = scope.GetRequiredService<IMediaLocationService>();                
+                foreach(var mediaLocation in mediaLocationService.GetAll())
+                {
+                    switch (mediaLocation.MediaSourceType)
+                    {
+                        case Enums.MediaSourceTypes.Cloud:
+                            mediaSources.Add(new CloudMediaSource(mediaLocation));
+                            break;
+                        case Enums.MediaSourceTypes.Playlist:
+                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylist>()));
+                            break;
+                        case Enums.MediaSourceTypes.Queue:
+                            mediaSources.Add(new QueueMediaSource(mediaLocation));
+                            break;
+                        case Enums.MediaSourceTypes.Storage:
+                            mediaSources.Add(new StorageMediaSource(mediaLocation));
+                            break;
+                    }
+                }
+                return new MediaSourceService(mediaSources);
             });
 
             builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();

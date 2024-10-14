@@ -1,43 +1,20 @@
 ﻿using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using CFMediaPlayer.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Services
 {
-    public class UserSettingsService : IUserSettingsService
-    {
-        private readonly string _folder;
-
-        public UserSettingsService(string folder)
+    public class UserSettingsService : XmlEntityWithIdStoreService<UserSettings, string>, IUserSettingsService
+    {        
+        public UserSettingsService(string folder) : base(folder, "UserSettings.*.xml",
+                                            (userSettings) => $"UserSettings.{userSettings.Id}.xml",
+                                            (id) => $"UserSettings.{id}.xml")
         {
-            _folder = folder;
+     
         }
 
-        public UserSettings Get()
+        public UserSettings? GetByUsername(string username)
         {
-            var file = Path.Combine(_folder, "UserSettings.xml");
-
-            UserSettings userSettings = null;
-            if (File.Exists(file))
-            {
-                userSettings = XmlUtilities.DeserializeFromString<UserSettings>(file);
-            }
-            else
-            {
-                userSettings = new UserSettings();
-            }
-            return userSettings;
-        }
-
-        public void Update(UserSettings settings)
-        {
-            var file = Path.Combine(_folder, "UserSettings.xml");
-            File.WriteAllText(file, XmlUtilities.SerializeToString(settings));
+            return GetAll().FirstOrDefault(us => us.Username == username);
         }
     }
 }

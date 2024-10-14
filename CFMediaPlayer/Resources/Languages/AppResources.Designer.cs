@@ -115,11 +115,29 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Google cloud.
+        /// </summary>
+        internal static string MediaSourceGoogleText {
+            get {
+                return ResourceManager.GetString("MediaSourceGoogleText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Internal storage.
         /// </summary>
         internal static string MediaSourceInternalStorageText {
             get {
                 return ResourceManager.GetString("MediaSourceInternalStorageText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OneDrive.
+        /// </summary>
+        internal static string MediaSourceOneDriveText {
+            get {
+                return ResourceManager.GetString("MediaSourceOneDriveText", resourceCulture);
             }
         }
         
@@ -156,6 +174,24 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string NewPlaylistPlaylistNameLabel {
             get {
                 return ResourceManager.GetString("NewPlaylistPlaylistNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [New Playlist].
+        /// </summary>
+        internal static string NewPlaylistText {
+            get {
+                return ResourceManager.GetString("NewPlaylistText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string None {
+            get {
+                return ResourceManager.GetString("None", resourceCulture);
             }
         }
         

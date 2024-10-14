@@ -6,24 +6,32 @@ namespace CFMediaPlayer.Services
 {
     public class MediaLocationService : IMediaLocationService
     {
+        private readonly ICloudProviderService _cloudProviderService;
+
+        public MediaLocationService(ICloudProviderService cloudProviderService)
+        {
+            _cloudProviderService = cloudProviderService;
+        }
+
         public List<MediaLocation> GetAll()
         {
+            // TODO: Filter available locations
             // Set media locations
             var mediaLocations = new List<MediaLocation>()
             {
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString() + " (Test)",
                                 MediaSourceType = MediaSourceTypes.Storage,
-                                RootFolderPath = "/storage/emulated/0/Download" },      // TODO: Remove this                
+                                Source = "/storage/emulated/0/Download" },      // TODO: Remove this                
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Storage,
-                                RootFolderPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
+                                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
 
                 //new MediaLocation() { Name = "Internal storage", MediaSourceName = MediaSourceNames.Storage, 
                 //                RootFolderPath = Path.Combine(Android.OS.Environment.StorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
 
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceSDCardText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Storage,
-                                RootFolderPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
+                                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
 
                 //new MediaLocation() { Name = "Music Test (DirectoryMusic)",
                 //                MediaSourceType = MediaSourceTypes.Storage,
@@ -39,12 +47,23 @@ namespace CFMediaPlayer.Services
 
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourcePlaylistsText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Playlist,
-                                RootFolderPath = FileSystem.AppDataDirectory },
+                                Source = FileSystem.AppDataDirectory },
 
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceQueueText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Queue,
-                                RootFolderPath = "" }
+                                Source = "" },                
             };
+
+            // Add cloud providers
+            foreach(var cloudProvider in _cloudProviderService.GetAll())
+            {
+                mediaLocations.Add(new MediaLocation()
+                {
+                    Name = LocalizationResources.Instance[cloudProvider.NameResource].ToString(),
+                    MediaSourceType = MediaSourceTypes.Cloud,
+                    Source = cloudProvider.Url
+                });
+            }
 
             return mediaLocations;
         }

@@ -1,12 +1,10 @@
 ﻿using CFMediaPlayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Utilities
 {
+    /// <summary>
+    /// Search utilities
+    /// </summary>
     public static class SearchUtilities
     {
         public static bool IsValidSearchResult(Artist artist, SearchOptions searchOptions)

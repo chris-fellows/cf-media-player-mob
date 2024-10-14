@@ -2,11 +2,14 @@
 
 namespace CFMediaPlayer.Models
 {
+    /// <summary>
+    /// Search result
+    /// </summary>
     public class SearchResult
     {
         public EntityTypes EntityType { get; set; }
 
-        public string Name { get; set; } = "Entity Name XYX";
+        public string Name { get; set; } = String.Empty;           
 
         public string MediaLocationName { get; set; } = String.Empty;
 
@@ -14,8 +17,6 @@ namespace CFMediaPlayer.Models
 
         public MediaItemCollection? MediaItemCollection { get; set; }
 
-        public MediaItem? MediaItem { get; set; }
-
-        public object Entity { get; set; }
+        public MediaItem? MediaItem { get; set; }        
     }
 }

@@ -2,6 +2,7 @@
 {
     public enum MediaSourceTypes
     {
+        Cloud,
         Playlist,
         Queue,
         Storage

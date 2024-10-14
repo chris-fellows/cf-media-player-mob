@@ -5,11 +5,14 @@
     /// </summary>
     public class MediaItemCollection
     {
-        public string Path { get; set; } = String.Empty;
+        /// <summary>
+        /// Folder where collection stored
+        /// </summary>
+        public string Path { get; set; } = String.Empty;        
 
-        //public string Name => !String.IsNullOrEmpty(Path) && Directory.Exists(Path) ?
-        //                new DirectoryInfo(Path).Name : String.Empty; 
-
+        /// <summary>
+        /// Name
+        /// </summary>
         public string Name { get; set; } = String.Empty;
         
         /// <summary>

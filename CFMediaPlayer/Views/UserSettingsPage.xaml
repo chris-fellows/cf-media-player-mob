@@ -8,5 +8,19 @@
             Text="Welcome to .NET MAUI!"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+
+        <Picker x:Name="UITheme" 
+            ItemsSource="{Binding UIThemes}"
+           ItemDisplayBinding="{Binding Name}"
+           SelectedItem="{Binding SelectedUITheme, Mode=TwoWay}"
+           Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+        </Picker>
+
+        <Button
+            x:Name="SaveBtn"
+            Text="Save"                 
+            SemanticProperties.Hint="Saves user settings"
+            Command="{Binding ExecuteSaveCommand}"                    
+            HorizontalOptions="Fill" />
     </VerticalStackLayout>
 </ContentPage>

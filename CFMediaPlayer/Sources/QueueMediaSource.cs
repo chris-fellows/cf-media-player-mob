@@ -8,44 +8,33 @@ namespace CFMediaPlayer.Sources
     /// <summary>
     /// Media source from queue.
     /// 
-    /// Media items can be added to the queue.
+    /// The queue starts off empty and the user can add media items to it or clear it.
     /// </summary>
     public class QueueMediaSource : IMediaSource
     {
+        private readonly MediaLocation _mediaLocation;
         private readonly List<MediaItem> _mediaItemQueue = new List<MediaItem>();
 
-        public QueueMediaSource()
+        public QueueMediaSource(MediaLocation mediaLocation)
         {
-            
+            _mediaLocation = mediaLocation;
         }
 
-        public MediaSourceTypes MediaSourceType => MediaSourceTypes.Queue;
-
-        public bool IsAvailable
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public void SetSource(string source)
-        {
-            
-        }
-
+        public MediaLocation MediaLocation => _mediaLocation;
+        
+        public bool IsAvailable => true;        
 
         public List<Artist> GetArtists()
         {
             var artists = new List<Artist>();
-            artists.Add(new Artist() { Path = "None", Name = "None" });   // Dummy artists
+            artists.Add(new Artist() { Name = LocalizationResources.Instance["None"].ToString() });   // Dummy artists
             return artists;
         }
 
         public List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName)
         {
             var mediaItemCollections = new List<MediaItemCollection>();
-            mediaItemCollections.Add(new MediaItemCollection() { Path = "None", Name = "None" });
+            mediaItemCollections.Add(new MediaItemCollection() { Name = LocalizationResources.Instance["None"].ToString() });
             return mediaItemCollections;
         }
 
@@ -55,32 +44,70 @@ namespace CFMediaPlayer.Sources
 
             mediaItems.AddRange(_mediaItemQueue);
 
+            //if (!mediaItems.Any())
+            //{
+            //    mediaItems.Add(new MediaItem() { Name = "None" });
+            //}
+
             return mediaItems;
         }
 
         public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
         {
-            var items = new List<MediaItemAction>();           
+            var items = new List<MediaItemAction>();
 
-            // Add header
-            if (!items.Any())
+            if (mediaItem != null)
             {
-                var itemNone = new MediaItemAction()
+                var item1 = new MediaItemAction()
                 {
-                    Name = "Playlist actions..."
+                    MediaLocationName = _mediaLocation.Name,
+                    Name = "Add to queue (End)",
+                    File = mediaItem.FilePath,
+                    ActionToExecute = MediaItemActions.AddToQueueEnd
                 };
-                items.Add(itemNone);
+                items.Add(item1);
+
+                var item2 = new MediaItemAction()
+                {
+                    MediaLocationName = _mediaLocation.Name,
+                    Name = "Add to queue (Next)",
+                    File = mediaItem.FilePath,
+                    ActionToExecute = MediaItemActions.AddToQueueNext
+                };
+                items.Add(item1);
             }
+
+            var item3 = new MediaItemAction()
+            {
+                MediaLocationName = _mediaLocation.Name,
+                Name = "Clear queue",
+                //File = ""
+                ActionToExecute = MediaItemActions.ClearQueue
+            };
+            items.Add(item3);
+
+            //// Add header
+            //if (!items.Any())
+            //{
+            //    var itemNone = new MediaItemAction()
+            //    {
+            //        Name = "None"
+            //    };
+            //    items.Add(itemNone);
+            //}
 
             return items;
         }
 
-        public void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions mediaItemAction)
+        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)
         {
-            switch (mediaItemAction)
+            switch (mediaItemAction.ActionToExecute)
             {
-                case MediaItemActions.AddToQueue:
+                case MediaItemActions.AddToQueueEnd:
                     _mediaItemQueue.Add(mediaItem);
+                    break;
+                case MediaItemActions.AddToQueueNext:
+                    _mediaItemQueue.Insert(0, mediaItem);
                     break;
                 case MediaItemActions.ClearQueue:
                     _mediaItemQueue.Clear();
@@ -99,8 +126,8 @@ namespace CFMediaPlayer.Sources
                    {
                        EntityType = EntityTypes.MediaItem,
                        Name = mi.Name,
-                       Artist = new Artist() { Name = "None" },
-                       MediaItemCollection = new MediaItemCollection() { Name= "None" },
+                       Artist = new Artist() { Name = LocalizationResources.Instance["None"].ToString() },
+                       MediaItemCollection = new MediaItemCollection() { Name= LocalizationResources.Instance["None"].ToString() },
                        MediaItem = mi
                    }));        
 

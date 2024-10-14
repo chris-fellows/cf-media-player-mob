@@ -1,22 +1,14 @@
 ﻿using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Services
 {
     public class MediaSearchService : IMediaSearchService
-    {
-        private readonly IMediaLocationService _mediaLocationService;
+    {        
         private readonly IEnumerable<IMediaSource> _mediaSources;
 
-        public MediaSearchService(IMediaLocationService mediaLocationService,
-                        IEnumerable<IMediaSource> mediaSources)
-        {
-            _mediaLocationService = mediaLocationService;
+        public MediaSearchService(IEnumerable<IMediaSource> mediaSources)
+        {     
             _mediaSources = mediaSources;
         }
 
@@ -24,10 +16,8 @@ namespace CFMediaPlayer.Services
         {
             // TODO: Make this async
             var searchResults = new List<SearchResult>();
-           
-            var mediaLocations = _mediaLocationService.GetAll();
-
-            foreach(var mediaLocation in mediaLocations)
+                       
+            foreach(var mediaLocation in searchOptions.MediaLocations)
             {
                 //var task = Task.Factory.StartNew(() =>
                 //{
@@ -35,9 +25,9 @@ namespace CFMediaPlayer.Services
                 //});
 
                 // Get media source to process this media location
-                var mediaSource = _mediaSources.First(ms => ms.MediaSourceType == mediaLocation.MediaSourceType);
+                var mediaSource = _mediaSources.First(ms => ms.MediaLocation.Name == mediaLocation.Name);
 
-                mediaSource.SetSource(mediaLocation.RootFolderPath);
+                //mediaSource.SetSource(mediaLocation.Source);
 
                 var searchResultsML = mediaSource.Search(searchOptions);
 

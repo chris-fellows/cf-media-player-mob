@@ -8,37 +8,32 @@ namespace CFMediaPlayer.Sources
     /// <summary>
     /// Media source from playlists    
     /// </summary>
-    public class PlaylistsMediaSource : IMediaSource
+    public class PlaylistMediaSource : IMediaSource
     {
-        private List<IPlaylist> _playlists;
-        private string _rootPath;
+        private readonly MediaLocation _mediaLocation;
+        private List<IPlaylist> _playlists;        
 
-        public PlaylistsMediaSource(IEnumerable<IPlaylist> playlists)
+        public PlaylistMediaSource(MediaLocation mediaLocation, IEnumerable<IPlaylist> playlists)
         {
+            _mediaLocation = mediaLocation;
             _playlists = playlists.ToList();
         }
 
-        public MediaSourceTypes MediaSourceType => MediaSourceTypes.Playlist;
+        public MediaLocation MediaLocation => _mediaLocation;        
 
         public bool IsAvailable
         {
             get
             {
-                return !String.IsNullOrEmpty(_rootPath) &&
-                    Directory.Exists(_rootPath);
+                return !String.IsNullOrEmpty(_mediaLocation.Source) &&
+                       Directory.Exists(_mediaLocation.Source);
             }
         }
-
-        public void SetSource(string source)
-        {
-            _rootPath = source;
-        }
-
 
         public List<Artist> GetArtists()
         {
             var artists = new List<Artist>();
-            artists.Add(new Artist() { Path = "None", Name = "None" });   // Dummy artists
+            artists.Add(new Artist() { Name = LocalizationResources.Instance["None"].ToString() });   // Dummy artists
             return artists;
         }
 
@@ -47,25 +42,30 @@ namespace CFMediaPlayer.Sources
             var mediaItemCollections = new List<MediaItemCollection>();
 
             // Check each file
-            foreach (var file in Directory.GetFiles(_rootPath))
+            if (IsAvailable)
             {
-                // Get playlist handler
-                var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                if (playlist != null)   // Playlist
+                foreach (var file in Directory.GetFiles(_mediaLocation.Source))
                 {
-                    var itemCollection = new MediaItemCollection()
+                    // Get playlist handler
+                    var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
+                    if (playlist != null)   // Playlist
                     {
-                        Path = file,
-                        Name = Path.GetFileNameWithoutExtension(file)
-                    };
-                    mediaItemCollections.Add(itemCollection);
+                        var itemCollection = new MediaItemCollection()
+                        {
+                            Path = file,
+                            Name = Path.GetFileNameWithoutExtension(file)
+                        };
+                        mediaItemCollections.Add(itemCollection);
+                    }
                 }
             }
 
             // Add New Playlist option
+            // NOTE: If there are no playlists then the app will display the New Playlist page as soon as the current
+            // page is population because it auto-selects the first media item collection.
             var newPlaylistItemCollection = new MediaItemCollection()
             {
-                Name = "[New Playlist]"
+                Name = LocalizationResources.Instance["NewPlaylistText"].ToString()
             };
             mediaItemCollections.Add(newPlaylistItemCollection);
 
@@ -77,7 +77,7 @@ namespace CFMediaPlayer.Sources
             var mediaItems = new List<MediaItem>();
 
             // Check each file            
-            foreach (var file in Directory.GetFiles(_rootPath))
+            foreach (var file in Directory.GetFiles(_mediaLocation.Source))
             {
                 // Get playlist handler
                 var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
@@ -106,7 +106,7 @@ namespace CFMediaPlayer.Sources
             var items = new List<MediaItemAction>();
 
             // Check each file
-            foreach (var file in Directory.GetFiles(_rootPath))
+            foreach (var file in Directory.GetFiles(_mediaLocation.Source))
             {
                 // Get playlist handler
                 var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
@@ -120,11 +120,12 @@ namespace CFMediaPlayer.Sources
                     // TODO: Set language resources
                     var item = new MediaItemAction()
                     {
+                        MediaLocationName = _mediaLocation.Name,
                         Name = isFoundMediaItem ?
                                 $"Remove from playlist {Path.GetFileNameWithoutExtension(file)}" :
                                 $"Add to playlist {Path.GetFileNameWithoutExtension(file)}",
-                        File = file,
-                        SelectedAction = isFoundMediaItem ?
+                        File = file,                        
+                        ActionToExecute = isFoundMediaItem ?
                                 MediaItemActions.RemoveFromPlaylist :
                                 MediaItemActions.AddToPlaylist
                     };
@@ -132,31 +133,21 @@ namespace CFMediaPlayer.Sources
 
                     playlist.SetFile("");
                 }
-            }
-
-            // Add header
-            if (!items.Any())
-            {
-                var itemNone = new MediaItemAction()
-                {
-                    Name = "Playlist actions..."
-                };
-                items.Add(itemNone);
-            }
+            }         
 
             return items;
         }
 
-        public void ExecuteMediaItemAction(string playlistFile, MediaItem mediaItem, MediaItemActions mediaItemAction)
+        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)
         {
-            var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+            var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(mediaItemAction.File));
             if (playlist != null)
             {
-                playlist.SetFile(playlistFile);
+                playlist.SetFile(mediaItemAction.File);
                 var mediaItems = playlist.GetAll();
 
                 // Add or remove playlist item
-                switch (mediaItemAction)
+                switch (mediaItemAction.ActionToExecute)
                 {
                     case MediaItemActions.AddToPlaylist:
                         if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))  // Not in playlist already
@@ -189,7 +180,7 @@ namespace CFMediaPlayer.Sources
                     {
                         EntityType = EntityTypes.MediaItemCollection,
                         Name = mediaItemCollection.Name,
-                        Artist = new Artist() { Name = "None" },
+                        Artist = new Artist() { Name = LocalizationResources.Instance["None"].ToString() },
                         MediaItemCollection = mediaItemCollection
                     });
                 }
@@ -201,7 +192,7 @@ namespace CFMediaPlayer.Sources
                        {
                            EntityType = EntityTypes.MediaItem,
                            Name = mi.Name,
-                           Artist = new Artist() { Name = "None" },
+                           Artist = new Artist() { Name = LocalizationResources.Instance["None"].ToString() },
                            MediaItemCollection = mediaItemCollection,
                            MediaItem = mi
                        }));

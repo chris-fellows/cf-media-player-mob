@@ -7,21 +7,15 @@
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
-            Spacing="12">
+            Spacing="6">
             
             <Label
                 Text="CF Media Player"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level5" />
-
-            <Image
-                Source="{Binding MainLogoImage}"
-                HeightRequest="80"
-                Aspect="AspectFit"
-                SemanticProperties.Description="CF Media Player" />
-
+         
             <SearchBar x:Name="MediaSearchBar"
-                     Placeholder="Search items..." 
+                     Placeholder="Search media..." 
                      SearchCommand="{Binding SearchCommand}"
                      SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
 
@@ -34,6 +28,12 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+
+            <Image
+      Source="{Binding MainLogoImage}"
+      HeightRequest="80"
+      Aspect="AspectFit"
+      SemanticProperties.Description="CF Media Player" />
 
             <Picker x:Name="MediaLocation" 
                      ItemsSource="{Binding MediaLocations}"
@@ -110,27 +110,19 @@
                     DragCompleted="ElapsedSlider_DragCompleted"
                     Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
 
-            <HorizontalStackLayout  
-                      IsVisible="{Binding Mode=OneWay, Path=IsPlaylistActionsEnabled}">
-                <Picker x:Name="PlaylistsForMediaItem" 
-                      ItemsSource="{Binding MediaItemAction}"
-                      ItemDisplayBinding="{Binding Name}"                      
+            <Picker x:Name="MyActionsForMediaItem" 
+                      ItemsSource="{Binding MediaItemActions}"                                    
+                      ItemDisplayBinding="{Binding Name}"
                       SelectedItem="{Binding SelectedMediaItemAction, Mode=TwoWay}"
                       Title="{Binding LocalizationResources[MainAddMediaItemToPlaylistText], Mode=OneWay}">
-                </Picker>
+            </Picker>
 
-                <Button
+            <Button
                       x:Name="MediaItemActionBtn"
-                      Text="Update Playlist"                 
+                      Text="Update"                 
                       SemanticProperties.Hint="Executes action for media item"
                       Command="{Binding ExecuteMediaItemActionCommand}"                    
                       HorizontalOptions="Fill" />
-            </HorizontalStackLayout>
-
-            <Label
-                x:Name="StatusLabel"
-                Text="Ready"                    
-                SemanticProperties.HeadingLevel="Level1" />
 
             <Label
               x:Name="DebugLabel"
