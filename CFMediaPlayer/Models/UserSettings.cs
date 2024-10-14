@@ -28,6 +28,11 @@ namespace CFMediaPlayer.Models
         public MediaPlayModes PlayMode { get; set; }
 
         /// <summary>
+        /// Audio settings
+        /// </summary>
+        public string AudioSettingsId { get; set; } = String.Empty;
+
+        /// <summary>
         /// Cloud credentials
         /// </summary>
         public List<CloudCredentials> CloudCredentialList { get; set; } = new();

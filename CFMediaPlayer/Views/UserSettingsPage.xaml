@@ -9,6 +9,13 @@
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
 
+        <Picker x:Name="AudioSettings" 
+           ItemsSource="{Binding AudioSettingsList}"
+          ItemDisplayBinding="{Binding Name}"
+          SelectedItem="{Binding SelectedAudioSettings, Mode=TwoWay}"
+          Title="{Binding LocalizationResources[SelectAudioSettingsText], Mode=OneWay}">
+        </Picker>
+
         <Picker x:Name="UITheme" 
             ItemsSource="{Binding UIThemes}"
            ItemDisplayBinding="{Binding Name}"
@@ -20,7 +27,14 @@
             x:Name="SaveBtn"
             Text="Save"                 
             SemanticProperties.Hint="Saves user settings"
-            Command="{Binding ExecuteSaveCommand}"                    
+            Command="{Binding SaveCommand}"                    
             HorizontalOptions="Fill" />
+
+        <Button
+          x:Name="CancelBtn"
+          Text="Cancels"                 
+          SemanticProperties.Hint="Cancels changes"
+          Command="{Binding CancelCommand}"                    
+          HorizontalOptions="Fill" />
     </VerticalStackLayout>
 </ContentPage>

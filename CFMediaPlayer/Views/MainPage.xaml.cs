@@ -6,7 +6,8 @@ namespace CFMediaPlayer
     /// <summary>
     /// Main page view
     /// </summary>
-    [QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")] 
+    [QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")]
+    [QueryProperty(nameof(UserSettingsUpdated), "UserSettingsUpdated")]
     public partial class MainPage : ContentPage
     {
         int count = 0;       
@@ -43,6 +44,14 @@ namespace CFMediaPlayer
                 _model.SelectPlaylist(value);                
             }
         }
+
+        public string UserSettingsUpdated
+        {
+            set
+            {
+                _model.RefreshUserSettings();
+            }
+        }
    
         private void OnElapsedSliderValueChanged(object? sender, ValueChangedEventArgs e)
         {
@@ -63,16 +72,18 @@ namespace CFMediaPlayer
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
+            _model.ApplyEqualizerTest();
+
             //StatusLabel.Text = $"MediaItemActions=" + _model.MediaItemActions.Count;            
 
-        //    if (_model.MediaItemCollections == null)
-        //    {
-        //        StatusLabel.Text = $"Collections=null";
-        //    }
-        //    else
-        //    {
-        //        StatusLabel.Text = $"Collections=" + _model.MediaItemCollections.Count;
-        //    }
+            //    if (_model.MediaItemCollections == null)
+            //    {
+            //        StatusLabel.Text = $"Collections=null";
+            //    }
+            //    else
+            //    {
+            //        StatusLabel.Text = $"Collections=" + _model.MediaItemCollections.Count;
+            //    }
         }
 
         private void ElapsedSlider_DragCompleted(object sender, EventArgs e)

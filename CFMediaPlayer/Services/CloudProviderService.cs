@@ -7,7 +7,7 @@ namespace CFMediaPlayer.Services
     public class CloudProviderService : ICloudProviderService
     {
         public List<CloudProvider> GetAll()
-        {
+        {            
             var cloudProviders = new List<CloudProvider>()
             {
                 new CloudProvider()

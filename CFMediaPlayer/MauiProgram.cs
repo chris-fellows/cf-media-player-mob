@@ -29,6 +29,30 @@ namespace CFMediaPlayer
             // Config services                       
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
+
+            /* Delete data files
+            var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
+            foreach(var file in dataFiles)
+            {
+                File.Delete(file);
+            }
+            */
+            
+            // Set IAudioSettingsService, create if not present
+            builder.Services.AddScoped<IAudioSettingsService>((scope) =>
+            {
+                var audioSettingsService = new AudioSettingsService(FileSystem.AppDataDirectory);
+
+                // Create audio settings
+                var audioSettings = audioSettingsService.GetAll();
+                if (!audioSettings.Any())
+                {
+                    audioSettingsService.AddDefaults();
+                }
+                return audioSettingsService;
+            });
+
+            // Set IUserSettingsService, create user settings if not present for user
             builder.Services.AddScoped<IUserSettingsService>((scope) =>
             {                
                 var userSettingsService = new UserSettingsService(FileSystem.AppDataDirectory);
@@ -38,37 +62,45 @@ namespace CFMediaPlayer
                 if (userSettings == null)
                 {
                     var uiThemes = scope.GetRequiredService<IUIThemeService>().GetAll();
-                    var systemSettings = scope.GetService<ISystemSettingsService>().GetAll().FirstOrDefault();
+                    var systemSettings = scope.GetService<ISystemSettingsService>().GetAll().FirstOrDefault();                    
+
                     userSettings = new UserSettings()
                     {
                         Id = Guid.NewGuid().ToString(),
                         Username = Environment.UserName,
+                        AudioSettingsId = systemSettings.DefaultAudioSettingsId,
                         UIThemeId = systemSettings.DefaultUIThemeId,
-                        CloudCredentialList = new List<CloudCredentials>(),
+                        CloudCredentialList = new List<CloudCredentials>(),                        
                         PlayMode = systemSettings.DefaultPlayMode
                     };
                     userSettingsService.Update(userSettings);
                 }
                 return userSettingsService;
             });
+
+            // Set ISystemSettingsService, create system settings if not present
             builder.Services.AddScoped<ISystemSettingsService>((scope) =>
             {
                 var systemSettingsService = new SystemSettingsService(FileSystem.AppDataDirectory);
 
                 // Create system settings if not exists
-                var systemSettings = systemSettingsService.GetAll().FirstOrDefault();
+                var systemSettings = systemSettingsService.GetAll().FirstOrDefault();                
                 if (systemSettings == null)
                 {
-                    var uiThemes = scope.GetRequiredService<IUIThemeService>().GetAll();
+                    var audioSettings = scope.GetService<IAudioSettingsService>().GetAll().First(s => s.Name.Equals("Normal"));
+                    var uiTheme = scope.GetRequiredService<IUIThemeService>().GetAll().First();
+
                     systemSettings = new SystemSettings()
                     {                        
-                        DefaultUIThemeId = uiThemes.First().Id,
+                        DefaultUIThemeId = uiTheme.Id,
+                        DefaultAudioSettingsId = audioSettings.Id,
                         DefaultPlayMode = MediaPlayModes.Sequential
                     };
                     systemSettingsService.Update(systemSettings);
                 }
                 return systemSettingsService;
             });
+
             builder.Services.AddSingleton<IUIThemeService, UIThemeService>();
 
             // Register IMediaSources to provide one IMediaSource per MediaLocation

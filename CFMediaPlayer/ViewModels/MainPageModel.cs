@@ -29,6 +29,7 @@ namespace CFMediaPlayer.ViewModels
 
         private IMediaPlayer _mediaPlayer { get; set; }
 
+        private readonly IAudioSettingsService _audioSettingsService;
         private readonly IMediaLocationService _mediaLocationService;
         private readonly IMediaSearchService _mediaSearchService;
         private readonly IMediaSourceService _mediaSourceService;
@@ -45,14 +46,17 @@ namespace CFMediaPlayer.ViewModels
         private List<MediaItemAction> _mediaItemActions = new List<MediaItemAction>();
 
         private UITheme _uiTheme;
+        private AudioSettings _audioSettings;
 
-        public MainPageModel(IMediaLocationService mediaLocationService,
+        public MainPageModel(IAudioSettingsService audioSettingsService,
+                        IMediaLocationService mediaLocationService,
                          IMediaPlayer mediaPlayer, 
                          IMediaSearchService mediaSearchService,
                          IMediaSourceService mediaSourceService,
                          IUIThemeService uiThemeService,
                         IUserSettingsService userSettingsService)
         {
+            _audioSettingsService = audioSettingsService;
             _mediaLocationService = mediaLocationService;
             _mediaSearchService = mediaSearchService;
             _uiThemeService = uiThemeService;
@@ -60,11 +64,6 @@ namespace CFMediaPlayer.ViewModels
 
             _mediaPlayer = mediaPlayer;
             _mediaSourceService = mediaSourceService;            
-
-            //foreach (var mediaLocation in _mediaLocations)
-            //{
-            //    _mediaSources.First(s => s.MediaSourceType == mediaLocation.MediaSourceType).SetSource(mediaLocation.Source);
-            //}
 
             // Handle status change
             _mediaPlayer.SetStatusAction(OnMediaItemStatusChange);
@@ -99,9 +98,13 @@ namespace CFMediaPlayer.ViewModels
             // Load available media locations
             LoadAvailableMediaLocations();
 
-            // Get UI theme
+            // Get user settings (Theme, audio settings)
             var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
-            _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);            
+            _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);           
+            _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
+
+            // Set equalizer preset
+            _mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
         }
        
         /// <summary>
@@ -1031,6 +1034,33 @@ namespace CFMediaPlayer.ViewModels
             OnPropertyChanged(nameof(SelectedArtist));
             OnPropertyChanged(nameof(SelectedMediaItemCollection));
             OnPropertyChanged(nameof(SelectedMediaItem));
-        }        
+        }
+
+        public void ApplyEqualizerTest()
+        {
+            _mediaPlayer.ApplyEqualizerTest();
+            int xxx = 1000;
+        }
+        
+        public void RefreshUserSettings()
+        {
+            int xxx = 100;
+            var userSettings = _userSettingsService.GetByUsername(Environment.UserName)!;                        
+
+            // Handle them change
+            var isThemeChanged = _uiTheme.Id != userSettings.UIThemeId;
+            if (isThemeChanged)
+            {
+                _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);
+            }
+
+            // Handle audio settings
+            var isAudioSettingsChanged = _audioSettings.Id != userSettings.AudioSettingsId;
+            if (isAudioSettingsChanged)
+            {
+                _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
+                _mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
+            }
+        }
     }
 }

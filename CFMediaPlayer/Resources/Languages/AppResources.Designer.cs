@@ -223,7 +223,16 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select them.
+        ///   Looks up a localized string similar to Select audio settings.
+        /// </summary>
+        internal static string SelectAudioSettingsText {
+            get {
+                return ResourceManager.GetString("SelectAudioSettingsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select theme.
         /// </summary>
         internal static string SelectThemeText {
             get {

@@ -1,4 +1,5 @@
-﻿using Android.Media;
+﻿using Android.Media.Audiofx;
+using Android.Media;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 
@@ -10,9 +11,11 @@ namespace CFMediaPlayer
     internal class AndroidMediaPlayer : IMediaPlayer, IDisposable
     {
         private Android.Media.MediaPlayer _mediaPlayer = null;
+        private Equalizer _equalizer = null;
         private int _currentPosition = 0;
         private string? _currentFilePath;
-        private bool _isPrepared;        
+        private bool _isPrepared;
+        private string _equalizerPresetName = String.Empty;
         private Action<string>? _debugAction;        
         private Action<MediaPlayerStatuses>? _statusAction;
        
@@ -83,7 +86,14 @@ namespace CFMediaPlayer
                     _mediaPlayer = null;
                     if (_statusAction != null) _statusAction(MediaPlayerStatuses.StartError);
                 }
-            }           
+            }
+
+            // Apply equalizer preset
+            _equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);
+            if (!String.IsNullOrEmpty(_equalizerPresetName))
+            {
+                ApplyEqualizerPreset(_equalizerPresetName);
+            }            
         }
 
         public void Pause()
@@ -106,9 +116,11 @@ namespace CFMediaPlayer
                     _mediaPlayer.Stop();                                                   
                 }
                 _mediaPlayer.Release();
+                _equalizer.Release();
 
                 _isPrepared = false;
                 _mediaPlayer = null;
+                _equalizer = null;
                 _currentPosition = 0;
                 _currentFilePath = "";
                 if (_debugAction != null) _debugAction("Stopped");
@@ -146,6 +158,54 @@ namespace CFMediaPlayer
             get { return _mediaPlayer != null &&
                     !_mediaPlayer.IsPlaying && 
                     _mediaPlayer.CurrentPosition > 0;  }
+        }
+
+        public void ApplyEqualizerTest()
+        {
+            var equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);            
+
+            for (short index =0; index < equalizer.NumberOfPresets; index++)
+            {
+                var preset = equalizer.GetPresetName(index);                        
+
+                int xxxx = 1000;
+            }
+
+            int xxx = 1000;            
+        }
+
+        public string EqualizerPresetName
+        {
+            get { return _equalizerPresetName; }
+            set
+            {
+                if (_equalizerPresetName != value)
+                {
+                    _equalizerPresetName = value;
+                                                      
+                    ApplyEqualizerPreset(_equalizerPresetName);                    
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies equalizer preset
+        /// </summary>
+        /// <param name="presetName"></param>
+        private void ApplyEqualizerPreset(string presetName)
+        {
+            if (!String.IsNullOrEmpty(_equalizerPresetName) && _equalizer != null)
+            {
+                for (short index = 0; index < _equalizer.NumberOfPresets; index++)
+                {
+                    var currentPresetName = _equalizer.GetPresetName(index);
+                    if (currentPresetName.Equals(presetName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        _equalizer.UsePreset(index);
+                        break;
+                    }
+                }
+            }
         }
     }
 }

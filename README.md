@@ -13,6 +13,7 @@ Features
 - Shuffle for storage location (Randomly play songs from any artist).
 - Search.
 - Playlist management. Currently only internal playlist format supported.
+- User can select equalizer presets.
 
 Queue Playout
 -------------
