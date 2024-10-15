@@ -87,7 +87,13 @@ namespace CFMediaPlayer
             //var item3 = Android.OS.Environment.GetExternalStoragePublicDirectory("#DIRECTORY_MUSIC");
             //var item4 = Android.OS.Environment.StorageDirectory;
 
-            var folders = Directory.GetDirectories("/sdcard");
+            var variables = Environment.GetEnvironmentVariables();
+            var value1 = Environment.GetEnvironmentVariable("EXTERNAL_STORAGE");
+            var value2 = Environment.GetEnvironmentVariable("SECONDARY_STORAGE");
+            
+            var files = Directory.GetFiles("/storage/1B04-2D0C");
+            var drives = Environment.GetLogicalDrives();
+            var folders = Directory.GetDirectories("/external_SD");
             foreach(var folder in folders)
             {
                 if (output.Length > 0) output.Append("; ");

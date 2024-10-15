@@ -207,4 +207,7 @@
   <data name="MediaItemActionRemoveFromPlaylist" xml:space="preserve">
     <value>Remove from playlist {0}</value>
   </data>
+  <data name="MediaItemActionRemoveFromQueue" xml:space="preserve">
+    <value>Remove from queue</value>
+  </data>
 </root>

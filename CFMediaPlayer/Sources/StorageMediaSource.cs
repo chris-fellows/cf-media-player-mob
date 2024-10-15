@@ -64,7 +64,7 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
-            return artists;
+            return artists.OrderBy(a => a.Name).ToList();
         }
 
         public List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName)
@@ -88,7 +88,7 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
-            return mediaItemCollections;
+            return mediaItemCollections.OrderBy(mic => mic.Name).ToList();
         }
 
         public List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string mediaItemCollectionName)
@@ -113,10 +113,10 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
-            return mediaItems;
+            return mediaItems.OrderBy(mi => mi.Name).ToList();
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             return new List<MediaItemAction>();
         }

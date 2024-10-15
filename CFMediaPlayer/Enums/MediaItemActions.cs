@@ -20,6 +20,9 @@ namespace CFMediaPlayer.Enums
         ClearQueue,
 
         [Display(Description = "MediaItemActionRemoveFromPlaylist")]
-        RemoveFromPlaylist
+        RemoveFromPlaylist,
+
+        [Display(Description = "MediaItemActionRemoveFromQueue")]
+        RemoveFromQueue
     }
 }

@@ -101,7 +101,7 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();
 
@@ -117,9 +117,7 @@ namespace CFMediaPlayer.Sources
                     var mediaItems = playlist.GetAll();
                     var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
 
-                    // TODO: Set language resources
-
-
+                    // Create media item action
                     var item = new MediaItemAction()
                     {
                         MediaLocationName = _mediaLocation.Name,
@@ -133,7 +131,20 @@ namespace CFMediaPlayer.Sources
                                 MediaItemActions.RemoveFromPlaylist :
                                 MediaItemActions.AddToPlaylist
                     };
-                    items.Add(item);
+
+                    // If user currently has playlist selected then we only allow them to remove the media item from any playlist that 
+                    // the media item is added to
+                    if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
+                    {
+                        if (item.ActionToExecute == MediaItemActions.RemoveFromPlaylist)
+                        {
+                            items.Add(item);
+                        }
+                    }
+                    else
+                    {
+                        items.Add(item);
+                    }
 
                     playlist.SetFile("");
                 }

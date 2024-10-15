@@ -52,39 +52,54 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();
 
             if (mediaItem != null)
             {
-                var item1 = new MediaItemAction()
+                if (currentMediaLocation.MediaSourceType != MediaSourceTypes.Queue)
                 {
-                    MediaLocationName = _mediaLocation.Name,
-                    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
-                    File = mediaItem.FilePath,
-                    ActionToExecute = MediaItemActions.AddToQueueEnd
-                };
-                items.Add(item1);
+                    var item1 = new MediaItemAction()
+                    {
+                        MediaLocationName = _mediaLocation.Name,
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
+                        File = mediaItem.FilePath,
+                        ActionToExecute = MediaItemActions.AddToQueueEnd
+                    };
+                    items.Add(item1);
 
-                var item2 = new MediaItemAction()
+                    var item2 = new MediaItemAction()
+                    {
+                        MediaLocationName = _mediaLocation.Name,
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
+                        File = mediaItem.FilePath,
+                        ActionToExecute = MediaItemActions.AddToQueueNext
+                    };
+                    items.Add(item2);
+                }
+
+                if (_mediaItemQueue.Any(mi => mi.FilePath == mediaItem.FilePath))   // In queue
                 {
-                    MediaLocationName = _mediaLocation.Name,
-                    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
-                    File = mediaItem.FilePath,
-                    ActionToExecute = MediaItemActions.AddToQueueNext
-                };
-                items.Add(item2);
+                    var item3 = new MediaItemAction()
+                    {
+                        MediaLocationName = _mediaLocation.Name,
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
+                        File = mediaItem.FilePath,
+                        ActionToExecute = MediaItemActions.RemoveFromQueue
+                    };
+                    items.Add(item3);
+                }
             }
 
-            var item3 = new MediaItemAction()
+            var item4 = new MediaItemAction()
             {
                 MediaLocationName = _mediaLocation.Name,
                 Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.ClearQueue)].ToString(),
                 //File = ""
                 ActionToExecute = MediaItemActions.ClearQueue
             };
-            items.Add(item3);
+            items.Add(item4);
 
             return items;
         }
@@ -101,6 +116,9 @@ namespace CFMediaPlayer.Sources
                     break;
                 case MediaItemActions.ClearQueue:
                     _mediaItemQueue.Clear();
+                    break;
+                case MediaItemActions.RemoveFromQueue:
+                    _mediaItemQueue.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);
                     break;
             }       
         }

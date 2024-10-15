@@ -47,7 +47,7 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();          
 

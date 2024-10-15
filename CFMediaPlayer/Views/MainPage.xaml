@@ -37,9 +37,16 @@
       Aspect="AspectFit"
       SemanticProperties.Description="CF Media Player" />
 
+            <Picker x:Name="DebugListInfo" 
+             ItemsSource="{Binding DebugList}"
+            ItemDisplayBinding="{Binding Name}"
+            SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+            Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+            </Picker>
+
             <Picker x:Name="MediaLocation" 
                      ItemsSource="{Binding MediaLocations}"
-                    ItemDisplayBinding="{Binding Name}"
+                    ItemDisplayBinding="{Binding Name}"                    
                     SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
                     Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
             </Picker>

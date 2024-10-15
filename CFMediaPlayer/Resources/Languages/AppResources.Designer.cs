@@ -142,6 +142,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove from queue.
+        /// </summary>
+        internal static string MediaItemActionRemoveFromQueue {
+            get {
+                return ResourceManager.GetString("MediaItemActionRemoveFromQueue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to playlist {0}.
         /// </summary>
         internal static string MediaItemActionsAddToPlaylist {

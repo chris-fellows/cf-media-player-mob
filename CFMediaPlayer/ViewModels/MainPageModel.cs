@@ -112,6 +112,26 @@ namespace CFMediaPlayer.ViewModels
 
             // Set equalizer preset
             _mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
+
+            // Add debug info
+            var variables = Environment.GetEnvironmentVariables();
+            foreach(var key in variables.Keys)
+            {
+                if (variables[key] != null)
+                {
+                    var value = variables[key]!.ToString();
+                    if (value!.Length > 30) value = value.Substring(0, 30);
+                    _debugList.Add(new NameValuePair<string>() { Name = $"{key}={value}" });
+                }
+            }
+        }
+
+        private List<NameValuePair<string>> _debugList = new List<NameValuePair<string>>();
+
+
+        public List<NameValuePair<string>> DebugList
+        {
+            get { return _debugList; }
         }
        
         /// <summary>
@@ -252,7 +272,7 @@ namespace CFMediaPlayer.ViewModels
         }
 
         /// <summary>
-        /// Loads action for media item
+        /// Loads actions for media item
         /// </summary>
         /// <param name="mediaItem"></param>
         private void LoadMediaItemActions(MediaItem mediaItem)
@@ -267,23 +287,24 @@ namespace CFMediaPlayer.ViewModels
                 // TODO: Clean this up. It's confusing how it works                
                 switch (CurrentMediaSource!.MediaLocation.MediaSourceType)
                 {
-                    //case MediaSourceTypes.Playlist:
-                    //    mediaItemActions.AddRange(_mediaSources.First(ms => ms.MediaSourceType == MediaSourceTypes.Playlist)
-                    //                .GetActionsForMediaItem(mediaItem));                    
-                    //    break;
-                    case MediaSourceTypes.Queue:
-                        // Bit of a hack. Just adds the "Clear queue" item
+                    case MediaSourceTypes.Playlist:
+                        // Add playlist actions (Only remove from playlist)
+                        mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
+                                    .GetActionsForMediaItem(CurrentMediaSource!.MediaLocation, mediaItem));                    
+                        break;
+                    case MediaSourceTypes.Queue:            
+                        // Add queue actions
                         mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue)
-                                    .GetActionsForMediaItem(null));
+                                    .GetActionsForMediaItem(CurrentMediaSource!.MediaLocation, mediaItem));
                         break;
                     case MediaSourceTypes.Storage:
                         // Add playlist actions
                         mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
-                                    .GetActionsForMediaItem(mediaItem));
+                                    .GetActionsForMediaItem(CurrentMediaSource!.MediaLocation, mediaItem));
 
                         // Add queue actions
                         mediaItemActions.AddRange(_mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue)
-                                    .GetActionsForMediaItem(mediaItem));
+                                    .GetActionsForMediaItem(CurrentMediaSource!.MediaLocation, mediaItem));
                         break;
                 }
             }

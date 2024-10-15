@@ -44,7 +44,7 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>        
         /// <param name="mediaItem"></param>
         /// <returns></returns>
-        List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem);
+        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem);
 
         /// <summary>
         /// Executes action for media item. E.g. Add to playlist, add to queue etc
