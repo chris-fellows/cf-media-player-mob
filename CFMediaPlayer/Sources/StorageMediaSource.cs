@@ -104,7 +104,11 @@ namespace CFMediaPlayer.Sources
                 {
                     if (Array.IndexOf(MediaUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
                     {
-                        mediaItems.Add(new MediaItem() { FilePath = file });
+                        mediaItems.Add(new MediaItem() 
+                        { 
+                            FilePath = file,
+                            Name = Path.GetFileName(file)
+                        });
                     }
                 }
             }
@@ -114,35 +118,7 @@ namespace CFMediaPlayer.Sources
 
         public List<MediaItemAction> GetActionsForMediaItem(MediaItem mediaItem)
         {
-            var items = new List<MediaItemAction>();
-
-            //var item1 = new MediaItemAction()
-            //{
-            //    Name = "Add to queue",
-            //    File = mediaItem.FilePath,
-            //    SelectedAction = MediaItemActions.AddToQueue
-            //};
-            //items.Add(item1);
-
-            //var item2 = new MediaItemAction()
-            //{
-            //    Name = "Clear queue",
-            //    File = mediaItem.FilePath,
-            //    SelectedAction = MediaItemActions.ClearQueue
-            //};
-            //items.Add(item2);
-
-            //// Add None
-            //if (!items.Any())
-            //{
-            //    var itemNone = new MediaItemAction()
-            //    {
-            //        Name = "Playlist actions..."
-            //    };
-            //    items.Add(itemNone);
-            //}
-
-            return items;
+            return new List<MediaItemAction>();
         }
 
         public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction playlistAction)

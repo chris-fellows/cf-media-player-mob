@@ -20,7 +20,8 @@ namespace CFMediaPlayer.Playlists
 
                 new MediaItem()
                 {
-                    FilePath = item.FilePath
+                    FilePath = item.FilePath,
+                    Name = Path.GetFileName(item.FilePath)
                 }
             ).ToList();            
         }

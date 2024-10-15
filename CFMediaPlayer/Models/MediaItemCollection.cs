@@ -23,7 +23,7 @@
             get
             {
                 if (String.IsNullOrEmpty(Path) || !Directory.Exists(Path)) return String.Empty;
-                var files = Directory.GetFiles(Path, "Folder.jpg");
+                var files = Directory.GetFiles(Path, "Folder.jpg"); // Hard-coding is fine for the moment
                 if (files.Any()) return files[0];
                 return String.Empty;
             }

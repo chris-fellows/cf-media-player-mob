@@ -118,12 +118,16 @@ namespace CFMediaPlayer.Sources
                     var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
 
                     // TODO: Set language resources
+
+
                     var item = new MediaItemAction()
                     {
                         MediaLocationName = _mediaLocation.Name,
                         Name = isFoundMediaItem ?
-                                $"Remove from playlist {Path.GetFileNameWithoutExtension(file)}" :
-                                $"Add to playlist {Path.GetFileNameWithoutExtension(file)}",
+                                 String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromPlaylist)].ToString(),
+                                        Path.GetFileNameWithoutExtension(file)) :
+                                 String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToPlaylist)].ToString(),
+                                        Path.GetFileNameWithoutExtension(file)),                                                              
                         File = file,                        
                         ActionToExecute = isFoundMediaItem ?
                                 MediaItemActions.RemoveFromPlaylist :

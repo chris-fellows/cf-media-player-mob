@@ -1,4 +1,6 @@
-﻿namespace CFMediaPlayer.Utilities
+﻿using CFMediaPlayer.Models;
+
+namespace CFMediaPlayer.Utilities
 {
     /// <summary>
     /// Media utilities
@@ -11,7 +13,7 @@
         /// <param name="path"></param>
         /// <returns></returns>
         public static bool IsFolderHasAudioFiles(string path)
-        {
+        {            
             foreach (var extension in AudioFileExtensions)
             {
                 if (Directory.GetFiles(path, $"*{extension}").Any())
@@ -25,12 +27,22 @@
 
         public static string[] AudioFileExtensions
         {
-            get { return new[] { ".mp3", ".ogg", ".wma", ".wav" }; }
+            get { return new[] { ".flac", ".mp3", ".ogg", ".wma", ".wav" }; }
         }
 
-        //public static bool IsAudioFile(string file)
-        //{
-        //    return Array.IndexOf(new[] { ".mp3", ".wma", ".wav" }, Path.GetExtension(file).ToLower()) != -1;
-        //}
+        public static bool IsNoneMediaItem(MediaItem mediaItem)
+        {
+            return String.IsNullOrEmpty(mediaItem.FilePath);
+        }
+
+        public static bool IsNoneArtist(Artist artist)
+        {
+            return String.IsNullOrEmpty(artist.Path);
+        }
+
+        public static bool IsNoneMediaItemCollection(MediaItemCollection mediaItemCollection)
+        {
+            return String.IsNullOrEmpty(mediaItemCollection.Path);
+        }
     }
 }

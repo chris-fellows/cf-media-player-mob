@@ -133,6 +133,96 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove from playlist {0}.
+        /// </summary>
+        internal static string MediaItemActionRemoveFromPlaylist {
+            get {
+                return ResourceManager.GetString("MediaItemActionRemoveFromPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add to playlist {0}.
+        /// </summary>
+        internal static string MediaItemActionsAddToPlaylist {
+            get {
+                return ResourceManager.GetString("MediaItemActionsAddToPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add to queue (End).
+        /// </summary>
+        internal static string MediaItemActionsAddToQueueEnd {
+            get {
+                return ResourceManager.GetString("MediaItemActionsAddToQueueEnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add to queue (Next).
+        /// </summary>
+        internal static string MediaItemActionsAddToQueueNext {
+            get {
+                return ResourceManager.GetString("MediaItemActionsAddToQueueNext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear queue.
+        /// </summary>
+        internal static string MediaItemActionsClearQueue {
+            get {
+                return ResourceManager.GetString("MediaItemActionsClearQueue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sequential play.
+        /// </summary>
+        internal static string MediaPlayModesSequential {
+            get {
+                return ResourceManager.GetString("MediaPlayModesSequential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shuffle (Artist).
+        /// </summary>
+        internal static string MediaPlayModesShuffleArtist {
+            get {
+                return ResourceManager.GetString("MediaPlayModesShuffleArtist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shuffle (Album).
+        /// </summary>
+        internal static string MediaPlayModesShuffleMediaItemCollection {
+            get {
+                return ResourceManager.GetString("MediaPlayModesShuffleMediaItemCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shuffle (Storage).
+        /// </summary>
+        internal static string MediaPlayModesShuffleStorage {
+            get {
+                return ResourceManager.GetString("MediaPlayModesShuffleStorage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Single play.
+        /// </summary>
+        internal static string MediaPlayModesSingleMediaItem {
+            get {
+                return ResourceManager.GetString("MediaPlayModesSingleMediaItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Google cloud.
         /// </summary>
         internal static string MediaSourceGoogleText {

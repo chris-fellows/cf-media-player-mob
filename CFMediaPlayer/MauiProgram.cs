@@ -12,7 +12,7 @@ namespace CFMediaPlayer
     public static class MauiProgram
     {
         public static MauiApp CreateMauiApp()
-        {
+        {           
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -22,8 +22,7 @@ namespace CFMediaPlayer
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();
-            //builder.Services.RegisterAllTypes<IMediaSource>(new[] { Assembly.GetExecutingAssembly() });   // We want one IMediaSource per MediaLocation
+            builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();           
             builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
 
             // Config services                       
@@ -127,8 +126,8 @@ namespace CFMediaPlayer
                     }
                 }
                 return new MediaSourceService(mediaSources);
-            });
-
+            });            
+            
             builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();
 
             // Register main page & model

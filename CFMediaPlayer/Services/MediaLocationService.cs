@@ -1,6 +1,7 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using static AndroidX.ConstraintLayout.Core.Motion.Utils.HyperSpline;
 
 namespace CFMediaPlayer.Services
 {
@@ -22,24 +23,22 @@ namespace CFMediaPlayer.Services
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString() + " (Test)",
                                 MediaSourceType = MediaSourceTypes.Storage,
                                 Source = "/storage/emulated/0/Download" },      // TODO: Remove this                
+                
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Storage,
                                 Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
-
-                //new MediaLocation() { Name = "Internal storage", MediaSourceName = MediaSourceNames.Storage, 
-                //                RootFolderPath = Path.Combine(Android.OS.Environment.StorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
-
+            
                 new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceSDCardText"].ToString(),
                                 MediaSourceType = MediaSourceTypes.Storage,
                                 Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
 
-                //new MediaLocation() { Name = "Music Test (DirectoryMusic)",
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                RootFolderPath = Android.OS.Environment.DirectoryMusic },
+                new MediaLocation() { Name = "/sdcard (Test)",
+                                MediaSourceType = MediaSourceTypes.Storage,
+                                Source = Path.Combine("/sdcard", Android.OS.Environment.DirectoryMusic) },
 
-                //new MediaLocation() { Name = "Music Test (StorageDirectory)",
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                RootFolderPath = Android.OS.Environment.StorageDirectory.Path },
+                new MediaLocation() { Name = "/storage/emulated/0/Music (Test)",
+                                MediaSourceType = MediaSourceTypes.Storage,
+                                Source = Path.Combine("/storage/emulated/0", Android.OS.Environment.DirectoryMusic) },                              
 
                 //new MediaLocation() { Name = "Music Test (ExternalStorageDirectory)",
                 //                MediaSourceType = MediaSourceTypes.Storage,

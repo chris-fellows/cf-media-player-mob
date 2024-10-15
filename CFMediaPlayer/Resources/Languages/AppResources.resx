@@ -177,4 +177,34 @@
   <data name="SelectAudioSettingsText" xml:space="preserve">
     <value>Select audio settings</value>
   </data>
+  <data name="MediaPlayModesSingleMediaItem" xml:space="preserve">
+    <value>Single play</value>
+  </data>
+  <data name="MediaPlayModesSequential" xml:space="preserve">
+    <value>Sequential play</value>
+  </data>
+  <data name="MediaPlayModesShuffleMediaItemCollection" xml:space="preserve">
+    <value>Shuffle (Album)</value>
+  </data>
+  <data name="MediaPlayModesShuffleArtist" xml:space="preserve">
+    <value>Shuffle (Artist)</value>
+  </data>
+  <data name="MediaPlayModesShuffleStorage" xml:space="preserve">
+    <value>Shuffle (Storage)</value>
+  </data>
+  <data name="MediaItemActionsAddToPlaylist" xml:space="preserve">
+    <value>Add to playlist {0}</value>
+  </data>
+  <data name="MediaItemActionsAddToQueueEnd" xml:space="preserve">
+    <value>Add to queue (End)</value>
+  </data>
+  <data name="MediaItemActionsAddToQueueNext" xml:space="preserve">
+    <value>Add to queue (Next)</value>
+  </data>
+  <data name="MediaItemActionsClearQueue" xml:space="preserve">
+    <value>Clear queue</value>
+  </data>
+  <data name="MediaItemActionRemoveFromPlaylist" xml:space="preserve">
+    <value>Remove from playlist {0}</value>
+  </data>
 </root>

@@ -1,9 +1,4 @@
 ﻿using CFMediaPlayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -12,6 +7,11 @@ namespace CFMediaPlayer.Interfaces
     /// </summary>
     public interface IMediaSearchService
     {
-        Task<List<SearchResult>> Search(SearchOptions searchOptions);
+        /// <summary>
+        /// Searches asynchronously
+        /// </summary>
+        /// <param name="searchOptions"></param>
+        /// <returns></returns>
+        Task<List<SearchResult>> SearchAsync(SearchOptions searchOptions);
     }
 }

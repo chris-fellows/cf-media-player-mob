@@ -61,7 +61,7 @@ namespace CFMediaPlayer.Sources
 
         public List<SearchResult> Search(SearchOptions searchOptions)
         {
-            var searchResults = new List<SearchResult>();    
+            var searchResults = new List<SearchResult>();                            
 
             return searchResults;
         }

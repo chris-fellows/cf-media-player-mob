@@ -56,6 +56,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\audio_eject_media_media_player_music_icon.png" />
+	  <None Remove="Resources\Images\audio_fast_forward_media_media_player_icon.png" />
+	  <None Remove="Resources\Images\audio_media_media_player_music_pause_icon.png" />
+	  <None Remove="Resources\Images\audio_media_media_player_music_play_icon.png" />
+	  <None Remove="Resources\Images\audio_media_media_player_music_record_icon.png" />
+	  <None Remove="Resources\Images\audio_media_media_player_music_rewind_icon.png" />
+	  <None Remove="Resources\Images\cassette_player_audio_speaker_sound_icon.png" />
 	  <None Remove="Resources\Images\ic_media_ff.png" />
 	  <None Remove="Resources\Images\ic_media_pause.png" />
 	  <None Remove="Resources\Images\ic_media_play.png" />

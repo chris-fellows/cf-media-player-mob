@@ -1,5 +1,7 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.ViewModels;
+using System;
+using Java.Lang;
 
 namespace CFMediaPlayer
 {
@@ -72,7 +74,29 @@ namespace CFMediaPlayer
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
-            _model.ApplyEqualizerTest();
+            System.Text.StringBuilder output = new System.Text.StringBuilder("");
+            //var drives = DriveInfo.GetDrives();
+            //foreach(var drive in drives)
+            //{
+            //    if (output.Length > 0) output.Append("; ");
+            //    output.Append(drive.Name);
+            //}
+
+            //var item1 = Android.OS.Environment.DirectoryMusic;
+            //var item2 = Android.OS.Environment.ExternalStorageDirectory.Path;
+            //var item3 = Android.OS.Environment.GetExternalStoragePublicDirectory("#DIRECTORY_MUSIC");
+            //var item4 = Android.OS.Environment.StorageDirectory;
+
+            var folders = Directory.GetDirectories("/sdcard");
+            foreach(var folder in folders)
+            {
+                if (output.Length > 0) output.Append("; ");
+                output.Append(folder);
+            }
+
+            DebugLabel.Text = output.ToString();
+
+            //_model.ApplyEqualizerTest();
 
             //StatusLabel.Text = $"MediaItemActions=" + _model.MediaItemActions.Count;            
 
@@ -97,6 +121,11 @@ namespace CFMediaPlayer
         {
             TextCell textCell = (TextCell)sender;
             _model.SelectSearchResult(textCell.Text);            
+        }
+
+        private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (e.NewTextValue.Length == 0) _model.ClearSearchResults();
         }
     }
 }

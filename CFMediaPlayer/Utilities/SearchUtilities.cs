@@ -9,17 +9,17 @@ namespace CFMediaPlayer.Utilities
     {
         public static bool IsValidSearchResult(Artist artist, SearchOptions searchOptions)
         {
-            return (artist.Name.Contains(searchOptions.Text, StringComparison.InvariantCulture));            
+            return (artist.Name.Contains(searchOptions.Text, StringComparison.InvariantCultureIgnoreCase));            
         }
 
         public static bool IsValidSearchResult(MediaItemCollection mediaItemCollection, SearchOptions searchOptions)
         {
-            return (mediaItemCollection.Name.Contains(searchOptions.Text, StringComparison.InvariantCulture));
+            return (mediaItemCollection.Name.Contains(searchOptions.Text, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public static bool IsValidSearchResult(MediaItem mediaItem, SearchOptions searchOptions)
         {
-            return (mediaItem.Name.Contains(searchOptions.Text, StringComparison.InvariantCulture));
+            return (mediaItem.Name.Contains(searchOptions.Text, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

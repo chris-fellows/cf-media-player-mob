@@ -61,7 +61,7 @@ namespace CFMediaPlayer.Sources
                 var item1 = new MediaItemAction()
                 {
                     MediaLocationName = _mediaLocation.Name,
-                    Name = "Add to queue (End)",
+                    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
                     File = mediaItem.FilePath,
                     ActionToExecute = MediaItemActions.AddToQueueEnd
                 };
@@ -70,31 +70,21 @@ namespace CFMediaPlayer.Sources
                 var item2 = new MediaItemAction()
                 {
                     MediaLocationName = _mediaLocation.Name,
-                    Name = "Add to queue (Next)",
+                    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
                     File = mediaItem.FilePath,
                     ActionToExecute = MediaItemActions.AddToQueueNext
                 };
-                items.Add(item1);
+                items.Add(item2);
             }
 
             var item3 = new MediaItemAction()
             {
                 MediaLocationName = _mediaLocation.Name,
-                Name = "Clear queue",
+                Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.ClearQueue)].ToString(),
                 //File = ""
                 ActionToExecute = MediaItemActions.ClearQueue
             };
             items.Add(item3);
-
-            //// Add header
-            //if (!items.Any())
-            //{
-            //    var itemNone = new MediaItemAction()
-            //    {
-            //        Name = "None"
-            //    };
-            //    items.Add(itemNone);
-            //}
 
             return items;
         }

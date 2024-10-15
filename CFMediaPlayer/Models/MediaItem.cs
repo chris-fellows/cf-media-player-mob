@@ -9,7 +9,7 @@ namespace CFMediaPlayer.Models
     {        
         public string FilePath { get; set; } = String.Empty;
 
-        [XmlIgnore] // Don't serialize
-        public string Name => System.IO.Path.GetFileName(FilePath);
+        //public string Name => System.IO.Path.GetFileName(FilePath);
+        public string Name { get; set; } = String.Empty;
     }
 }
