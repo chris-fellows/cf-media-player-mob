@@ -56,6 +56,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\arrow_click_cursor_pointer_icon.png" />
 	  <None Remove="Resources\Images\audio_eject_media_media_player_music_icon.png" />
 	  <None Remove="Resources\Images\audio_fast_forward_media_media_player_icon.png" />
 	  <None Remove="Resources\Images\audio_media_media_player_music_pause_icon.png" />
@@ -91,7 +92,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Views\NewPlaylistPage.xaml">
+	  <MauiXaml Update="Views\ManagePlaylistsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\ManageQueuePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

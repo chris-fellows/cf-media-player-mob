@@ -5,6 +5,6 @@
         Cloud,
         Playlist,
         Queue,
-        Storage
+        Storage    // Don't really need to split between internal and external
     }
 }

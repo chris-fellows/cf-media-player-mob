@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lang="clr-namespace:CFMediaPlayer.Resources.Languages"
+             x:Class="CFMediaPlayer.ManageQueuePage"
+             Title="Manage Queue">
+    <VerticalStackLayout>
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Button
+           x:Name="ClearBtn"         
+           WidthRequest="100"
+           SemanticProperties.Hint="Clear queue"            
+           Command="{Binding ClearCommand}"                     
+           Text="{Binding LocalizationResources[Clear], Mode=OneWay}"
+           HorizontalOptions="Fill" />
+
+        <Button 
+           x:Name="CloseBtn"
+           WidthRequest="100"
+           SemanticProperties.Hint="Close"            
+           Command="{Binding CloseCommand}"
+           Text="{Binding LocalizationResources[Close], Mode=OneWay}" />
+        </HorizontalStackLayout>
+
+        <ListView x:Name="MediaItemList"
+            ItemsSource="{Binding MediaItems}"
+            SelectionMode="None" >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Label Text="{Binding Name}" VerticalOptions="Center" />
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </VerticalStackLayout>
+</ContentPage>

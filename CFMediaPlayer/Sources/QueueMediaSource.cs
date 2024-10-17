@@ -22,43 +22,68 @@ namespace CFMediaPlayer.Sources
 
         public MediaLocation MediaLocation => _mediaLocation;
         
-        public bool IsAvailable => true;        
+        public bool IsAvailable => true;        // Always
 
-        public List<Artist> GetArtists()
+        public List<Artist> GetArtists(bool includeNonReal)
         {
-            var artists = new List<Artist>();
-            artists.Add(new Artist() { Name = LocalizationResources.Instance["None"].ToString() });   // Dummy artists
-            return artists;
+            return new List<Artist>()
+            {
+                new Artist() { Name = LocalizationResources.Instance["MultipleText"].ToString() }
+            };
         }
 
-        public List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName)
+        public List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal)
         {
             var mediaItemCollections = new List<MediaItemCollection>();
-            mediaItemCollections.Add(new MediaItemCollection() { Name = LocalizationResources.Instance["None"].ToString() });
+
+            if (includeNonReal)
+            {
+                // Add multiple                
+                mediaItemCollections.Insert(0, new MediaItemCollection()
+                {
+                    Name = LocalizationResources.Instance["MultipleText"].ToString(),
+                });                
+            }
+
             return mediaItemCollections;
         }
 
-        public List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string mediaItemCollectionName)
+        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal)
         {
             var mediaItems = new List<MediaItem>();
-
             mediaItems.AddRange(_mediaItemQueue);
 
-            //if (!mediaItems.Any())
-            //{
-            //    mediaItems.Add(new MediaItem() { Name = "None" });
-            //}
+            // Add None if no media item collections           
+            if (includeNonReal && !mediaItems.Any())
+            {
+                mediaItems.Add(new MediaItem()
+                {
+                    Name = LocalizationResources.Instance["NoneText"].ToString(),
+                });
+            }
 
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
+                                                            List<IMediaSource> allMediaSources)
         {
             var items = new List<MediaItemAction>();
 
             if (mediaItem != null)
             {
-                if (currentMediaLocation.MediaSourceType != MediaSourceTypes.Queue)
+                if (_mediaItemQueue.Any(mi => mi.FilePath == mediaItem.FilePath))   // Queued
+                {
+                    var item3 = new MediaItemAction()
+                    {
+                        MediaLocationName = _mediaLocation.Name,
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
+                        File = mediaItem.FilePath,
+                        ActionToExecute = MediaItemActions.RemoveFromQueue
+                    };
+                    items.Add(item3);
+                }
+                else   // Not queue
                 {
                     var item1 = new MediaItemAction()
                     {
@@ -77,29 +102,8 @@ namespace CFMediaPlayer.Sources
                         ActionToExecute = MediaItemActions.AddToQueueNext
                     };
                     items.Add(item2);
-                }
-
-                if (_mediaItemQueue.Any(mi => mi.FilePath == mediaItem.FilePath))   // In queue
-                {
-                    var item3 = new MediaItemAction()
-                    {
-                        MediaLocationName = _mediaLocation.Name,
-                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
-                        File = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.RemoveFromQueue
-                    };
-                    items.Add(item3);
-                }
+                }            
             }
-
-            var item4 = new MediaItemAction()
-            {
-                MediaLocationName = _mediaLocation.Name,
-                Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.ClearQueue)].ToString(),
-                //File = ""
-                ActionToExecute = MediaItemActions.ClearQueue
-            };
-            items.Add(item4);
 
             return items;
         }
@@ -125,17 +129,15 @@ namespace CFMediaPlayer.Sources
 
         public List<SearchResult> Search(SearchOptions searchOptions)
         {
-            var searchResults = new List<SearchResult>();
+            var searchResults = new List<SearchResult>();         
 
-            var mediaItems = GetMediaItemsForMediaItemCollection("", "");
-
-            searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
+            searchResults.AddRange(_mediaItemQueue.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
                    .Select(mi => new SearchResult()
                    {
                        EntityType = EntityTypes.MediaItem,
                        Name = mi.Name,
-                       Artist = new Artist() { Name = LocalizationResources.Instance["None"].ToString() },
-                       MediaItemCollection = new MediaItemCollection() { Name= LocalizationResources.Instance["None"].ToString() },
+                       Artist = new Artist() { Name = LocalizationResources.Instance["NoneText"].ToString() },
+                       MediaItemCollection = new MediaItemCollection() { Name= LocalizationResources.Instance["NoneText"].ToString() },
                        MediaItem = mi
                    }));        
 

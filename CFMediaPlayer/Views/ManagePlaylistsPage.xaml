@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lang="clr-namespace:CFMediaPlayer.Resources.Languages"
+             x:Class="CFMediaPlayer.ManagePlaylistsPage"
+             Title="Manage Playlists">
+    <VerticalStackLayout>
+        <Picker x:Name="PlaylistListPicker" 
+          ItemsSource="{Binding Playlists}"
+         ItemDisplayBinding="{Binding Name}"                    
+         SelectedItem="{Binding SelectedPlaylist, Mode=TwoWay}"
+         Title="{Binding LocalizationResources[SelectPlaylistText], Mode=OneWay}">
+        </Picker>
+
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Button
+            x:Name="DeleteBtn"           
+            WidthRequest="100"
+            SemanticProperties.Hint="Delete playlist"            
+            Command="{Binding DeleteCommand}"         
+            IsEnabled="{Binding IsPlaylistSelected}"
+            Text="{Binding LocalizationResources[Delete], Mode=OneWay}"
+            HorizontalOptions="Fill" />
+
+            <Button
+               x:Name="ClearBtn"            
+                WidthRequest="100"
+               SemanticProperties.Hint="Clear playlist"            
+               Command="{Binding DeleteCommand}"         
+               IsEnabled="{Binding IsPlaylistSelected}"
+               Text="{Binding LocalizationResources[Clear], Mode=OneWay}"
+               HorizontalOptions="Fill" />
+        </HorizontalStackLayout>
+
+        <Frame Padding="10, 2, 10, 2">
+            <HorizontalStackLayout>
+                <Label Text="{Binding LocalizationResources[NewPlaylistPlaylistNameLabel], Mode=OneWay}" VerticalOptions="Center" />
+                <Entry x:Name="NameEntry"  
+      VerticalOptions="Center"             
+      MaxLength="100"
+      Text="{Binding NewPlaylistName, Mode=TwoWay}">
+                </Entry>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Button x:Name="CreateBtn"   
+           WidthRequest="100"
+           Command="{Binding CreateCommand}"
+           IsEnabled="{Binding IsCreateEnabled}"                                        
+           Text="{Binding LocalizationResources[Save], Mode=OneWay}" />
+
+            <Button x:Name="CloseBtn"
+           WidthRequest="100"
+           Command="{Binding CloseCommand}"
+           Text="{Binding LocalizationResources[Close], Mode=OneWay}" />
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+    
+    
+</ContentPage>

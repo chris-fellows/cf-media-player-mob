@@ -135,8 +135,10 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<MainPage>();
 
             // Register other pages & models
-            builder.Services.AddSingleton<NewPlaylistPageModel>();
-            builder.Services.AddSingleton<NewPlaylistPage>();            
+            builder.Services.AddSingleton<ManagePlaylistsPageModel>();
+            builder.Services.AddSingleton<ManagePlaylistsPage>();
+            builder.Services.AddSingleton<ManageQueuePageModel>();
+            builder.Services.AddSingleton<ManageQueuePage>();
             builder.Services.AddSingleton<UserSettingsPageModel>();
             builder.Services.AddSingleton<UserSettingsPage>();
 

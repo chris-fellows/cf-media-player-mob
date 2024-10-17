@@ -159,7 +159,7 @@
   <data name="MediaSourceGoogleText" xml:space="preserve">
     <value>Google cloud</value>
   </data>
-  <data name="None" xml:space="preserve">
+  <data name="NoneText" xml:space="preserve">
     <value>None</value>
   </data>
   <data name="NewPlaylistText" xml:space="preserve">
@@ -183,15 +183,6 @@
   <data name="MediaPlayModesSequential" xml:space="preserve">
     <value>Sequential play</value>
   </data>
-  <data name="MediaPlayModesShuffleMediaItemCollection" xml:space="preserve">
-    <value>Shuffle (Album)</value>
-  </data>
-  <data name="MediaPlayModesShuffleArtist" xml:space="preserve">
-    <value>Shuffle (Artist)</value>
-  </data>
-  <data name="MediaPlayModesShuffleStorage" xml:space="preserve">
-    <value>Shuffle (Storage)</value>
-  </data>
   <data name="MediaItemActionsAddToPlaylist" xml:space="preserve">
     <value>Add to playlist {0}</value>
   </data>
@@ -209,5 +200,23 @@
   </data>
   <data name="MediaItemActionRemoveFromQueue" xml:space="preserve">
     <value>Remove from queue</value>
+  </data>
+  <data name="MultipleText" xml:space="preserve">
+    <value>[Multiple]</value>
+  </data>
+  <data name="ShuffleText" xml:space="preserve">
+    <value>[Shuffle]</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="SelectPlaylistText" xml:space="preserve">
+    <value>Select playlist</value>
   </data>
 </root>

@@ -22,36 +22,39 @@ namespace CFMediaPlayer.Interfaces
         /// Gets all artists
         /// </summary>
         /// <returns></returns>
-        List<Artist> GetArtists();
-        
+        List<Artist> GetArtists(bool includeNonReal);
+
         /// <summary>
         /// Gets media item collections for artist
         /// </summary>
-        /// <param name="artistName"></param>
+        /// <param name="artist"></param>
+        /// <param name="includeNonReal"></param>
         /// <returns></returns>
-        List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName);
-
+        List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal);
+      
         /// <summary>
-        /// Gets media items for artist and album
+        /// Gets media items for media item collection
         /// </summary>
-        /// <param name="artistName"></param>
-        /// <param name="albumName"></param>
+        /// <param name="artist"></param>
+        /// <param name="mediaItemCollection"></param>
+        /// <param name="includeNonReal"></param>
         /// <returns></returns>
-        List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string albumName);
+        List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal);
 
         /// <summary>
-        /// Gets playlists that media item can be added to
+        /// Gets actions for media item. E.g. Add to playlist X, remove from playist Y, add to queue etc
         /// </summary>        
         /// <param name="mediaItem"></param>
         /// <returns></returns>
-        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem);
+        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
+                                                 List<IMediaSource> allMediaSources);
 
         /// <summary>
-        /// Executes action for media item. E.g. Add to playlist, add to queue etc
+        /// Executes action for media item. E.g. Add to playlist X, add to queue etc
         /// </summary>        
         /// <param name="mediaItem"></param>
         /// <param name="mediaItemAction"></param>
-        void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction);
+        void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction);                                  
 
         /// <summary>
         /// Search media source

@@ -1,4 +1,5 @@
-﻿using CFMediaPlayer.Interfaces;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 
 namespace CFMediaPlayer.Sources
@@ -26,35 +27,41 @@ namespace CFMediaPlayer.Sources
             }
         }
 
-        public List<Artist> GetArtists()
+        public List<Artist> GetArtists(bool includeNonReal)
         {
-            var artists = new List<Artist>();
-            artists.Add(new Artist() { Name = LocalizationResources.Instance["None"].ToString() });   // Dummy artists
-            return artists;
+            return new List<Artist>();
         }
 
-        public List<MediaItemCollection> GetMediaItemCollectionsForArtist(string artistName)
+        public List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal)
         {
-            var mediaItemCollections = new List<MediaItemCollection>();
-            mediaItemCollections.Add(new MediaItemCollection() { Name = LocalizationResources.Instance["None"].ToString() });
-            return mediaItemCollections;
+            return new List<MediaItemCollection>();
         }
 
-        public List<MediaItem> GetMediaItemsForMediaItemCollection(string artistName, string mediaItemCollectionName)
+        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal)
         {
-            var mediaItems = new List<MediaItem>();
-
-            return mediaItems;
+            // TODO: Implement this
+            return new List<MediaItem>();
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
+        //public List<MediaItem> GetMediaItemsForArtist(Artist artist, bool includeNonReal)
+        //{
+        //    return new List<MediaItem>();            
+        //}
+
+        //public List<MediaItem> GetMediaItemsForAllArtists(bool includeNonReal)
+        //{
+        //    return new List<MediaItem>();
+        //}
+
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
+                                                    List<IMediaSource> allMediaSources)
         {
             var items = new List<MediaItemAction>();          
 
             return items;
         }
 
-        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)
+        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)                                
         {
             
         }

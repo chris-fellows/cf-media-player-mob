@@ -72,7 +72,8 @@ namespace CFMediaPlayer.ViewModels
             _userSettings.AudioSettingsId = _selectedAudioSettings.Id;
             _userSettingsService.Update(_userSettings);
                      
-            Shell.Current.GoToAsync($"//{nameof(MainPage)}?UserSettingsUpdated={_userSettings.Id}");
+            //Shell.Current.GoToAsync($"//{nameof(MainPage)}?UserSettingsUpdated={_userSettings.Id}");
+            Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=UserSettingsUpdated");
         }
 
         private void Cancel(object parameter)

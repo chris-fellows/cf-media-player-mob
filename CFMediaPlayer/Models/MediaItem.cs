@@ -6,10 +6,15 @@ namespace CFMediaPlayer.Models
     /// Media item
     /// </summary>
     public class MediaItem
-    {        
+    {   
+        /// <summary>
+        /// Path to media item file
+        /// </summary>
         public string FilePath { get; set; } = String.Empty;
 
-        //public string Name => System.IO.Path.GetFileName(FilePath);
+        /// <summary>
+        /// Display name
+        /// </summary>
         public string Name { get; set; } = String.Empty;
     }
 }

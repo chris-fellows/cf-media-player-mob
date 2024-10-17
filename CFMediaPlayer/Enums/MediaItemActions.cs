@@ -16,8 +16,14 @@ namespace CFMediaPlayer.Enums
         [Display(Description = "MediaItemActionsAddToQueueNext")]
         AddToQueueNext,
 
+        [Display(Description = "MediaItemActionsClearPlaylist")]
+        ClearPlaylist,
+
         [Display(Description = "MediaItemActionsClearQueue")]
         ClearQueue,
+
+        [Display(Description = "MediaItemActionsDeletePlaylist")]
+        DeletePlaylist,
 
         [Display(Description = "MediaItemActionRemoveFromPlaylist")]
         RemoveFromPlaylist,

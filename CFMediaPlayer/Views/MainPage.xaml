@@ -13,37 +13,37 @@
                 Text="CF Media Player"
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level5" />
-         
-            <SearchBar x:Name="MediaSearchBar"
+
+            <StackLayout>
+                <SearchBar x:Name="MediaSearchBar"
                      Placeholder="Search media..." 
-                     TextChanged="MediaSearchBar_TextChanged"
+                     TextChanged="MediaSearchBar_TextChanged"                     
                      SearchCommand="{Binding SearchCommand}"
                      SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
 
-            <ListView x:Name="SearchResultsList"
-                        ItemsSource="{Binding SearchResults}" 
-                        IsVisible="{Binding IsSearchResults, Mode=OneWay}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <TextCell Text="{Binding Name}"                               
-                            Tapped="SearchResultTextCell_Tapped" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                <ListView x:Name="SearchResultsList"
+                  ItemsSource="{Binding SearchResults}"                            
+                  ItemTapped="SearchResultsList_ItemTapped"
+                  IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Image Source="{Binding ImageSource}" HeightRequest="15" WidthRequest="15" />
+                                    <Label Text="{Binding Name}" VerticalOptions="Center" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
 
             <Image
       Source="{Binding MainLogoImage}"
       HeightRequest="100"
       Aspect="AspectFit"
       SemanticProperties.Description="CF Media Player" />
-
-            <Picker x:Name="DebugListInfo" 
-             ItemsSource="{Binding DebugList}"
-            ItemDisplayBinding="{Binding Name}"
-            SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
-            Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
-            </Picker>
-
+         
             <Picker x:Name="MediaLocation" 
                      ItemsSource="{Binding MediaLocations}"
                     ItemDisplayBinding="{Binding Name}"                    
@@ -73,12 +73,13 @@
                     Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
             </Picker>
 
-            <Picker x:Name="PlayModeList"
-              ItemsSource="{Binding PlayModes}"
-              ItemDisplayBinding="{Binding Name}"
-              SelectedItem="{Binding SelectedPlayMode, Mode=TwoWay}"                    
-              Title="{Binding LocalizationResources[MainSelectPlayModeText], Mode=OneWay}">
-            </Picker>
+            <StackLayout Orientation="Horizontal" HorizontalOptions="End">
+                <Label Text="Auto-play" VerticalOptions="Center"></Label>
+                <Switch x:Name="AutoPlayNextSwitch"
+                        HeightRequest="25"
+                        VerticalOptions="Center"
+                    IsToggled="{Binding AutoPlayEnabled}"></Switch>
+            </StackLayout>
 
             <StackLayout Margin="0,0,0,0">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="5">
@@ -95,7 +96,7 @@
                        Source="{Binding PlayButtonImageSource}"
                        SemanticProperties.Hint="Plays media"
                        Command="{Binding PlayOrPauseCommand}"
-                       IsEnabled="{Binding Mode=OneWay, Path=IsNotNoneMediaItemSelected}"
+                       IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
                        HorizontalOptions="Fill" />
 
                     <ImageButton
@@ -136,7 +137,7 @@
 
                     <Slider x:Name="ElapsedSlider"                    
                              Grid.Row="1" Grid.ColumnSpan="3"
-                             IsEnabled="{Binding Mode=OneWay, Path=IsNotNoneMediaItemSelected}"
+                             IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
                              Minimum="0"
                              Maximum="{Binding Mode=OneWay, Path=DurationInt}"                             
                              Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
@@ -161,13 +162,13 @@
               Title="{Binding LocalizationResources[MainSelectActionText], Mode=OneWay}">
                     </Picker>   
 
-                    <Button
-                    x:Name="MediaItemActionBtn"
-                        Grid.Row="0" Grid.Column="1"
-                    HorizontalOptions="End"
-                    Text="Update"                 
-                    SemanticProperties.Hint="Executes action for media item"
-                    Command="{Binding ExecuteMediaItemActionCommand}" />
+                    <ImageButton
+                      x:Name="ExecuteMediaItemActionBtn"
+                      Grid.Row="0" Grid.Column="1"
+                      Source="arrow_click_cursor_pointer_icon.png"
+                      SemanticProperties.Hint="Execute action"
+                      Command="{Binding ExecuteMediaItemActionCommand}"                      
+                      HorizontalOptions="End" />   
                 </Grid>
             </StackLayout>
 

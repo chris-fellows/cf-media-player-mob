@@ -70,6 +70,33 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        internal static string Clear {
+            get {
+                return ResourceManager.GetString("Clear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        internal static string Close {
+            get {
+                return ResourceManager.GetString("Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        internal static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to playlist.
         /// </summary>
         internal static string MainAddMediaItemToPlaylistText {
@@ -196,33 +223,6 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shuffle (Artist).
-        /// </summary>
-        internal static string MediaPlayModesShuffleArtist {
-            get {
-                return ResourceManager.GetString("MediaPlayModesShuffleArtist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shuffle (Album).
-        /// </summary>
-        internal static string MediaPlayModesShuffleMediaItemCollection {
-            get {
-                return ResourceManager.GetString("MediaPlayModesShuffleMediaItemCollection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shuffle (Storage).
-        /// </summary>
-        internal static string MediaPlayModesShuffleStorage {
-            get {
-                return ResourceManager.GetString("MediaPlayModesShuffleStorage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Single play.
         /// </summary>
         internal static string MediaPlayModesSingleMediaItem {
@@ -286,6 +286,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Multiple].
+        /// </summary>
+        internal static string MultipleText {
+            get {
+                return ResourceManager.GetString("MultipleText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Playlist name.
         /// </summary>
         internal static string NewPlaylistPlaylistNameLabel {
@@ -306,9 +315,9 @@ namespace CFMediaPlayer.Resources.Languages {
         /// <summary>
         ///   Looks up a localized string similar to None.
         /// </summary>
-        internal static string None {
+        internal static string NoneText {
             get {
-                return ResourceManager.GetString("None", resourceCulture);
+                return ResourceManager.GetString("NoneText", resourceCulture);
             }
         }
         
@@ -331,11 +340,29 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select playlist.
+        /// </summary>
+        internal static string SelectPlaylistText {
+            get {
+                return ResourceManager.GetString("SelectPlaylistText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select theme.
         /// </summary>
         internal static string SelectThemeText {
             get {
                 return ResourceManager.GetString("SelectThemeText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Shuffle].
+        /// </summary>
+        internal static string ShuffleText {
+            get {
+                return ResourceManager.GetString("ShuffleText", resourceCulture);
             }
         }
     }

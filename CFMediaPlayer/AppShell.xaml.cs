@@ -8,7 +8,8 @@
 
             // Register page routes
             Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
-            Routing.RegisterRoute(nameof(NewPlaylistPage), typeof(NewPlaylistPage));
+            Routing.RegisterRoute(nameof(ManagePlaylistsPage), typeof(ManagePlaylistsPage));
+            Routing.RegisterRoute(nameof(ManageQueuePage), typeof(ManageQueuePage));
             Routing.RegisterRoute(nameof(UserSettingsPage), typeof(UserSettingsPage));
         }        
     }

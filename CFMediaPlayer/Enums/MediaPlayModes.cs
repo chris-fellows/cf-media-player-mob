@@ -14,27 +14,9 @@ namespace CFMediaPlayer.Enums
         SingleMediaItem,
 
         /// <summary>
-        /// Plays each media item in the collection in sequence
+        /// Plays each media item in sequence
         /// </summary>
         [Display(Description = "MediaPlayModesSequential")]
-        Sequential,
-
-        /// <summary>
-        /// Randomly plays media items in the collection
-        /// </summary>
-        [Display(Description = "MediaPlayModesShuffleMediaItemCollection")]
-        ShuffleMediaItemCollection,
-
-        /// <summary>
-        /// Randomy plays media items in any collection for the artist
-        /// </summary>
-        [Display(Description = "MediaPlayModesShuffleArtist")]
-        ShuffleArtist,
-
-        /// <summary>
-        /// Random plays media items in any collection for any artist
-        /// </summary>
-        [Display(Description = "MediaPlayModesShuffleStorage")]
-        ShuffleStorage
+        Sequential
     }
 }

@@ -15,9 +15,14 @@
             Route="MainPage" />
 
         <ShellContent
-            Title="New playlist"
-            ContentTemplate="{DataTemplate local:NewPlaylistPage}"
-            Route="NewPlaylistPage" />
+            Title="Manage playlists"
+            ContentTemplate="{DataTemplate local:ManagePlaylistsPage}"
+            Route="ManagePlaylistsPage" />
+
+        <ShellContent
+            Title="Manage queue"
+            ContentTemplate="{DataTemplate local:ManageQueuePage}"
+            Route="ManageQueuePage" />
 
         <ShellContent
             Title="Settings"

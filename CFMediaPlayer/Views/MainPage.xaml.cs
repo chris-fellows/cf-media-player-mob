@@ -2,14 +2,16 @@
 using CFMediaPlayer.ViewModels;
 using System;
 using Java.Lang;
+using Microsoft.Maui.Controls;
+using CFMediaPlayer.Models;
 
 namespace CFMediaPlayer
 {
     /// <summary>
     /// Main page view
     /// </summary>
-    [QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")]
-    [QueryProperty(nameof(UserSettingsUpdated), "UserSettingsUpdated")]
+    //[QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")]
+    [QueryProperty(nameof(EventData), "EventData")]
     public partial class MainPage : ContentPage
     {
         int count = 0;       
@@ -20,10 +22,7 @@ namespace CFMediaPlayer
             InitializeComponent();
 
             _model = model;            
-            this.BindingContext = _model;
-            
-            // Default to auto-play next media item on completion
-            //_model.AutoPlayNext = true;       
+            this.BindingContext = _model;          
 
             // Handle debug messages
             _model.SetDebugAction((debug) =>
@@ -37,23 +36,26 @@ namespace CFMediaPlayer
         }        
 
         /// <summary>
-        /// Handle new playlist created. Automatically select it
+        /// Event data property set by QueryProperty from external page
         /// </summary>
-        public string NewPlaylistName
+        public string EventData
         {
             set
-            {
-                _model.SelectPlaylist(value);                
+            {                
+                switch(value)
+                {
+                    case "PlaylistsUpdated":
+                        _model.HandlePlaylistsUpdated();
+                        break;
+                    case "QueueUpdated":
+                        _model.HandleQueueUpdated();
+                        break;
+                    case "UserSettingsUpdated":
+                        _model.HandleUserSettingsUpdated();
+                        break;
+                }                
             }
-        }
-
-        public string UserSettingsUpdated
-        {
-            set
-            {
-                _model.RefreshUserSettings();
-            }
-        }
+        }        
    
         private void OnElapsedSliderValueChanged(object? sender, ValueChangedEventArgs e)
         {
@@ -123,15 +125,21 @@ namespace CFMediaPlayer
             _model.ElapsedTimeInt = (int)ElapsedSlider.Value;            
         }
 
-        private void SearchResultTextCell_Tapped(object sender, EventArgs e)
-        {
-            TextCell textCell = (TextCell)sender;
-            _model.SelectSearchResult(textCell.Text);            
-        }
+        //private void SearchResultTextCell_Tapped(object sender, EventArgs e)
+        //{
+        //    TextCell textCell = (TextCell)sender;
+        //    _model.SelectSearchResult(textCell.Text);            
+        //}
 
         private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (e.NewTextValue.Length == 0) _model.ClearSearchResults();
         }
+
+        private void SearchResultsList_ItemTapped(object sender, ItemTappedEventArgs e)
+        {            
+            _model.SelectSearchResult((SearchResult)e.Item);
+            MediaSearchBar.Text = "";
+        }        
     }
 }

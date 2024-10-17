@@ -6,7 +6,7 @@
     public class MediaItemCollection
     {
         /// <summary>
-        /// Folder where collection stored
+        /// Folder where media item collection stored
         /// </summary>
         public string Path { get; set; } = String.Empty;        
 
