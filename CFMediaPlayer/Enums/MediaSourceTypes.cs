@@ -1,5 +1,8 @@
 ﻿namespace CFMediaPlayer.Enums
 {
+    /// <summary>
+    /// Media source types
+    /// </summary>
     public enum MediaSourceTypes
     {
         Cloud,

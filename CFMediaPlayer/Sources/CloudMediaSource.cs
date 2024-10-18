@@ -72,5 +72,10 @@ namespace CFMediaPlayer.Sources
 
             return searchResults;
         }
+
+        public Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem)
+        {
+            return null;
+        }
     }
 }

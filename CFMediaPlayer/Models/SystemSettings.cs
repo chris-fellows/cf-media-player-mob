@@ -21,10 +21,5 @@ namespace CFMediaPlayer.Models
         /// Default audio settings (AudioSettings.Id)
         /// </summary>
         public string DefaultAudioSettingsId { get; set; } = String.Empty;
-
-        /// <summary>
-        /// Default play mode
-        /// </summary>
-        public MediaPlayModes DefaultPlayMode { get; set; } = MediaPlayModes.Sequential;
     }
 }

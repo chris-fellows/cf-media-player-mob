@@ -81,10 +81,7 @@ namespace CFMediaPlayer.ViewModels
             // Add None if no playlists
             if (!playlists.Any())
             {
-                playlists.Add(new MediaItemCollection()
-                {
-                    Name = LocalizationResources.Instance["NoneText"].ToString()
-                });
+                playlists.Add(MediaItemCollection.InstanceNone);                
             }
             Playlists = playlists;
 
@@ -148,7 +145,7 @@ namespace CFMediaPlayer.ViewModels
             LoadPlaylists();
         }
 
-        public bool IsPlaylistSelected => _selectedPlaylist != null && MediaUtilities.IsRealMediaItemCollection(_selectedPlaylist);  
+        public bool IsPlaylistSelected => _selectedPlaylist != null && _selectedPlaylist.EntityCategory == EntityCategory.Real;
 
         /// <summary>
         /// Command to create playlist

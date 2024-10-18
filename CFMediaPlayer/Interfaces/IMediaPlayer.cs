@@ -1,4 +1,5 @@
 ﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Exceptions;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -42,7 +43,7 @@ namespace CFMediaPlayer.Interfaces
         /// Sets status action
         /// </summary>
         /// <param name="action"></param>
-        void SetStatusAction(Action<MediaPlayerStatuses> action);
+        void SetStatusAction(Action<MediaPlayerStatuses, MediaPlayerException?> action);
 
         /// <summary>
         /// Sets debug action

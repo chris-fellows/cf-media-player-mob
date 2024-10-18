@@ -1,6 +1,7 @@
 ﻿using Android.Media.Audiofx;
 using Android.Media;
 using CFMediaPlayer.Enums;
+using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
 
 namespace CFMediaPlayer
@@ -17,14 +18,14 @@ namespace CFMediaPlayer
         private bool _isPrepared;
         private string _equalizerPresetName = String.Empty;
         private Action<string>? _debugAction;        
-        private Action<MediaPlayerStatuses>? _statusAction;
+        private Action<MediaPlayerStatuses, MediaPlayerException?>? _statusAction;
        
         public void Dispose()
         {
             Stop();
         }
 
-        public void SetStatusAction(Action<MediaPlayerStatuses> action)
+        public void SetStatusAction(Action<MediaPlayerStatuses, MediaPlayerException?> action)
         {
             _statusAction = action;
         }
@@ -49,7 +50,7 @@ namespace CFMediaPlayer
                 _mediaPlayer.SeekTo(_currentPosition);
                 _currentPosition = 0;
                 _mediaPlayer.Start();
-                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Playing);
+                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Playing, null);
             }
             else if (_mediaPlayer == null || !_mediaPlayer.IsPlaying)   // Not started
             {                
@@ -62,7 +63,17 @@ namespace CFMediaPlayer
                     _mediaPlayer.SetDataSource(filePath);
                     _currentFilePath = filePath;
                     _mediaPlayer.SetAudioStreamType(Android.Media.Stream.Music);
-                    if (_debugAction != null) _debugAction("Preparing " + filePath);                    
+                    if (_debugAction != null) _debugAction("Preparing " + filePath);
+
+                    // If you play an invalid file and the error handler is defined then it fires but the Completion event doesn't.
+                    // If you play an invalid file and the error handler isn't defined then it fires the Completion event.
+                    _mediaPlayer.Error += (object? sender, MediaPlayer.ErrorEventArgs e) =>
+                    {
+                        var mediaPlayerException = new MediaPlayerException("Error playing media") { MediaError = e.What };
+                        errorAction(mediaPlayerException);                        
+                        if (_statusAction != null) _statusAction(MediaPlayerStatuses.PlayError, mediaPlayerException);                        
+                    };
+
                     _mediaPlayer.PrepareAsync();
                     _mediaPlayer.Prepared += (sender, args) =>
                     {                        
@@ -72,19 +83,19 @@ namespace CFMediaPlayer
                         _isPrepared = true;
                         if (_debugAction != null) _debugAction("Playing");
                         _mediaPlayer.Start();
-                        if (_statusAction != null) _statusAction(MediaPlayerStatuses.Playing);
+                        if (_statusAction != null) _statusAction(MediaPlayerStatuses.Playing, null);
                     };
                     _mediaPlayer.Completion += (sender, args) =>
                     {
                         if (_debugAction != null) _debugAction($"Completed");
-                        if (_statusAction != null) _statusAction(MediaPlayerStatuses.Completed);
+                        if (_statusAction != null) _statusAction(MediaPlayerStatuses.Completed, null);
                     };
                 }
                 catch (Exception e)
                 {
                     errorAction(e);
                     _mediaPlayer = null;
-                    if (_statusAction != null) _statusAction(MediaPlayerStatuses.StartError);
+                    if (_statusAction != null) _statusAction(MediaPlayerStatuses.PlayError, new MediaPlayerException("Error playing media", e));
                 }
             }
 
@@ -96,6 +107,11 @@ namespace CFMediaPlayer
             }            
         }
 
+        private void _mediaPlayer_Error(object? sender, MediaPlayer.ErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Pause()
         {
             if (_mediaPlayer != null && _mediaPlayer.IsPlaying)
@@ -104,7 +120,7 @@ namespace CFMediaPlayer
                 _currentPosition = _mediaPlayer.CurrentPosition;
 
                 if (_debugAction != null) _debugAction("Paused");
-                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Paused);
+                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Paused, null);
             }
         }
         public void Stop()
@@ -124,7 +140,7 @@ namespace CFMediaPlayer
                 _currentPosition = 0;
                 _currentFilePath = "";
                 if (_debugAction != null) _debugAction("Stopped");
-                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Stopped);                
+                if (_statusAction != null) _statusAction(MediaPlayerStatuses.Stopped, null);                
             }
         }
         public TimeSpan GetElapsedPlayTime()
@@ -136,7 +152,7 @@ namespace CFMediaPlayer
         public void SetElapsedPlayTime(TimeSpan elapsedPlayTime)
         {
             if (_mediaPlayer != null)
-            {
+            {                
                 _mediaPlayer.SeekTo((int)elapsedPlayTime.TotalMilliseconds);
                 _currentPosition = _mediaPlayer.CurrentPosition;
             }
@@ -163,6 +179,17 @@ namespace CFMediaPlayer
         public void ApplyEqualizerTest()
         {
             var equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);            
+
+            for (short band = 0; band < equalizer.NumberOfBands; band++)
+            {
+                var freqRange = equalizer.GetBandFreqRange(band);
+                var bandLevel = equalizer.GetBandLevel(band);
+                var centerFreq = equalizer.GetCenterFreq(band);
+
+                System.Diagnostics.Debug.WriteLine($"Band={band}; FreqRange={freqRange[0]}-{freqRange[1]}; BandLevel={bandLevel}; CenterFreq={centerFreq}");
+
+                int zzz = 1000;                
+            }
 
             for (short index =0; index < equalizer.NumberOfPresets; index++)
             {

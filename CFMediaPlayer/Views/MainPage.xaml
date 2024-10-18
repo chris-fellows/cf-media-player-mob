@@ -14,28 +14,31 @@
                 Style="{StaticResource Headline}"
                 SemanticProperties.HeadingLevel="Level5" />
 
-            <StackLayout>
-                <SearchBar x:Name="MediaSearchBar"
-                     Placeholder="Search media..." 
+            <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
+                <SearchBar x:Name="MediaSearchBar"                                                
+                     Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
                      TextChanged="MediaSearchBar_TextChanged"                     
                      SearchCommand="{Binding SearchCommand}"
                      SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
 
-                <ListView x:Name="SearchResultsList"
-                  ItemsSource="{Binding SearchResults}"                            
-                  ItemTapped="SearchResultsList_ItemTapped"
-                  IsVisible="{Binding IsSearchResults, Mode=OneWay}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <StackLayout Orientation="Horizontal">
-                                    <Image Source="{Binding ImageSource}" HeightRequest="15" WidthRequest="15" />
-                                    <Label Text="{Binding Name}" VerticalOptions="Center" />
-                                </StackLayout>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <Border StrokeThickness="1" 
+                        IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                    <ListView x:Name="SearchResultsList"                      
+                      ItemsSource="{Binding SearchResults, Mode=OneWay}"                            
+                      ItemTapped="SearchResultsList_ItemTapped"                            
+                      IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Image Source="{Binding ImageSource}" HeightRequest="20" />
+                                        <Label Text="{Binding Name}" VerticalOptions="Center" FontSize="Small" />
+                                    </StackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView> 
+                </Border>
             </StackLayout>
 
             <Image
@@ -74,11 +77,17 @@
             </Picker>
 
             <StackLayout Orientation="Horizontal" HorizontalOptions="End">
+                <Label Text="Shuffle" VerticalOptions="Center"></Label>
+                <Switch x:Name="ShufflePlaySwitch"
+                    HeightRequest="25"
+                    VerticalOptions="Center"
+                    IsToggled="{Binding ShufflePlay}"></Switch>
+
                 <Label Text="Auto-play" VerticalOptions="Center"></Label>
                 <Switch x:Name="AutoPlayNextSwitch"
                         HeightRequest="25"
                         VerticalOptions="Center"
-                    IsToggled="{Binding AutoPlayEnabled}"></Switch>
+                    IsToggled="{Binding AutoPlayNext}"></Switch>
             </StackLayout>
 
             <StackLayout Margin="0,0,0,0">
@@ -137,10 +146,10 @@
 
                     <Slider x:Name="ElapsedSlider"                    
                              Grid.Row="1" Grid.ColumnSpan="3"
-                             IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
-                             Minimum="0"
-                             Maximum="{Binding Mode=OneWay, Path=DurationInt}"                             
-                             Value="{Binding Mode=OneWay, Path=ElapsedTimeInt}" />
+                             DragCompleted="ElapsedSlider_DragCompleted"                                                          
+                             Minimum="0"                             
+                             Maximum="{Binding Path=DurationMS, Mode=OneWay}"                             
+                             Value="{Binding Path=ElapsedMS, Mode=OneWay}" />
                 </Grid>
             </StackLayout>
 

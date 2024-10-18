@@ -62,5 +62,13 @@ namespace CFMediaPlayer.Interfaces
         /// <param name="searchOptions"></param>
         /// <returns></returns>
         List<SearchResult> Search(SearchOptions searchOptions);
+
+        /// <summary>
+        /// Gets ancestors (Album, MediaItemCollection) for media item. This method is only used for storage where
+        /// the physical files are stored.
+        /// </summary>
+        /// <param name="mediaItem"></param>
+        /// <returns></returns>
+        Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem);
     }
 }

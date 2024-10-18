@@ -28,7 +28,7 @@ namespace CFMediaPlayer.Sources
         {
             return new List<Artist>()
             {
-                new Artist() { Name = LocalizationResources.Instance["MultipleText"].ToString() }
+                Artist.InstanceMultiple                
             };
         }
 
@@ -39,10 +39,7 @@ namespace CFMediaPlayer.Sources
             if (includeNonReal)
             {
                 // Add multiple                
-                mediaItemCollections.Insert(0, new MediaItemCollection()
-                {
-                    Name = LocalizationResources.Instance["MultipleText"].ToString(),
-                });                
+                mediaItemCollections.Insert(0, MediaItemCollection.InstanceMultiple);
             }
 
             return mediaItemCollections;
@@ -56,10 +53,7 @@ namespace CFMediaPlayer.Sources
             // Add None if no media item collections           
             if (includeNonReal && !mediaItems.Any())
             {
-                mediaItems.Add(new MediaItem()
-                {
-                    Name = LocalizationResources.Instance["NoneText"].ToString(),
-                });
+                mediaItems.Add(MediaItem.InstanceNone);
             }
 
             return mediaItems;
@@ -72,6 +66,28 @@ namespace CFMediaPlayer.Sources
 
             if (mediaItem != null)
             {
+                // If queue currently selected then add action to open album
+                if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Queue)
+                {
+                    foreach (IMediaSource mediaSource in allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage & ms.IsAvailable))
+                    {
+                        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem);
+                        if (ancestors != null)
+                        {
+                            var item = new MediaItemAction()
+                            {
+                                ActionToExecute = MediaItemActions.OpenMediaItemCollection,
+                                MediaLocationName = mediaSource.MediaLocation.Name,
+                                File = mediaItem.FilePath,
+                                Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
+                                        ancestors.Item2.Name)
+                            };
+                            items.Add(item);
+                            break;
+                        }
+                    }
+                }
+
                 if (_mediaItemQueue.Any(mi => mi.FilePath == mediaItem.FilePath))   // Queued
                 {
                     var item3 = new MediaItemAction()
@@ -136,12 +152,18 @@ namespace CFMediaPlayer.Sources
                    {
                        EntityType = EntityTypes.MediaItem,
                        Name = mi.Name,
-                       Artist = new Artist() { Name = LocalizationResources.Instance["NoneText"].ToString() },
-                       MediaItemCollection = new MediaItemCollection() { Name= LocalizationResources.Instance["NoneText"].ToString() },
+                       Artist = Artist.InstanceNone,
+                       MediaItemCollection = MediaItemCollection.InstanceNone,
                        MediaItem = mi
                    }));        
 
             return searchResults;
+        }
+
+        public Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem)
+        {
+            // Only used for storage source where files are physically stored
+            return null;
         }
     }
 }

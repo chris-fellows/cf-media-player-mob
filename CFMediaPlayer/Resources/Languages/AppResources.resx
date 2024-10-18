@@ -177,12 +177,6 @@
   <data name="SelectAudioSettingsText" xml:space="preserve">
     <value>Select audio settings</value>
   </data>
-  <data name="MediaPlayModesSingleMediaItem" xml:space="preserve">
-    <value>Single play</value>
-  </data>
-  <data name="MediaPlayModesSequential" xml:space="preserve">
-    <value>Sequential play</value>
-  </data>
   <data name="MediaItemActionsAddToPlaylist" xml:space="preserve">
     <value>Add to playlist {0}</value>
   </data>
@@ -218,5 +212,20 @@
   </data>
   <data name="SelectPlaylistText" xml:space="preserve">
     <value>Select playlist</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="AllText" xml:space="preserve">
+    <value>[All]</value>
+  </data>
+  <data name="MainSelectPlayOrderText" xml:space="preserve">
+    <value>Select play order</value>
+  </data>
+  <data name="SearchWithParam" xml:space="preserve">
+    <value>Search {0}...</value>
+  </data>
+  <data name="MediaItemActionsOpenMediaItemCollection" xml:space="preserve">
+    <value>Open album {0}</value>
   </data>
 </root>

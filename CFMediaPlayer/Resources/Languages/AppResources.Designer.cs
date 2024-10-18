@@ -61,6 +61,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [All].
+        /// </summary>
+        internal static string AllText {
+            get {
+                return ResourceManager.GetString("AllText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         internal static string Cancel {
@@ -93,6 +102,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string Delete {
             get {
                 return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
             }
         }
         
@@ -160,6 +178,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select play order.
+        /// </summary>
+        internal static string MainSelectPlayOrderText {
+            get {
+                return ResourceManager.GetString("MainSelectPlayOrderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove from playlist {0}.
         /// </summary>
         internal static string MediaItemActionRemoveFromPlaylist {
@@ -214,20 +241,11 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sequential play.
+        ///   Looks up a localized string similar to Open album {0}.
         /// </summary>
-        internal static string MediaPlayModesSequential {
+        internal static string MediaItemActionsOpenMediaItemCollection {
             get {
-                return ResourceManager.GetString("MediaPlayModesSequential", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Single play.
-        /// </summary>
-        internal static string MediaPlayModesSingleMediaItem {
-            get {
-                return ResourceManager.GetString("MediaPlayModesSingleMediaItem", resourceCulture);
+                return ResourceManager.GetString("MediaItemActionsOpenMediaItemCollection", resourceCulture);
             }
         }
         
@@ -327,6 +345,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string Save {
             get {
                 return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search {0}....
+        /// </summary>
+        internal static string SearchWithParam {
+            get {
+                return ResourceManager.GetString("SearchWithParam", resourceCulture);
             }
         }
         

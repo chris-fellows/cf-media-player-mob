@@ -99,6 +99,8 @@ namespace CFMediaPlayer.ViewModels
             set
             {
                 _selectedUITheme = value;
+
+                OnPropertyChanged(nameof(SelectedUITheme));
             }
         }
 
@@ -117,6 +119,8 @@ namespace CFMediaPlayer.ViewModels
             set
             {
                 _selectedAudioSettings = value;
+
+                OnPropertyChanged(nameof(SelectedAudioSettings));
             }
         }
     }

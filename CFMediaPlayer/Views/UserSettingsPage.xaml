@@ -23,7 +23,7 @@
             <Button
             x:Name="SaveBtn"
             WidthRequest="100"
-            Text="Save"                 
+            Text="{Binding LocalizationResources[Save], Mode=OneWay}"                 
             SemanticProperties.Hint="Saves user settings"
             Command="{Binding SaveCommand}"                    
             HorizontalOptions="Fill" />
@@ -31,7 +31,7 @@
             <Button
               x:Name="CancelBtn"
               WidthRequest="100"
-              Text="Cancels"                 
+              Text="{Binding LocalizationResources[Cancel], Mode=OneWay}"                 
               SemanticProperties.Hint="Cancels changes"
               Command="{Binding CancelCommand}"                    
               HorizontalOptions="Fill" />

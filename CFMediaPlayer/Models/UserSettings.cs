@@ -23,11 +23,6 @@ namespace CFMediaPlayer.Models
         public string UIThemeId { get; set; } = String.Empty;
 
         /// <summary>
-        /// Default play mode
-        /// </summary>
-        public MediaPlayModes PlayMode { get; set; }
-
-        /// <summary>
         /// Audio settings
         /// </summary>
         public string AudioSettingsId { get; set; } = String.Empty;

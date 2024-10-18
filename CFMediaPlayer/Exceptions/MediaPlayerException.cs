@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Android.Media;
 
 namespace CFMediaPlayer.Exceptions
 {  
@@ -8,6 +9,8 @@ namespace CFMediaPlayer.Exceptions
    /// <remarks>Use this when there is no more specific exception</remarks>
     public class MediaPlayerException : Exception
     {
+        public MediaError? MediaError { get; set; }
+
         public MediaPlayerException()
         {
         }

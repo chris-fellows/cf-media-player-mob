@@ -24,15 +24,21 @@ namespace CFMediaPlayer
             _model = model;            
             this.BindingContext = _model;          
 
-            // Handle debug messages
-            _model.SetDebugAction((debug) =>
+            // Set event handler for debug action
+            _model.OnDebugAction += (debug) =>
             {
                 DebugLabel.Text = debug;
-            });
+            };
+
+            // Set event handler for media start error
+            _model.OnMediaPlayerError += (mediaPlayerException) =>
+            {
+                var alertResult = DisplayAlert(LocalizationResources.Instance["Error"].ToString(), mediaPlayerException.Message,
+                    LocalizationResources.Instance["Close"].ToString());
+            };
             
             // Set default media location to internal storage
-            _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);
-            _model.OnPropertyChanged(nameof(_model.SelectedMediaLocation));            
+            _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);           
         }        
 
         /// <summary>
@@ -76,6 +82,11 @@ namespace CFMediaPlayer
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
+            //var result = DisplayAlert("Test", "Test alert", "OK");
+
+            //_model.ApplyEqualizerTest();
+
+            /*
             System.Text.StringBuilder output = new System.Text.StringBuilder("");
             //var drives = DriveInfo.GetDrives();
             //foreach(var drive in drives)
@@ -101,8 +112,10 @@ namespace CFMediaPlayer
                 if (output.Length > 0) output.Append("; ");
                 output.Append(folder);
             }
+            
 
             DebugLabel.Text = output.ToString();
+            */
 
             //_model.ApplyEqualizerTest();
 
@@ -122,7 +135,7 @@ namespace CFMediaPlayer
         {
             // Advance to particular time player media item. We can't set the slider to be TwoWay because that causes
             // let ElapsedTimeInt to be set whenever the elapsed time is updated and that causes jumpy playback
-            _model.ElapsedTimeInt = (int)ElapsedSlider.Value;            
+            _model.ElapsedMS = (int)ElapsedSlider.Value;            
         }
 
         //private void SearchResultTextCell_Tapped(object sender, EventArgs e)

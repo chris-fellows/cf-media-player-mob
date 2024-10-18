@@ -69,8 +69,7 @@ namespace CFMediaPlayer
                         Username = Environment.UserName,
                         AudioSettingsId = systemSettings.DefaultAudioSettingsId,
                         UIThemeId = systemSettings.DefaultUIThemeId,
-                        CloudCredentialList = new List<CloudCredentials>(),                        
-                        PlayMode = systemSettings.DefaultPlayMode
+                        CloudCredentialList = new List<CloudCredentials>()                        
                     };
                     userSettingsService.Update(userSettings);
                 }
@@ -92,8 +91,7 @@ namespace CFMediaPlayer
                     systemSettings = new SystemSettings()
                     {                        
                         DefaultUIThemeId = uiTheme.Id,
-                        DefaultAudioSettingsId = audioSettings.Id,
-                        DefaultPlayMode = MediaPlayModes.Sequential
+                        DefaultAudioSettingsId = audioSettings.Id                        
                     };
                     systemSettingsService.Update(systemSettings);
                 }
