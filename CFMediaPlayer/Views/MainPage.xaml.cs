@@ -21,8 +21,8 @@ namespace CFMediaPlayer
         {
             InitializeComponent();
 
-            _model = model;            
-            this.BindingContext = _model;          
+            _model = model;
+            this.BindingContext = _model;            
 
             // Set event handler for debug action
             _model.OnDebugAction += (debug) =>
@@ -153,6 +153,11 @@ namespace CFMediaPlayer
         {            
             _model.SelectSearchResult((SearchResult)e.Item);
             MediaSearchBar.Text = "";
-        }        
+        }
+
+        private void MediaItemActionsView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {            
+            _model.ExecuteMediaItemAction((MediaItemAction)e.CurrentSelection.First());
+        }
     }
 }

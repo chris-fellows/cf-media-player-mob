@@ -31,6 +31,9 @@ namespace CFMediaPlayer.Models
         /// </summary>
         public MediaItemActions ActionToExecute { get; set; }
 
+        public string ImagePath { get; set; } = String.Empty;
+
+
         public static MediaItemAction InstanceNone => new MediaItemAction() { Name = LocalizationResources.Instance["NoneText"].ToString() };
     }
 }

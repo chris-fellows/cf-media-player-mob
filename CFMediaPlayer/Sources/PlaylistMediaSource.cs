@@ -179,8 +179,9 @@ namespace CFMediaPlayer.Sources
                             var item = new MediaItemAction()
                             {
                                 ActionToExecute = MediaItemActions.OpenMediaItemCollection,
-                                MediaLocationName = mediaSource.MediaLocation.Name,
-                                File = mediaItem.FilePath,                                
+                                MediaLocationName = mediaSource.MediaLocation.Name,                                
+                                File = mediaItem.FilePath,            
+                                ImagePath = "picture.png",
                                 Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
@@ -213,6 +214,9 @@ namespace CFMediaPlayer.Sources
                                      String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToPlaylist)].ToString(),
                                             playlistName),
                             File = file,
+                            ImagePath = isFoundMediaItem ?
+                                    "cross.png" :
+                                    "plus.png",
                             ActionToExecute = isFoundMediaItem ?
                                     MediaItemActions.RemoveFromPlaylist :
                                     MediaItemActions.AddToPlaylist

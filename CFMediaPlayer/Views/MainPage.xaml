@@ -3,17 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:lang="clr-namespace:CFMediaPlayer.Resources.Languages"                                      
              x:Class="CFMediaPlayer.MainPage">
-
     <ScrollView>
         <VerticalStackLayout
             Padding="10,0"
             Spacing="2">
             
-            <Label
-                Text="CF Media Player"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level5" />
-
             <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
                 <SearchBar x:Name="MediaSearchBar"                                                
                      Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
@@ -152,42 +146,30 @@
                              Value="{Binding Path=ElapsedMS, Mode=OneWay}" />
                 </Grid>
             </StackLayout>
-
-            <StackLayout>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="40" />
-                    </Grid.ColumnDefinitions>
-
-                    <Picker x:Name="MediaItemActionsList" 
-                        Grid.Row="0" Grid.Column="0"
-              ItemsSource="{Binding MediaItemActions}"                                    
-              ItemDisplayBinding="{Binding Name}"
-              SelectedItem="{Binding SelectedMediaItemAction, Mode=TwoWay}"
-              Title="{Binding LocalizationResources[MainSelectActionText], Mode=OneWay}">
-                    </Picker>   
-
-                    <ImageButton
-                      x:Name="ExecuteMediaItemActionBtn"
-                      Grid.Row="0" Grid.Column="1"
-                      Source="arrow_click_cursor_pointer_icon.png"
-                      SemanticProperties.Hint="Execute action"
-                      Command="{Binding ExecuteMediaItemActionCommand}"                      
-                      HorizontalOptions="End" />   
-                </Grid>
-            </StackLayout>
-
+          
+            <CollectionView x:Name="MediaItemActionsView"
+                            ItemsSource="{Binding MediaItemActions}"
+                            SelectionChanged="MediaItemActionsView_SelectionChanged"    
+                            SelectionMode="Single" Margin="10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="25">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="20"/>
+                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            
             <Label
               x:Name="DebugLabel"
+                IsVisible="{Binding IsDebugMode, Mode=OneWay}"
                 Text="Debug"                    
                 SemanticProperties.HeadingLevel="Level1" />
 
             <Button
               x:Name="DebugInfoBtn"
+               IsVisible="{Binding IsDebugMode, Mode=OneWay}"
               Text="Debug info"                 
               SemanticProperties.Hint="Displays debug info"
               Clicked="OnDebugInfoClicked"

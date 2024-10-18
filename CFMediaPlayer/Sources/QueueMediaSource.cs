@@ -79,6 +79,7 @@ namespace CFMediaPlayer.Sources
                                 ActionToExecute = MediaItemActions.OpenMediaItemCollection,
                                 MediaLocationName = mediaSource.MediaLocation.Name,
                                 File = mediaItem.FilePath,
+                                ImagePath = "picture.png",
                                 Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
@@ -95,7 +96,8 @@ namespace CFMediaPlayer.Sources
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
                         File = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.RemoveFromQueue
+                        ActionToExecute = MediaItemActions.RemoveFromQueue,
+                        ImagePath = "cross.png"
                     };
                     items.Add(item3);
                 }
@@ -106,7 +108,8 @@ namespace CFMediaPlayer.Sources
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
                         File = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.AddToQueueEnd
+                        ActionToExecute = MediaItemActions.AddToQueueEnd,
+                        ImagePath = "plus.png",
                     };
                     items.Add(item1);
 
@@ -115,7 +118,8 @@ namespace CFMediaPlayer.Sources
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
                         File = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.AddToQueueNext
+                        ActionToExecute = MediaItemActions.AddToQueueNext,
+                        ImagePath = "plus.png"
                     };
                     items.Add(item2);
                 }            

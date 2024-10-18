@@ -103,7 +103,7 @@ namespace CFMediaPlayer.ViewModels
             PrevCommand = new Command(DoPrev);
             PlayOrPauseCommand = new Command(DoPlayOrPause);
             StopCommand = new Command(DoStop);
-            ExecuteMediaItemActionCommand = new Command(ExecuteMediaItemAction);
+            //ExecuteMediaItemActionCommand = new Command(ExecuteMediaItemAction);
 
             //// Load play orders
             //var playOrders = new List<NameValuePair<PlayOrder>>();
@@ -133,6 +133,8 @@ namespace CFMediaPlayer.ViewModels
             // Set equalizer preset
             _mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
         }
+
+        public bool IsDebugMode => false;
         
         /// <summary>
         /// Whether to shuffle media items
@@ -192,7 +194,7 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         public ICommand StopCommand { get; set; }
 
-        public ICommand ExecuteMediaItemActionCommand { get; set; }    
+        //public ICommand ExecuteMediaItemActionCommand { get; set; }    
       
         private IMediaSource? CurrentMediaSource
         {
@@ -249,7 +251,7 @@ namespace CFMediaPlayer.ViewModels
         private void ClearActionsForMediaItem()
         {
             MediaItemActions = new List<MediaItemAction>();
-            SelectedMediaItemAction = null;
+            //SelectedMediaItemAction = null;
         }
 
         private MediaLocation? _selectedMediaLocation;
@@ -295,9 +297,9 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         /// <param name="mediaItem"></param>
         private void LoadMediaItemActions(MediaItem mediaItem)
-        {
+        {            
             MediaItemActions = new List<MediaItemAction>();
-            SelectedMediaItemAction = null;            
+            //SelectedMediaItemAction = null;
 
             var mediaItemActions = new List<MediaItemAction>();
             if (mediaItem.EntityCategory == EntityCategory.Real)
@@ -305,10 +307,16 @@ namespace CFMediaPlayer.ViewModels
                 mediaItemActions.AddRange(CurrentMediaSource!.GetActionsForMediaItem(CurrentMediaSource.MediaLocation, mediaItem,
                                                         _mediaSourceService.GetAll()));
             }
+
+            /*
             if (!mediaItemActions.Any())
             {                
                 mediaItemActions.Add(MediaItemAction.InstanceNone);
-            }            
+            }
+            */
+
+            // Consistent order
+            mediaItemActions = mediaItemActions.OrderBy(mia => mia.Name).ToList();
 
             // Select default playlist action
             var action = mediaItemActions.FirstOrDefault(p => !String.IsNullOrEmpty(p.File));
@@ -318,7 +326,8 @@ namespace CFMediaPlayer.ViewModels
             }
 
             MediaItemActions = mediaItemActions;
-            SelectedMediaItemAction = action;            
+            //SelectedMediaItemAction = action;            
+            //SelectedMediaItemAction = mediaItemActions[0];  
         }
 
         private MediaItem? _selectedMediaItem;
@@ -391,18 +400,9 @@ namespace CFMediaPlayer.ViewModels
 
                 // Display media items for album, select default
                 if (_selectedMediaItemCollection != null)
-                {
-                    //// Display New Playlist page if selected
-                    //if (_selectedMediaItemCollection.Name.Equals(LocalizationResources.Instance["NewPlaylistText"].ToString()))
-                    //{
-                    //    Shell.Current.GoToAsync($"//{nameof(NewPlaylistPage)}");
-                    //}
-
+                {                   
                     LoadMediaItemCollectionDefaults(_selectedArtist, _selectedMediaItemCollection);                    
-                }
-                
-                // Player buttons                
-                //NotifyPropertiesChangedForPlayState();
+                }                                
             }
         }
 
@@ -1000,48 +1000,53 @@ namespace CFMediaPlayer.ViewModels
             SelectedMediaItemCollection = mediaItemCollection;
         }
 
-        /// <summary>
-        /// Selected playlist action for media item
-        /// </summary>
-        private MediaItemAction? _selectedMediaItemAction;
-        public MediaItemAction? SelectedMediaItemAction
-        {
-            get { return _selectedMediaItemAction;  }
-            set
-            {
-                _selectedMediaItemAction = value;         
+        ///// <summary>
+        ///// Selected playlist action for media item
+        ///// </summary>
+        //private MediaItemAction? _selectedMediaItemAction;
+        //public MediaItemAction? SelectedMediaItemAction
+        //{
+        //    get { return _selectedMediaItemAction;  }
+        //    set
+        //    {
+        //        _selectedMediaItemAction = value;         
                 
-                OnPropertyChanged(nameof(SelectedMediaItemAction));
-            }
-        }
+        //        OnPropertyChanged(nameof(SelectedMediaItemAction));
+
+        //        //if (_selectedMediaItemAction != null && !_selectedMediaItemAction.Name.Equals("Select an action..."))
+        //        //{
+        //        //    ExecuteMediaItemActionCommand.Execute(null);
+        //        //}
+        //    }
+        //}
       
         /// <summary>
         /// Executes media item action
         /// </summary>
         /// <param name="parameter"></param>
-        private void ExecuteMediaItemAction(object parameter)
-        {                        
-            if (_selectedMediaItemAction != null)                     
+        public  void ExecuteMediaItemAction(MediaItemAction mediaItemAction)
+        {  
+            if (mediaItemAction != null)                     
             {
                 // Get media source to execute action against. We may be displaying the storage source but need to execute
                 // 'Add to playlist X' against the playlist source.
-                var mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaItemAction.MediaLocationName);
+                var mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == mediaItemAction.MediaLocationName);
 
                 // Execute action. Storage related actions are handled from IMediaSource.ExecuteMediaItemAction and UI related
                 // actions (E.g. Open album for playlist media item) are executed here.
-                if (_selectedMediaItemAction.ActionToExecute == Enums.MediaItemActions.OpenMediaItemCollection)
+                if (mediaItemAction.ActionToExecute == Enums.MediaItemActions.OpenMediaItemCollection)
                 {
-                    ExecuteOpenMediaItemCollection(_selectedMediaItem, _selectedMediaItemAction, mediaSource);                    
+                    ExecuteOpenMediaItemCollection(_selectedMediaItem, mediaItemAction, mediaSource);                    
                 }
                 else    // Storage related action
                 {
                     // Execute action. E.g. Add to playlist X, remove from playlist Y etc
-                    mediaSource.ExecuteMediaItemAction(_selectedMediaItem, _selectedMediaItemAction);
+                    mediaSource.ExecuteMediaItemAction(_selectedMediaItem, mediaItemAction);
 
                     // Check if media item should still be in the current media item list. E.g. If we're displaying the playlist
                     // media source and user removes selected media item then we need to select another media item
                     var mediaItems = CurrentMediaSource.GetMediaItemsForMediaItemCollection(_selectedArtist, _selectedMediaItemCollection, false);
-                    if (!mediaItems.Any(mi => mi.FilePath == _selectedMediaItemAction.File))   // Media item state changed
+                    if (!mediaItems.Any(mi => mi.FilePath == mediaItemAction.File))   // Media item state changed
                     {
                         LoadMediaItemCollectionDefaults(_selectedArtist, _selectedMediaItemCollection);
                     }
@@ -1070,8 +1075,7 @@ namespace CFMediaPlayer.ViewModels
                 Reset(mediaSource.MediaLocation.Name,
                             ancestors.Item1.Name,   // Artist
                             ancestors.Item2.Name,   // Media item collection
-                            mediaItem.Name,         // Media item
-                            "");                    // Media item action (Select default)                
+                            mediaItem.Name);
             }
         }
         
@@ -1188,8 +1192,7 @@ namespace CFMediaPlayer.ViewModels
             Reset(SelectedMediaLocation.Name,
                         SelectedArtist!.Name,
                         SelectedMediaItemCollection!.Name,
-                        SelectedMediaItem!.Name,
-                        SelectedMediaItemAction!.Name);
+                        SelectedMediaItem!.Name);
         }
 
         /// <summary>
@@ -1200,8 +1203,7 @@ namespace CFMediaPlayer.ViewModels
             Reset(SelectedMediaLocation.Name,
                         SelectedArtist!.Name,
                         SelectedMediaItemCollection!.Name,
-                        SelectedMediaItem!.Name,
-                        SelectedMediaItemAction!.Name);
+                        SelectedMediaItem!.Name);
         }
 
         /// <summary>
@@ -1215,8 +1217,7 @@ namespace CFMediaPlayer.ViewModels
         private void Reset(string selectedMediaLocationName,
                             string selectedArtistName,
                             string selectedMediaItemCollectionName,
-                            string selectedMediaItemName,
-                            string selectedMediaItemActionName)
+                            string selectedMediaItemName)                            
         {         
             // Clear selected media item location
             SelectedMediaLocation = null;
@@ -1256,15 +1257,15 @@ namespace CFMediaPlayer.ViewModels
                 SelectedMediaItem = MediaItems.First();
             }
 
-            // Selected selected media item action
-            if (!String.IsNullOrEmpty(selectedMediaItemActionName))
-            {
-                SelectedMediaItemAction = MediaItemActions.FirstOrDefault(mia => mia.Name == selectedMediaItemActionName);
-            }
-            if (SelectedMediaItemAction == null)
-            {
-                SelectedMediaItemAction = MediaItemActions.First();
-            }
+            //// Selected selected media item action
+            //if (!String.IsNullOrEmpty(selectedMediaItemActionName))
+            //{
+            //    SelectedMediaItemAction = MediaItemActions.FirstOrDefault(mia => mia.Name == selectedMediaItemActionName);
+            //}
+            //if (SelectedMediaItemAction == null)
+            //{
+            //    SelectedMediaItemAction = MediaItemActions.First();
+            //}
         }
 
         ///// <summary>
