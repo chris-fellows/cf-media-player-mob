@@ -12,11 +12,18 @@ namespace CFMediaPlayer.Interfaces
         /// Media location
         /// </summary>
         MediaLocation MediaLocation { get; }
+
+        string ImagePath { get; }
         
         /// <summary>
         /// Whether media source is currently available. E.g. User may unmount SD card.
         /// </summary>
         bool IsAvailable { get; }
+
+        /// <summary>
+        /// Whether there are media items available
+        /// </summary>
+        bool HasMediaItems { get; }
 
         /// <summary>
         /// Gets all artists
@@ -31,7 +38,7 @@ namespace CFMediaPlayer.Interfaces
         /// <param name="includeNonReal"></param>
         /// <returns></returns>
         List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal);
-      
+
         /// <summary>
         /// Gets media items for media item collection
         /// </summary>
@@ -46,8 +53,7 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>        
         /// <param name="mediaItem"></param>
         /// <returns></returns>
-        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
-                                                 List<IMediaSource> allMediaSources);
+        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem);
 
         /// <summary>
         /// Executes action for media item. E.g. Add to playlist X, add to queue etc
@@ -64,11 +70,18 @@ namespace CFMediaPlayer.Interfaces
         List<SearchResult> Search(SearchOptions searchOptions);
 
         /// <summary>
-        /// Gets ancestors (Album, MediaItemCollection) for media item. This method is only used for storage where
-        /// the physical files are stored.
+        /// Gets ancestors (Album, MediaItemCollection) for media item. For playlists then a media item can be 
+        /// member of multiple playlists. For storage then it's only one.       
         /// </summary>
         /// <param name="mediaItem"></param>
         /// <returns></returns>
-        Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem);
+        /// <remarks>This method is typically used for finding the album image for a media item</remarks>
+        List<Tuple<Artist, MediaItemCollection>> GetAncestorsForMediaItem(MediaItem mediaItem);
+
+        /// <summary>
+        /// Sets all media sources
+        /// </summary>
+        /// <param name="allMediaSources"></param>
+        void SetAllMediaSources(List<IMediaSource> allMediaSources);
     }
 }

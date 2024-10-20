@@ -69,8 +69,10 @@
 	  <None Remove="Resources\Images\ic_media_pause.png" />
 	  <None Remove="Resources\Images\ic_media_play.png" />
 	  <None Remove="Resources\Images\ic_media_rew.png" />
+	  <None Remove="Resources\Images\music.png" />
 	  <None Remove="Resources\Images\picture.png" />
 	  <None Remove="Resources\Images\plus.png" />
+	  <None Remove="Resources\Images\radio.png" />
 	</ItemGroup>
 
 	<ItemGroup>

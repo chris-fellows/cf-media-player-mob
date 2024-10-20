@@ -7,7 +7,14 @@
         <VerticalStackLayout
             Padding="10,0"
             Spacing="2">
-            
+
+            <Picker x:Name="MediaLocation" 
+                 ItemsSource="{Binding MediaLocations}"
+                ItemDisplayBinding="{Binding Name}"                    
+                SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+                Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+            </Picker>
+
             <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
                 <SearchBar x:Name="MediaSearchBar"                                                
                      Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
@@ -40,75 +47,34 @@
       HeightRequest="100"
       Aspect="AspectFit"
       SemanticProperties.Description="CF Media Player" />
-         
-            <Picker x:Name="MediaLocation" 
-                     ItemsSource="{Binding MediaLocations}"
-                    ItemDisplayBinding="{Binding Name}"                    
-                    SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
-                    Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
-            </Picker>
-
-            <Picker x:Name="ArtistList" 
-                      ItemsSource="{Binding Artists}"
-                      ItemDisplayBinding="{Binding Name}"
-                      SelectedItem="{Binding SelectedArtist, Mode=TwoWay}"
-                    Title="{Binding LocalizationResources[MainSelectArtistText], Mode=OneWay}">
-            </Picker>
-
-            <Picker x:Name="MediaItemCollectionList" 
-                    ItemsSource="{Binding MediaItemCollections}"
-                    ItemDisplayBinding="{Binding Name}"
-                    SelectedItem="{Binding SelectedMediaItemCollection, Mode=TwoWay}"
-                     
-                    Title="{Binding LocalizationResources[MainSelectAlbumText], Mode=OneWay}">
-            </Picker>
-
-            <Picker x:Name="MediaItemList"
-                    ItemsSource="{Binding MediaItems}"
-                    ItemDisplayBinding="{Binding Name}"
-                    SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"
-                    Title="{Binding LocalizationResources[MainSelectMediaItemText], Mode=OneWay}">
-            </Picker>
-
-            <StackLayout Orientation="Horizontal" HorizontalOptions="End">
-                <Label Text="Shuffle" VerticalOptions="Center"></Label>
-                <Switch x:Name="ShufflePlaySwitch"
-                    HeightRequest="25"
-                    VerticalOptions="Center"
-                    IsToggled="{Binding ShufflePlay}"></Switch>
-
-                <Label Text="Auto-play" VerticalOptions="Center"></Label>
-                <Switch x:Name="AutoPlayNextSwitch"
-                        HeightRequest="25"
-                        VerticalOptions="Center"
-                    IsToggled="{Binding AutoPlayNext}"></Switch>
-            </StackLayout>
 
             <StackLayout Margin="0,0,0,0">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="5">
 
                     <ImageButton 
-                        x:Name="PrevMediaImageBtn"
-                        Source="audio_media_media_player_music_rewind_icon.png"                         
-                        Command="{Binding PrevCommand}"
-                        IsEnabled="{Binding Path=IsPrevEnabled, Mode=OneWay}"
-                        HorizontalOptions="Fill" />
+                x:Name="PrevMediaImageBtn"
+                Source="audio_media_media_player_music_rewind_icon.png"                         
+                Command="{Binding PrevCommand}"
+                IsEnabled="{Binding Path=IsPrevEnabled, Mode=OneWay}"
+                IsVisible="{Binding Path=IsPrevVisible, Mode=OneWay}"
+                HorizontalOptions="Fill" />
 
                     <ImageButton
-                       x:Name="PlayMediaImageBtn"
-                       Source="{Binding PlayButtonImageSource}"
-                       SemanticProperties.Hint="Plays media"
-                       Command="{Binding PlayOrPauseCommand}"
-                       IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
-                       HorizontalOptions="Fill" />
+               x:Name="PlayMediaImageBtn"
+               Source="{Binding PlayButtonImageSource}"
+               SemanticProperties.Hint="Plays or stops or pauses media"
+               Command="{Binding PlayOrNotCommand}"
+               IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
+               HorizontalOptions="Fill" />
 
                     <ImageButton
-                         x:Name="NextMediaImageBtn"
-                         Source="audio_fast_forward_media_media_player_icon.png"
-                         SemanticProperties.Hint="Next item"
-                         Command="{Binding NextCommand}"
-                         IsEnabled="{Binding Path=IsNextEnabled, Mode=OneWay}"
-                         HorizontalOptions="Fill" />
+                 x:Name="NextMediaImageBtn"
+                 Source="audio_fast_forward_media_media_player_icon.png"
+                 SemanticProperties.Hint="Next item"
+                 Command="{Binding NextCommand}"
+                 IsEnabled="{Binding Path=IsNextEnabled, Mode=OneWay}"
+                 IsVisible="{Binding Path=IsNextVisible, Mode=OneWay}"
+                 HorizontalOptions="Fill" />
                 </StackLayout>
             </StackLayout>
 
@@ -125,28 +91,83 @@
                     </Grid.ColumnDefinitions>
 
                     <Label
-                         x:Name="ElapsedLabel"               
-                         Grid.Row="0" Grid.Column="0"
-                         HorizontalTextAlignment="Start"                         
-                         Text="{Binding Mode=OneWay, Path=ElapsedTime}"
-                         SemanticProperties.HeadingLevel="Level1" />
+                 x:Name="ElapsedLabel"               
+                 Grid.Row="0" Grid.Column="0"
+                 HorizontalTextAlignment="Start"                         
+                 Text="{Binding Mode=OneWay, Path=ElapsedTime}"                       
+                 SemanticProperties.HeadingLevel="Level1" />
 
                     <Label
-                         x:Name="RemainingLabel"                                     
-                         Grid.Row="0" Grid.Column="2"
-                         HorizontalTextAlignment="End"                         
-                         Text="{Binding Mode=OneWay, Path=RemainingTime}"
-                         SemanticProperties.HeadingLevel="Level1" />
+                 x:Name="RemainingLabel"                                     
+                 Grid.Row="0" Grid.Column="2"
+                 HorizontalTextAlignment="End"                         
+                 Text="{Binding Mode=OneWay, Path=RemainingTime}"
+                IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
+                 SemanticProperties.HeadingLevel="Level1" />
 
                     <Slider x:Name="ElapsedSlider"                    
-                             Grid.Row="1" Grid.ColumnSpan="3"
-                             DragCompleted="ElapsedSlider_DragCompleted"                                                          
-                             Minimum="0"                             
-                             Maximum="{Binding Path=DurationMS, Mode=OneWay}"                             
-                             Value="{Binding Path=ElapsedMS, Mode=OneWay}" />
+                     Grid.Row="1" Grid.ColumnSpan="3"
+                     DragCompleted="ElapsedSlider_DragCompleted"                                                          
+                     IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
+                     Minimum="0"                             
+                     Maximum="{Binding Path=DurationMS, Mode=OneWay}"                             
+                     Value="{Binding Path=ElapsedMS, Mode=OneWay}" />
                 </Grid>
             </StackLayout>
-          
+
+            <Picker x:Name="ArtistList" 
+                      ItemsSource="{Binding Artists}"
+                      ItemDisplayBinding="{Binding Name}"
+                      SelectedItem="{Binding SelectedArtist, Mode=TwoWay}"
+                    Title="{Binding LocalizationResources[MainSelectArtistText], Mode=OneWay}">
+            </Picker>
+
+            <Picker x:Name="MediaItemCollectionList" 
+                    ItemsSource="{Binding MediaItemCollections}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding SelectedMediaItemCollection, Mode=TwoWay}"
+                     
+                    Title="{Binding LocalizationResources[MainSelectAlbumText], Mode=OneWay}">
+            </Picker>
+
+            <StackLayout Orientation="Horizontal" HorizontalOptions="End">
+                <Label x:Name="ShufflePlaySwitchLabel"
+                       Text="Shuffle" 
+                       IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                       VerticalOptions="Center"></Label>
+                <Switch x:Name="ShufflePlaySwitch"
+                    HeightRequest="25"
+                    VerticalOptions="Center"
+                    IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                    IsToggled="{Binding ShufflePlay}"></Switch>
+
+                <Label x:Name="AutoPlayNextSwitchLabel" 
+                       Text="Auto-play" 
+                       IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                       VerticalOptions="Center"></Label>
+                <Switch x:Name="AutoPlayNextSwitch"
+                        HeightRequest="25"
+                        VerticalOptions="Center"
+                        IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                    IsToggled="{Binding AutoPlayNext}"></Switch>
+            </StackLayout>
+
+            <CollectionView x:Name="MediaItemListView"
+                    HeightRequest="250"
+                    VerticalScrollBarVisibility="Always"
+                    ItemsSource="{Binding MediaItems}"                                                  
+                    SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"
+                    SelectionMode="Single" Margin="10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="25">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="20"/>
+                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
             <CollectionView x:Name="MediaItemActionsView"
                             ItemsSource="{Binding MediaItemActions}"
                             SelectionChanged="MediaItemActionsView_SelectionChanged"    

@@ -1,24 +1,31 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 
 namespace CFMediaPlayer.Sources
 {
     /// <summary>
     /// Media source from cloud (OneDrive, Google etc)
     /// </summary>
-    public class CloudMediaSource : IMediaSource
-    {
-        private readonly MediaLocation _mediaLocation;
-
-        public CloudMediaSource(MediaLocation mediaLocation)
-        {
-            _mediaLocation = mediaLocation;
+    public class CloudMediaSource : MediaSourceBase, IMediaSource
+    {        
+        public CloudMediaSource(MediaLocation mediaLocation) : base(mediaLocation)
+        {            
         }
 
-        public MediaLocation MediaLocation => _mediaLocation;
-        
+        public string ImagePath => InternalUtilities.DefaultImagePath;
+
         public bool IsAvailable
+        {
+            get
+            {
+                // TODO: Check specific cloud
+                return true;
+            }
+        }
+
+        public bool HasMediaItems
         {
             get
             {
@@ -37,24 +44,14 @@ namespace CFMediaPlayer.Sources
             return new List<MediaItemCollection>();
         }
 
-        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal)
+        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, 
+                            bool includeNonReal)
         {
             // TODO: Implement this
             return new List<MediaItem>();
         }
-
-        //public List<MediaItem> GetMediaItemsForArtist(Artist artist, bool includeNonReal)
-        //{
-        //    return new List<MediaItem>();            
-        //}
-
-        //public List<MediaItem> GetMediaItemsForAllArtists(bool includeNonReal)
-        //{
-        //    return new List<MediaItem>();
-        //}
-
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
-                                                    List<IMediaSource> allMediaSources)
+   
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();          
 
@@ -73,9 +70,9 @@ namespace CFMediaPlayer.Sources
             return searchResults;
         }
 
-        public Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem)
+        public List<Tuple<Artist, MediaItemCollection>> GetAncestorsForMediaItem(MediaItem mediaItem)
         {
-            return null;
+            return new();
         }
     }
 }

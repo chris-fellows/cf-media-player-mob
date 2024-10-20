@@ -2,6 +2,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.Sources
 {
@@ -10,19 +11,27 @@ namespace CFMediaPlayer.Sources
     /// 
     /// The queue starts off empty and the user can add media items to it or clear it.
     /// </summary>
-    public class QueueMediaSource : IMediaSource
-    {
-        private readonly MediaLocation _mediaLocation;
+    public class QueueMediaSource : MediaSourceBase, IMediaSource
+    {        
         private readonly List<MediaItem> _mediaItemQueue = new List<MediaItem>();
 
-        public QueueMediaSource(MediaLocation mediaLocation)
+        public QueueMediaSource(MediaLocation mediaLocation) : base(mediaLocation)
         {
-            _mediaLocation = mediaLocation;
+            
         }
 
-        public MediaLocation MediaLocation => _mediaLocation;
-        
+        public string ImagePath => InternalUtilities.DefaultImagePath;
+
         public bool IsAvailable => true;        // Always
+
+        public bool HasMediaItems
+        {
+            get
+            {
+                // Always
+                return true;
+            }
+        }
 
         public List<Artist> GetArtists(bool includeNonReal)
         {
@@ -45,7 +54,8 @@ namespace CFMediaPlayer.Sources
             return mediaItemCollections;
         }
 
-        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal)
+        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection,
+                                            bool includeNonReal)
         {
             var mediaItems = new List<MediaItem>();
             mediaItems.AddRange(_mediaItemQueue);
@@ -59,8 +69,7 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
-                                                            List<IMediaSource> allMediaSources)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();
 
@@ -69,9 +78,9 @@ namespace CFMediaPlayer.Sources
                 // If queue currently selected then add action to open album
                 if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Queue)
                 {
-                    foreach (IMediaSource mediaSource in allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage & ms.IsAvailable))
+                    foreach (IMediaSource mediaSource in _allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage & ms.IsAvailable))
                     {
-                        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem);
+                        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem).FirstOrDefault();
                         if (ancestors != null)
                         {
                             var item = new MediaItemAction()
@@ -79,7 +88,8 @@ namespace CFMediaPlayer.Sources
                                 ActionToExecute = MediaItemActions.OpenMediaItemCollection,
                                 MediaLocationName = mediaSource.MediaLocation.Name,
                                 File = mediaItem.FilePath,
-                                ImagePath = "picture.png",
+                                ImagePath = ancestors.Item2.ImagePath,
+                                //ImagePath = "picture.png",
                                 Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
@@ -164,10 +174,30 @@ namespace CFMediaPlayer.Sources
             return searchResults;
         }
 
-        public Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem)
+        public List<Tuple<Artist, MediaItemCollection>> GetAncestorsForMediaItem(MediaItem mediaItem)
         {
             // Only used for storage source where files are physically stored
-            return null;
+            return new();
         }
+
+
+        ///// <summary>
+        ///// Gets media item collection image path for media item
+        ///// </summary>
+        ///// <param name="mediaItem"></param>
+        ///// <param name="allMediaSources"></param>
+        ///// <returns></returns>
+        //private string GetMediaItemCollectionImagePath(MediaItem mediaItem, List<IMediaSource> allMediaSources)
+        //{
+        //    foreach (var mediaSource in allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage))
+        //    {
+        //        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem);
+        //        if (ancestors != null && !String.IsNullOrEmpty(ancestors.Item2.ImagePath))
+        //        {
+        //            return ancestors.Item2.ImagePath;
+        //        }
+        //    }
+        //    return null;
+        //}
     }
 }

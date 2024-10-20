@@ -18,6 +18,11 @@ namespace CFMediaPlayer.Models
         /// </summary>
         public string Name { get; set; } = String.Empty;
 
+        /// <summary>
+        /// Path to image
+        /// </summary>
+        public string ImagePath { get; set; } = String.Empty;
+
         [XmlIgnore]
         public EntityCategory EntityCategory
         {
@@ -47,5 +52,17 @@ namespace CFMediaPlayer.Models
         public static MediaItem InstanceMultiple => new MediaItem() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
 
         public static MediaItem InstanceAll => new MediaItem() { Name = LocalizationResources.Instance["AllText"].ToString() };
+
+        [XmlIgnore]
+        public bool IsAllowPrev => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+
+        [XmlIgnore]
+        public bool IsAllowNext => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+
+        [XmlIgnore]
+        public bool IsCanSelectPosition => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+
+        [XmlIgnore]
+        public bool IsAllowPause => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
     }
 }

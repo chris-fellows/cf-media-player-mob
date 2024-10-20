@@ -6,7 +6,7 @@ namespace CFMediaPlayer.Interfaces
     /// Interface for media playlist
     /// </summary>
     public interface IPlaylist
-    {        
+    {                
         /// <summary>
         /// Returns all playlist items
         /// </summary>

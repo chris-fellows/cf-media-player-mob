@@ -25,18 +25,41 @@ namespace CFMediaPlayer
             builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();           
             builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
 
+            /* Delete data files
+         var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
+         foreach(var file in dataFiles)
+         {
+             File.Delete(file);
+         }
+         */
+
             // Config services                       
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
 
-            /* Delete data files
-            var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
-            foreach(var file in dataFiles)
+            // Set IStreamSourceService, load sources if not set
+            builder.Services.AddSingleton<IStreamSourceService>((scope) =>
             {
-                File.Delete(file);
-            }
-            */
-            
+                var streamSourceService = new StreamSourceService(FileSystem.AppDataDirectory);
+                var mediaItems = streamSourceService.GetAll();
+                if (!mediaItems.Any())
+                {
+                    streamSourceService.LoadDefaults();
+                    mediaItems = streamSourceService.GetAll();
+
+                    //// Save to playlist format
+                    //var folder = Path.Combine(FileSystem.AppDataDirectory, "RadioStreams");
+                    //Directory.CreateDirectory(folder);
+                    //var playlists = scope.GetServices<IPlaylist>();
+                    //var playlist = playlists.FirstOrDefault(p => p.SupportsFile("Test.m3u"));
+                    //playlist.SetFile(Path.Combine(folder, "Radio Streams 1.m3u"));
+                    //playlist.SaveAll(mediaItems);
+                    //playlist.SetFile("");
+                }
+                
+                return streamSourceService;
+            });
+
             // Set IAudioSettingsService, create if not present
             builder.Services.AddScoped<IAudioSettingsService>((scope) =>
             {
@@ -109,20 +132,24 @@ namespace CFMediaPlayer
                 {
                     switch (mediaLocation.MediaSourceType)
                     {
-                        case Enums.MediaSourceTypes.Cloud:
+                        case MediaSourceTypes.Cloud:
                             mediaSources.Add(new CloudMediaSource(mediaLocation));
                             break;
-                        case Enums.MediaSourceTypes.Playlist:
+                        case MediaSourceTypes.Playlist:
                             mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylist>()));
                             break;
-                        case Enums.MediaSourceTypes.Queue:
+                        case MediaSourceTypes.Queue:
                             mediaSources.Add(new QueueMediaSource(mediaLocation));
                             break;
-                        case Enums.MediaSourceTypes.Storage:
+                        case MediaSourceTypes.RadioStreams:                          
+                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylist>()));
+                            break;
+                        case MediaSourceTypes.Storage:
                             mediaSources.Add(new StorageMediaSource(mediaLocation));
                             break;
                     }
                 }
+                mediaSources.ForEach(mediaSource => mediaSource.SetAllMediaSources(mediaSources));
                 return new MediaSourceService(mediaSources);
             });            
             
@@ -136,7 +163,7 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<ManagePlaylistsPageModel>();
             builder.Services.AddSingleton<ManagePlaylistsPage>();
             builder.Services.AddSingleton<ManageQueuePageModel>();
-            builder.Services.AddSingleton<ManageQueuePage>();
+            builder.Services.AddSingleton<ManageQueuePage>();         
             builder.Services.AddSingleton<UserSettingsPageModel>();
             builder.Services.AddSingleton<UserSettingsPage>();
 

@@ -25,6 +25,8 @@ namespace CFMediaPlayer
             Stop();
         }
 
+        public string CurrentFilePath => _currentFilePath;
+
         public void SetStatusAction(Action<MediaPlayerStatuses, MediaPlayerException?> action)
         {
             _statusAction = action;
@@ -35,9 +37,9 @@ namespace CFMediaPlayer
             _debugAction = action;
         }
 
-        public void PlayAudio(string filePath,                         
+        public void Play(string filePath,                         
                               Action<System.Exception> errorAction)
-        {    
+        {                
             // Clean up if playing different file
             if (filePath != _currentFilePath)
             {                
@@ -87,6 +89,7 @@ namespace CFMediaPlayer
                     };
                     _mediaPlayer.Completion += (sender, args) =>
                     {
+                        _currentFilePath = "";
                         if (_debugAction != null) _debugAction($"Completed");
                         if (_statusAction != null) _statusAction(MediaPlayerStatuses.Completed, null);
                     };
@@ -123,6 +126,7 @@ namespace CFMediaPlayer
                 if (_statusAction != null) _statusAction(MediaPlayerStatuses.Paused, null);
             }
         }
+
         public void Stop()
         {
             if (_mediaPlayer != null)
@@ -178,25 +182,27 @@ namespace CFMediaPlayer
 
         public void ApplyEqualizerTest()
         {
-            var equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);            
 
-            for (short band = 0; band < equalizer.NumberOfBands; band++)
-            {
-                var freqRange = equalizer.GetBandFreqRange(band);
-                var bandLevel = equalizer.GetBandLevel(band);
-                var centerFreq = equalizer.GetCenterFreq(band);
 
-                System.Diagnostics.Debug.WriteLine($"Band={band}; FreqRange={freqRange[0]}-{freqRange[1]}; BandLevel={bandLevel}; CenterFreq={centerFreq}");
+            //var equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);            
 
-                int zzz = 1000;                
-            }
+            //for (short band = 0; band < equalizer.NumberOfBands; band++)
+            //{
+            //    var freqRange = equalizer.GetBandFreqRange(band);
+            //    var bandLevel = equalizer.GetBandLevel(band);
+            //    var centerFreq = equalizer.GetCenterFreq(band);
 
-            for (short index =0; index < equalizer.NumberOfPresets; index++)
-            {
-                var preset = equalizer.GetPresetName(index);                        
+            //    System.Diagnostics.Debug.WriteLine($"Band={band}; FreqRange={freqRange[0]}-{freqRange[1]}; BandLevel={bandLevel}; CenterFreq={centerFreq}");
 
-                int xxxx = 1000;
-            }
+            //    int zzz = 1000;                
+            //}
+
+            //for (short index =0; index < equalizer.NumberOfPresets; index++)
+            //{
+            //    var preset = equalizer.GetPresetName(index);                        
+
+            //    int xxxx = 1000;
+            //}
 
             int xxx = 1000;            
         }

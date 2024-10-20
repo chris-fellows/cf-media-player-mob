@@ -5,6 +5,8 @@ namespace CFMediaPlayer.Utilities
 {
     public static class InternalUtilities
     {
+        public static string DefaultImagePath = "cassette_player_audio_speaker_sound_icon.png";
+
         /// <summary>
         /// Gets resource key for enum. Enum value must have Display attribute with Description property set
         /// </summary>

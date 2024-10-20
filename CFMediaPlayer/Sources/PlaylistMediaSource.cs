@@ -8,25 +8,46 @@ namespace CFMediaPlayer.Sources
     /// <summary>
     /// Media source from playlists    
     /// </summary>
-    public class PlaylistMediaSource : IMediaSource
-    {
-        private readonly MediaLocation _mediaLocation;
-        private List<IPlaylist> _playlists;        
+    public class PlaylistMediaSource : MediaSourceBase, IMediaSource
+    {        
+        private List<IPlaylist> _playlists;           
 
-        public PlaylistMediaSource(MediaLocation mediaLocation, IEnumerable<IPlaylist> playlists)
-        {
-            _mediaLocation = mediaLocation;
+        public PlaylistMediaSource(MediaLocation mediaLocation, IEnumerable<IPlaylist> playlists) : base(mediaLocation)
+        {            
             _playlists = playlists.ToList();
         }
 
-        public MediaLocation MediaLocation => _mediaLocation;        
+        public string ImagePath => _mediaLocation != null && _mediaLocation.MediaSourceType == MediaSourceTypes.RadioStreams ?
+                            "radio.png" :
+                            InternalUtilities.DefaultImagePath;
 
         public bool IsAvailable
         {
             get
             {
-                return !String.IsNullOrEmpty(_mediaLocation.Source) &&
-                       Directory.Exists(_mediaLocation.Source);
+                return _mediaLocation.Sources.Any(folder => Directory.Exists(folder));
+            }
+        }
+
+        public bool HasMediaItems
+        {
+            get
+            {
+                foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
+                {
+                    foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
+                    {
+                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                        if (playlist != null)   // Playlist
+                        {
+                            playlist.SetFile(playlistFile);
+                            var mediaItems = playlist.GetAll();
+                            if (mediaItems.Any()) return true;
+                            playlist.SetFile("");
+                        }
+                    }
+                }
+                return false;
             }
         }
 
@@ -49,19 +70,22 @@ namespace CFMediaPlayer.Sources
             // Check each file
             if (IsAvailable)
             {
-                foreach (var file in Directory.GetFiles(_mediaLocation.Source))
+                foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                 {
-                    // Get playlist handler
-                    var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                    if (playlist != null)   // Playlist
+                    foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
                     {
-                        var itemCollection = new MediaItemCollection()
+                        // Get playlist handler
+                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                        if (playlist != null)   // Playlist
                         {
-                            Path = file,
-                            Name = Path.GetFileNameWithoutExtension(file)
-                        };
-                        mediaItemCollections.Add(itemCollection);
-                    }
+                            var itemCollection = new MediaItemCollection()
+                            {
+                                Path = playlistFile,
+                                Name = Path.GetFileNameWithoutExtension(playlistFile)
+                            };
+                            mediaItemCollections.Add(itemCollection);
+                        }
+                    }                    
                 }
             }
 
@@ -92,56 +116,75 @@ namespace CFMediaPlayer.Sources
             return mediaItemCollections;
         }
 
-        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, bool includeNonReal)
+        public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, 
+                                                bool includeNonReal)
         {
-            var mediaItems = new List<MediaItem>();
+            var mediaItems = new List<MediaItem>();          
             
             if (IsAvailable)                
-            {
+            {                
                 if (mediaItemCollection.EntityCategory == EntityCategory.All)
                 {
                     // Get media items for all playlists
                     // Check each file            
-                    foreach (var file in Directory.GetFiles(_mediaLocation.Source))
+                    foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                     {
-                        // Get playlist handler
-                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                        if (playlist != null)   // Playlist
-                        {                            
-                            playlist.SetFile(file);
-                            var playlistMediaItems = playlist.GetAll();
-                            foreach(var mediaItem in playlistMediaItems)
+                        foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
+                        {
+                            // Get playlist handler
+                            var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                            if (playlist != null)   // Playlist
                             {
-                                if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))
+                                playlist.SetFile(playlistFile);
+                                var playlistMediaItems = playlist.GetAll();
+                                foreach (var mediaItem in playlistMediaItems)
                                 {
-                                    mediaItems.Add(mediaItem);                                       
+                                    if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))
+                                    {
+                                        // Set image path to be album image if not set
+                                        if (String.IsNullOrEmpty(mediaItem.ImagePath))
+                                        {
+                                            mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                                        }
+                                        mediaItems.Add(mediaItem);
+                                    }
                                 }
-                            }                    
-                            playlist.SetFile("");                                                           
-                        }
+                                playlist.SetFile("");
+                            }
+                        }                            
                     }
                 }
                 else if (mediaItemCollection.EntityCategory == EntityCategory.Real)
                 {
                     // Get media items for specific playlist
                     // Check each file            
-                    foreach (var file in Directory.GetFiles(_mediaLocation.Source))
+                    foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                     {
-                        // Get playlist handler
-                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                        if (playlist != null)   // Playlist
+                        foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
                         {
-                            var itemCollection = new MediaItemCollection()
+                            // Get playlist handler
+                            var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                            if (playlist != null)   // Playlist
                             {
-                                Path = file,
-                                Name = Path.GetFileNameWithoutExtension(file)
-                            };
-                            if (mediaItemCollection.Name == itemCollection.Name)   // IPlaylist found
-                            {
-                                playlist.SetFile(file);
-                                mediaItems.AddRange(playlist.GetAll());
-                                playlist.SetFile("");
-                                break;
+                                var itemCollection = new MediaItemCollection()
+                                {
+                                    Path = playlistFile,
+                                    Name = Path.GetFileNameWithoutExtension(playlistFile)
+                                };
+                                if (mediaItemCollection.Name == itemCollection.Name)   // IPlaylist found
+                                {
+                                    playlist.SetFile(playlistFile);
+                                    var playlistMediaItems = playlist.GetAll();
+
+                                    // Set image path to be album image if not set
+                                    foreach (var mediaItem in playlistMediaItems.Where(mi => String.IsNullOrEmpty(mi.ImagePath)))
+                                    {
+                                        mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                                    }
+                                    mediaItems.AddRange(playlistMediaItems);
+                                    playlist.SetFile("");
+                                    break;
+                                }
                             }
                         }
                     }
@@ -160,20 +203,20 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
    
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem,
-                                                            List<IMediaSource> allMediaSources)
+        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
             var items = new List<MediaItemAction>();
 
             // Check each file
-            if (IsAvailable)
+            if (IsAvailable &&
+                _mediaLocation.MediaSourceType == MediaSourceTypes.Playlist)    // Only for playlists, not radio streams
             {
                 // If playlists currently selected then add action to open album
                 if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Playlist)                    
                 {
-                    foreach(IMediaSource mediaSource in allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage && ms.IsAvailable))
+                    foreach(IMediaSource mediaSource in _allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage && ms.IsAvailable))
                     {
-                        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem);
+                        var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem).FirstOrDefault();
                         if (ancestors != null)
                         {
                             var item = new MediaItemAction()
@@ -181,7 +224,7 @@ namespace CFMediaPlayer.Sources
                                 ActionToExecute = MediaItemActions.OpenMediaItemCollection,
                                 MediaLocationName = mediaSource.MediaLocation.Name,                                
                                 File = mediaItem.FilePath,            
-                                ImagePath = "picture.png",
+                                ImagePath = ancestors.Item2.ImagePath,  // Album image "picture.png"
                                 Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
@@ -192,51 +235,54 @@ namespace CFMediaPlayer.Sources
                 }
 
                 // Add actions to add/remove from playlist
-                foreach (var file in Directory.GetFiles(_mediaLocation.Source))
+                foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                 {
-                    // Get playlist handler
-                    var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(file));
-                    if (playlist != null)   // Playlist
+                    foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
                     {
-                        // Check if media item in playlist
-                        playlist.SetFile(file);
-                        var mediaItems = playlist.GetAll();
-                        var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
-                        var playlistName = Path.GetFileNameWithoutExtension(file);
-
-                        // Create media item action
-                        var item = new MediaItemAction()
+                        // Get playlist handler
+                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                        if (playlist != null)   // Playlist
                         {
-                            MediaLocationName = _mediaLocation.Name,
-                            Name = isFoundMediaItem ?
-                                     String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromPlaylist)].ToString(),
-                                            playlistName) :
-                                     String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToPlaylist)].ToString(),
-                                            playlistName),
-                            File = file,
-                            ImagePath = isFoundMediaItem ?
-                                    "cross.png" :
-                                    "plus.png",
-                            ActionToExecute = isFoundMediaItem ?
-                                    MediaItemActions.RemoveFromPlaylist :
-                                    MediaItemActions.AddToPlaylist
-                        };
+                            // Check if media item in playlist
+                            playlist.SetFile(playlistFile);
+                            var mediaItems = playlist.GetAll();
+                            var isFoundMediaItem = mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath);
+                            var playlistName = Path.GetFileNameWithoutExtension(playlistFile);
 
-                        // If user currently has playlist selected then we only allow them to remove the media item from any playlist that 
-                        // the media item is added to
-                        if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
-                        {
-                            if (item.ActionToExecute == MediaItemActions.RemoveFromPlaylist)
+                            // Create media item action
+                            var item = new MediaItemAction()
+                            {
+                                MediaLocationName = _mediaLocation.Name,
+                                Name = isFoundMediaItem ?
+                                         String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromPlaylist)].ToString(),
+                                                playlistName) :
+                                         String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToPlaylist)].ToString(),
+                                                playlistName),
+                                File = playlistFile,
+                                ImagePath = isFoundMediaItem ?
+                                        "cross.png" :
+                                        "plus.png",
+                                ActionToExecute = isFoundMediaItem ?
+                                        MediaItemActions.RemoveFromPlaylist :
+                                        MediaItemActions.AddToPlaylist
+                            };
+
+                            // If user currently has playlist selected then we only allow them to remove the media item from any playlist that 
+                            // the media item is added to
+                            if (currentMediaLocation.MediaSourceType == MediaSourceTypes.Playlist)
+                            {
+                                if (item.ActionToExecute == MediaItemActions.RemoveFromPlaylist)
+                                {
+                                    items.Add(item);
+                                }
+                            }
+                            else
                             {
                                 items.Add(item);
                             }
-                        }
-                        else
-                        {
-                            items.Add(item);
-                        }
 
-                        playlist.SetFile("");
+                            playlist.SetFile("");
+                        }
                     }
                 }
             }
@@ -303,7 +349,7 @@ namespace CFMediaPlayer.Sources
                             Artist = Artist.InstanceNone,
                             MediaItemCollection = mediaItemCollection,
                             MediaLocationName = MediaLocation.Name,
-                            ImageSource = mediaItemCollection.ImagePath
+                            ImagePath = _mediaLocation.MediaSourceType == MediaSourceTypes.RadioStreams ? ImagePath : mediaItemCollection.ImagePath
                         });
                     }
 
@@ -318,7 +364,8 @@ namespace CFMediaPlayer.Sources
                                MediaItemCollection = mediaItemCollection,
                                MediaItem = mi,
                                MediaLocationName = MediaLocation.Name,
-                               ImageSource = mediaItemCollection.ImagePath
+                               ImagePath = !String.IsNullOrEmpty(mi.ImagePath) ? mi.ImagePath :   // Radio stream image
+                                                    GetMediaItemCollectionImagePath(mi)                                                                   
                            }));
                 }
             }
@@ -326,10 +373,41 @@ namespace CFMediaPlayer.Sources
             return searchResults;
         }
 
-        public Tuple<Artist, MediaItemCollection>? GetAncestorsForMediaItem(MediaItem mediaItem)
-        {
-            // Only used for storage source where files are physically stored
-            return null;
+        public List<Tuple<Artist, MediaItemCollection>> GetAncestorsForMediaItem(MediaItem mediaItem)
+        {            
+            var ancestors = new List<Tuple<Artist, MediaItemCollection>>();
+
+            if (IsAvailable)
+            {
+                foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
+                { 
+                    foreach (var playlistFile in Directory.GetFiles(mediaLocationSource))
+                    {
+                        // Get playlist handler
+                        var playlist = _playlists.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
+                        if (playlist != null)   // Playlist
+                        {
+                            var mediaItemCollection = new MediaItemCollection()
+                            {
+                                Path = playlistFile,
+                                Name = Path.GetFileNameWithoutExtension(playlistFile)
+                            };
+
+                            playlist.SetFile(playlistFile);
+                            var mediaItems = playlist.GetAll();
+
+                            var mediaItemFound = mediaItems.FirstOrDefault(mi => mi.FilePath == mediaItem.FilePath);
+                            if (mediaItemFound != null)
+                            {
+                                ancestors.Add(new Tuple<Artist, MediaItemCollection>(Artist.InstanceMultiple, mediaItemCollection));
+                            }
+                            playlist.SetFile("");
+                        }
+                    }
+                }
+            }
+
+            return ancestors;
         }
     }
 }

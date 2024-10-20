@@ -228,4 +228,13 @@
   <data name="MediaItemActionsOpenMediaItemCollection" xml:space="preserve">
     <value>Open album {0}</value>
   </data>
+  <data name="MediaSourceRadioStreamsText" xml:space="preserve">
+    <value>Radio streams</value>
+  </data>
+  <data name="MediaSourceAudiobooksText" xml:space="preserve">
+    <value>Audiobooks</value>
+  </data>
+  <data name="MediaSourcePodcastsText" xml:space="preserve">
+    <value>Podcasts</value>
+  </data>
 </root>

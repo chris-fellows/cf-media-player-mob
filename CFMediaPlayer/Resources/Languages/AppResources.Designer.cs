@@ -250,6 +250,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Audiobooks.
+        /// </summary>
+        internal static string MediaSourceAudiobooksText {
+            get {
+                return ResourceManager.GetString("MediaSourceAudiobooksText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Google cloud.
         /// </summary>
         internal static string MediaSourceGoogleText {
@@ -286,11 +295,29 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Podcasts.
+        /// </summary>
+        internal static string MediaSourcePodcastsText {
+            get {
+                return ResourceManager.GetString("MediaSourcePodcastsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Queue.
         /// </summary>
         internal static string MediaSourceQueueText {
             get {
                 return ResourceManager.GetString("MediaSourceQueueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Radio streams.
+        /// </summary>
+        internal static string MediaSourceRadioStreamsText {
+            get {
+                return ResourceManager.GetString("MediaSourceRadioStreamsText", resourceCulture);
             }
         }
         

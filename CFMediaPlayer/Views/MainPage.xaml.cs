@@ -82,6 +82,8 @@ namespace CFMediaPlayer
       
         private void OnDebugInfoClicked(object sender, EventArgs e)
         {
+            //_model.CreateMediaItems();
+
             //var result = DisplayAlert("Test", "Test alert", "OK");
 
             //_model.ApplyEqualizerTest();

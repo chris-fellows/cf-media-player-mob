@@ -19,6 +19,9 @@ namespace CFMediaPlayer.Models
 
         public MediaItem? MediaItem { get; set; }
 
-        public string ImageSource { get; set; } = "";   //"audio_media_media_player_music_record_icon.png";
+        /// <summary>
+        /// Image. E.g. Album image, radio stream image etc
+        /// </summary>
+        public string ImagePath { get; set; } = "";
     }
 }

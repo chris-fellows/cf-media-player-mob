@@ -16,10 +16,15 @@ namespace CFMediaPlayer.Models
         /// Indicates media source name (IMediaSource.Name) for accesing media items
         /// </summary>
         public MediaSourceTypes MediaSourceType { get; set; }
+        
+        /// <summary>
+        /// Sources for media items
+        /// </summary>
+        public List<string> Sources { get; set; } = new List<string>();
 
         /// <summary>
-        /// Source for location. Either local folder or cloud URL
+        /// Media item types
         /// </summary>
-        public string Source { get; set; } = String.Empty;
+        public List<MediaItemTypes> MediaItemTypes { get; set; } = new List<MediaItemTypes>();
     }
 }

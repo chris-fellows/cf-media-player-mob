@@ -13,7 +13,7 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="action"></param>
-        void PlayAudio(string filePath, Action<System.Exception> action);
+        void Play(string filePath, Action<System.Exception> action);
 
         /// <summary>
         /// Pauses media
@@ -67,5 +67,7 @@ namespace CFMediaPlayer.Interfaces
         /// Equalizer preset name to use
         /// </summary>
         string EqualizerPresetName { get; set; }
+
+        string CurrentFilePath { get; }
     }
 }

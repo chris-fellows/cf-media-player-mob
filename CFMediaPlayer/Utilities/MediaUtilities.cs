@@ -27,6 +27,9 @@ namespace CFMediaPlayer.Utilities
             return false;
         }
 
+        /// <summary>
+        /// Audio files extensions supported by the app
+        /// </summary>
         public static string[] AudioFileExtensions
         {
             get { return new[] { ".flac", ".mp3", ".ogg", ".wma", ".wav" }; }
