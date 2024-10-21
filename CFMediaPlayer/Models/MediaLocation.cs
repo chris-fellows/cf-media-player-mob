@@ -1,4 +1,5 @@
 ﻿using CFMediaPlayer.Enums;
+using System.Xml.Serialization;
 
 namespace CFMediaPlayer.Models
 {
@@ -26,5 +27,32 @@ namespace CFMediaPlayer.Models
         /// Media item types
         /// </summary>
         public List<MediaItemTypes> MediaItemTypes { get; set; } = new List<MediaItemTypes>();
+
+        public static MediaLocation InstanceNone => new MediaLocation() { Name = LocalizationResources.Instance["NoneText"].ToString() };
+
+        [XmlIgnore]
+        public EntityCategory EntityCategory
+        {
+            get
+            {
+                if (!Sources.Any())
+                {
+                    if (Name == LocalizationResources.Instance["NoneText"].ToString())
+                    {
+                        return EntityCategory.None;
+                    }
+                    else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
+                    {
+                        return EntityCategory.Multiple;
+                    }
+                    else if (Name == LocalizationResources.Instance["AllText"].ToString())
+                    {
+                        return EntityCategory.All;
+                    }
+                }
+
+                return EntityCategory.Real;                   
+            }
+        }
     }
 }

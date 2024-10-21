@@ -97,6 +97,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create.
+        /// </summary>
+        internal static string Create {
+            get {
+                return ResourceManager.GetString("Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         internal static string Delete {
@@ -376,6 +385,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        internal static string Search {
+            get {
+                return ResourceManager.GetString("Search", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search {0}....
         /// </summary>
         internal static string SearchWithParam {
@@ -417,6 +435,24 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string ShuffleText {
             get {
                 return ResourceManager.GetString("ShuffleText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to External.
+        /// </summary>
+        internal static string StorageLocationExternal {
+            get {
+                return ResourceManager.GetString("StorageLocationExternal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal.
+        /// </summary>
+        internal static string StorageLocationInternal {
+            get {
+                return ResourceManager.GetString("StorageLocationInternal", resourceCulture);
             }
         }
     }

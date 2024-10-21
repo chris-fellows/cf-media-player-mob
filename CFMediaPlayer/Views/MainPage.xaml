@@ -8,19 +8,28 @@
             Padding="10,0"
             Spacing="2">
 
-            <Picker x:Name="MediaLocation" 
-                 ItemsSource="{Binding MediaLocations}"
-                ItemDisplayBinding="{Binding Name}"                    
-                SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
-                Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
-            </Picker>
-
             <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
-                <SearchBar x:Name="MediaSearchBar"                                                
+                <StackLayout Orientation="Horizontal">
+                    <Picker x:Name="MediaLocation" 
+                       ItemsSource="{Binding MediaLocations}"
+                      ItemDisplayBinding="{Binding Name}"                    
+                      SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+                      Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+                    </Picker>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy, Mode=OneWay}"                                        
+                                     WidthRequest="25"
+                                     Color="Orange"/>
+
+                    <SearchBar x:Name="MediaSearchBar"        
+                     IsReadOnly="{Binding IsSearchBusy, Mode=OneWay}"                               
                      Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
+                     IsSpellCheckEnabled="false"
+                     IsTextPredictionEnabled="false"
                      TextChanged="MediaSearchBar_TextChanged"                     
-                     SearchCommand="{Binding SearchCommand}"
+                     SearchCommand="{Binding StartSearchCommand}"
                      SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
+                </StackLayout>
 
                 <Border StrokeThickness="1" 
                         IsVisible="{Binding IsSearchResults, Mode=OneWay}">
@@ -32,7 +41,7 @@
                             <DataTemplate>
                                 <ViewCell>
                                     <StackLayout Orientation="Horizontal">
-                                        <Image Source="{Binding ImageSource}" HeightRequest="20" />
+                                        <Image Source="{Binding ImagePath}" HeightRequest="20" />
                                         <Label Text="{Binding Name}" VerticalOptions="Center" FontSize="Small" />
                                     </StackLayout>
                                 </ViewCell>
@@ -105,6 +114,28 @@
                 IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
                  SemanticProperties.HeadingLevel="Level1" />
 
+                    <StackLayout Orientation="Horizontal" HorizontalOptions="End" Grid.Row="0" Grid.Column="1">
+                         <Label x:Name="ShufflePlaySwitchLabel"
+                             Text="Shuffle" 
+                             IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                             VerticalOptions="Center"></Label>
+                                        <Switch x:Name="ShufflePlaySwitch"
+                          HeightRequest="25"
+                          VerticalOptions="Center"
+                          IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                          IsToggled="{Binding ShufflePlay}"></Switch>
+
+                                        <Label x:Name="AutoPlayNextSwitchLabel" 
+                             Text="Auto-play" 
+                             IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                             VerticalOptions="Center"></Label>
+                                        <Switch x:Name="AutoPlayNextSwitch"
+                              HeightRequest="25"
+                              VerticalOptions="Center"
+                              IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                          IsToggled="{Binding AutoPlayNext}"></Switch>
+                    </StackLayout>
+
                     <Slider x:Name="ElapsedSlider"                    
                      Grid.Row="1" Grid.ColumnSpan="3"
                      DragCompleted="ElapsedSlider_DragCompleted"                                                          
@@ -130,28 +161,6 @@
                     Title="{Binding LocalizationResources[MainSelectAlbumText], Mode=OneWay}">
             </Picker>
 
-            <StackLayout Orientation="Horizontal" HorizontalOptions="End">
-                <Label x:Name="ShufflePlaySwitchLabel"
-                       Text="Shuffle" 
-                       IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
-                       VerticalOptions="Center"></Label>
-                <Switch x:Name="ShufflePlaySwitch"
-                    HeightRequest="25"
-                    VerticalOptions="Center"
-                    IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
-                    IsToggled="{Binding ShufflePlay}"></Switch>
-
-                <Label x:Name="AutoPlayNextSwitchLabel" 
-                       Text="Auto-play" 
-                       IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
-                       VerticalOptions="Center"></Label>
-                <Switch x:Name="AutoPlayNextSwitch"
-                        HeightRequest="25"
-                        VerticalOptions="Center"
-                        IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
-                    IsToggled="{Binding AutoPlayNext}"></Switch>
-            </StackLayout>
-
             <CollectionView x:Name="MediaItemListView"
                     HeightRequest="250"
                     VerticalScrollBarVisibility="Always"
@@ -160,8 +169,8 @@
                     SelectionMode="Single" Margin="10,0">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="25">
-                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="20"/>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="35">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="25"/>
                             <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
                         </StackLayout>
                     </DataTemplate>
@@ -174,8 +183,8 @@
                             SelectionMode="Single" Margin="10,0">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="25">
-                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="20"/>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="35">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="25"/>
                             <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
                         </StackLayout>
                     </DataTemplate>

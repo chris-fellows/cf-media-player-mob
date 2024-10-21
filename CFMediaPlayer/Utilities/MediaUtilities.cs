@@ -37,7 +37,7 @@ namespace CFMediaPlayer.Utilities
 
         public static bool IsNoneMediaItemAction(MediaItemAction mediaItemAction)
         {
-            return String.IsNullOrEmpty(mediaItemAction.File) &&
+            return String.IsNullOrEmpty(mediaItemAction.MediaItemFile) &&
                         mediaItemAction.Name == LocalizationResources.Instance["NoneText"].ToString();
         }           
 

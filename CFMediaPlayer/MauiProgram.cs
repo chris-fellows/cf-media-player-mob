@@ -23,7 +23,7 @@ namespace CFMediaPlayer
                 });
 
             builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();           
-            builder.Services.RegisterAllTypes<IPlaylist>(new[] { Assembly.GetExecutingAssembly() });
+            builder.Services.RegisterAllTypes<IPlaylistManager>(new[] { Assembly.GetExecutingAssembly() });
 
             /* Delete data files
          var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
@@ -33,32 +33,40 @@ namespace CFMediaPlayer
          }
          */
 
+            // Create folders
+            var musicFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic);
+            if (Directory.Exists(musicFolder))
+            {
+                Directory.CreateDirectory(Path.Combine(musicFolder, "Playlists"));
+                Directory.CreateDirectory(Path.Combine(musicFolder, "RadioStreams"));
+            }
+
             // Config services                       
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
 
-            // Set IStreamSourceService, load sources if not set
-            builder.Services.AddSingleton<IStreamSourceService>((scope) =>
-            {
-                var streamSourceService = new StreamSourceService(FileSystem.AppDataDirectory);
-                var mediaItems = streamSourceService.GetAll();
-                if (!mediaItems.Any())
-                {
-                    streamSourceService.LoadDefaults();
-                    mediaItems = streamSourceService.GetAll();
+            //// Set IStreamSourceService, load sources if not set
+            //builder.Services.AddSingleton<IStreamSourceService>((scope) =>
+            //{
+            //    var streamSourceService = new StreamSourceService(FileSystem.AppDataDirectory);
+            //    var mediaItems = streamSourceService.GetAll();
+            //    if (!mediaItems.Any())
+            //    {
+            //        streamSourceService.LoadDefaults();
+            //        mediaItems = streamSourceService.GetAll();
 
-                    //// Save to playlist format
-                    //var folder = Path.Combine(FileSystem.AppDataDirectory, "RadioStreams");
-                    //Directory.CreateDirectory(folder);
-                    //var playlists = scope.GetServices<IPlaylist>();
-                    //var playlist = playlists.FirstOrDefault(p => p.SupportsFile("Test.m3u"));
-                    //playlist.SetFile(Path.Combine(folder, "Radio Streams 1.m3u"));
-                    //playlist.SaveAll(mediaItems);
-                    //playlist.SetFile("");
-                }
+            //        //// Save to playlist format
+            //        //var folder = Path.Combine(FileSystem.AppDataDirectory, "RadioStreams");
+            //        //Directory.CreateDirectory(folder);
+            //        //var playlists = scope.GetServices<IPlaylist>();
+            //        //var playlist = playlists.FirstOrDefault(p => p.SupportsFile("Test.m3u"));
+            //        //playlist.SetFile(Path.Combine(folder, "Radio Streams 1.m3u"));
+            //        //playlist.SaveAll(mediaItems);
+            //        //playlist.SetFile("");
+            //    }
                 
-                return streamSourceService;
-            });
+            //    return streamSourceService;
+            //});
 
             // Set IAudioSettingsService, create if not present
             builder.Services.AddScoped<IAudioSettingsService>((scope) =>
@@ -125,8 +133,8 @@ namespace CFMediaPlayer
 
             // Register IMediaSources to provide one IMediaSource per MediaLocation
             builder.Services.AddSingleton<IMediaSourceService>((scope) =>
-            {
-                List<IMediaSource> mediaSources = new List<IMediaSource>();
+            {                          
+                List <IMediaSource> mediaSources = new List<IMediaSource>();
                 var mediaLocationService = scope.GetRequiredService<IMediaLocationService>();                
                 foreach(var mediaLocation in mediaLocationService.GetAll())
                 {
@@ -136,13 +144,13 @@ namespace CFMediaPlayer
                             mediaSources.Add(new CloudMediaSource(mediaLocation));
                             break;
                         case MediaSourceTypes.Playlist:
-                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylist>()));
+                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylistManager>()));
                             break;
                         case MediaSourceTypes.Queue:
                             mediaSources.Add(new QueueMediaSource(mediaLocation));
                             break;
                         case MediaSourceTypes.RadioStreams:                          
-                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylist>()));
+                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylistManager>()));
                             break;
                         case MediaSourceTypes.Storage:
                             mediaSources.Add(new StorageMediaSource(mediaLocation));

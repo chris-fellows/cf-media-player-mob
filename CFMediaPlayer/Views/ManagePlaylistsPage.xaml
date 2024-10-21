@@ -5,6 +5,14 @@
              x:Class="CFMediaPlayer.ManagePlaylistsPage"
              Title="Manage Playlists">
     <VerticalStackLayout>
+        <Picker x:Name="MediaLocation" 
+            ItemsSource="{Binding MediaLocations}"
+           ItemDisplayBinding="{Binding Name}"                    
+           SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+           Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+        </Picker>
+
+
         <Picker x:Name="PlaylistListPicker" 
           ItemsSource="{Binding Playlists}"
          ItemDisplayBinding="{Binding Name}"                    
@@ -18,7 +26,7 @@
             WidthRequest="100"
             SemanticProperties.Hint="Delete playlist"            
             Command="{Binding DeleteCommand}"         
-            IsEnabled="{Binding IsPlaylistSelected}"
+            IsEnabled="{Binding IsRealPlaylistSelected}"
             Text="{Binding LocalizationResources[Delete], Mode=OneWay}"
             HorizontalOptions="Fill" />
 
@@ -26,8 +34,8 @@
                x:Name="ClearBtn"            
                 WidthRequest="100"
                SemanticProperties.Hint="Clear playlist"            
-               Command="{Binding DeleteCommand}"         
-               IsEnabled="{Binding IsPlaylistSelected}"
+               Command="{Binding ClearCommand}"         
+               IsEnabled="{Binding IsRealPlaylistSelected}"
                Text="{Binding LocalizationResources[Clear], Mode=OneWay}"
                HorizontalOptions="Fill" />
         </HorizontalStackLayout>
@@ -48,7 +56,7 @@
            WidthRequest="100"
            Command="{Binding CreateCommand}"
            IsEnabled="{Binding IsCreateEnabled}"                                        
-           Text="{Binding LocalizationResources[Save], Mode=OneWay}" />
+           Text="{Binding LocalizationResources[Create], Mode=OneWay}" />
 
             <Button x:Name="CloseBtn"
            WidthRequest="100"
@@ -56,6 +64,5 @@
            Text="{Binding LocalizationResources[Close], Mode=OneWay}" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
-    
-    
+       
 </ContentPage>

@@ -36,9 +36,14 @@ namespace CFMediaPlayer
                 var alertResult = DisplayAlert(LocalizationResources.Instance["Error"].ToString(), mediaPlayerException.Message,
                     LocalizationResources.Instance["Close"].ToString());
             };
-            
-            // Set default media location to internal storage
-            _model.SelectedMediaLocation = _model.MediaLocations.First(ml => ml.MediaSourceType == MediaSourceTypes.Storage);           
+
+            // Set default media location
+            _model.SelectedMediaLocation = _model.MediaLocations.FirstOrDefault(ml => ml.MediaSourceType == MediaSourceTypes.Storage &&  
+                                                        ml.MediaItemTypes.Contains(MediaItemTypes.Music));
+            if (_model.SelectedMediaLocation == null)
+            {
+                _model.SelectedMediaLocation = _model.MediaLocations.First();
+            }
         }        
 
         /// <summary>

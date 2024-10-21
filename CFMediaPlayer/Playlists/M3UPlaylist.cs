@@ -1,6 +1,7 @@
 ﻿using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using Java.Util.Zip;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Text;
@@ -10,10 +11,22 @@ namespace CFMediaPlayer.Playlists
     /// <summary>
     /// M3U playlist. Also supports compressed .m3u.zip files.
     /// </summary>
-    public class M3UPlaylist : IPlaylist
+    public class M3UPlaylist : IPlaylistManager
     {
-        private string? _file;        
-        
+        private string? _file;
+
+        public string Name { get; set; } = String.Empty;
+
+        public string FilePath
+        {
+            get { return _file; }
+            set
+            {
+                _file = value;
+                Name = "";
+            }
+        }
+
         public List<MediaItem> GetAll()
         {
             var mediaItems = new List<MediaItem>();
@@ -37,6 +50,10 @@ namespace CFMediaPlayer.Playlists
                 if (line.StartsWith("#EXTM3U"))     // File header
                 {
                     // No action
+                }
+                else if (line.StartsWith("#PLAYLIST:"))    // Playlist name
+                {
+                    Name = line.Substring(line.IndexOf(':') + 1).Trim();
                 }
                 else if (line.StartsWith("#EXTINF:"))   // Track info (Runtime secs, display title)
                 {
@@ -62,10 +79,11 @@ namespace CFMediaPlayer.Playlists
             return mediaItems;                
         }
 
-        public void SetFile(string file)
-        {
-            _file = file;
-        }
+        //public void SetFile(string file)
+        //{
+        //    _file = file;
+        //    Name = "";
+        //}
 
         public bool SupportsFile(string file)
         {
@@ -87,6 +105,10 @@ namespace CFMediaPlayer.Playlists
             {
                 var runtimeSecs = -1;
                 content.AppendLine($"#EXTINF:{runtimeSecs},{mediaItem.Name}");
+                if (!String.IsNullOrEmpty(Name))
+                {
+                    content.AppendLine($"#PLAYLIST:{Name}");
+                }
                 if (!String.IsNullOrEmpty(mediaItem.ImagePath))
                 {
                     content.AppendLine($"#EXTIMG:{mediaItem.ImagePath}");

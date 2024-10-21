@@ -59,6 +59,7 @@ namespace CFMediaPlayer.ViewModels
         private AudioSettings _audioSettings;
         private bool _autoPlayNext = false;
         private bool _shufflePlay = false;
+        private bool _isSearchBusy = false;
 
         /// <summary>
         /// Whether media items have been shuffled. It ensures that we only shuffle the media items once. If the
@@ -118,7 +119,7 @@ namespace CFMediaPlayer.ViewModels
             AutoPlayNext = false;            
 
             // Load media locations
-            LoadAvailableMediaLocations();
+            LoadMediaLocationsToDisplayInUI();
 
             // Get user settings (Theme, audio settings)
             var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
@@ -130,6 +131,27 @@ namespace CFMediaPlayer.ViewModels
         }        
 
         public bool IsDebugMode => false;
+
+        /// <summary>
+        /// Whether component is busy. This is typically used for the ActivityIndicator which is used for any
+        /// busy functions, not just search.
+        /// </summary>
+        public bool IsBusy => IsSearchBusy;
+
+        /// <summary>
+        /// Whether search is busy
+        /// </summary>
+        public bool IsSearchBusy
+        {
+            get { return _isSearchBusy; }            
+            set
+            {
+                _isSearchBusy = value;
+                
+                OnPropertyChanged(nameof(IsSearchBusy));
+                OnPropertyChanged(nameof(IsBusy));
+            }
+        }
         
         /// <summary>
         /// Whether to shuffle media items
@@ -202,19 +224,20 @@ namespace CFMediaPlayer.ViewModels
         }
       
         /// <summary>
-        /// Loads all available media locations with media items
+        /// Loads media locations to display. Some sources are always displayed even if no media items. Others
+        /// are only displayed if media items (E.g. Audiobooks, podcasts etc)
         /// </summary>
-        private void LoadAvailableMediaLocations()
+        private void LoadMediaLocationsToDisplayInUI()
         {
             var mediaLocations = new List<MediaLocation>();
             var mediaSources = _mediaSourceService.GetAll();
             foreach(var mediaLocation in _mediaLocationService.GetAll())
             {
-                var mediaSource = mediaSources.First(ms => ms.MediaLocation.Name == mediaLocation.Name);
-                if (mediaSource.IsAvailable && mediaSource.HasMediaItems)
+                var mediaSource = mediaSources.First(ms => ms.MediaLocation.Name == mediaLocation.Name);                
+                if (mediaSource.IsDisplayInUI)
                 {
                     mediaLocations.Add(mediaLocation);
-                }
+                }                
             }
             mediaLocations = mediaLocations.OrderBy(ml => ml.Name).ToList();
 
@@ -292,10 +315,7 @@ namespace CFMediaPlayer.ViewModels
 
                 // Display artists for media source
                 if (_selectedMediaLocation != null)
-                {
-                    //var isExists = Directory.Exists(_selectedMediaLocation.Source);
-                    //if (OnDebugAction != null) OnDebugAction($"MediaLocation={_selectedMediaLocation.Source}, Exists={isExists}");
-            
+                {            
                     LoadMediaLocationDefaults();
                 }                
             }
@@ -419,16 +439,20 @@ namespace CFMediaPlayer.ViewModels
         }
 
         /// <summary>
-        /// Main logo image to display
+        /// Main logo image to display   
         /// </summary>
         public string MainLogoImage
         {
             get
-            {  
-                // Set media item level image. E.g. Radio stream, playlist item with image for album
-                if (_selectedMediaItem != null && !String.IsNullOrEmpty(_selectedMediaItem.ImagePath))
+            {
+                // Set media item level image. E.g. Radio stream, playlist item with image for album.
+                // If storage then do nothing because we want to display the album image.
+                if (_selectedMediaLocation != null && _selectedMediaLocation.MediaSourceType != MediaSourceTypes.Storage)
                 {
-                    return _selectedMediaItem.ImagePath;
+                    if (_selectedMediaItem != null && !String.IsNullOrEmpty(_selectedMediaItem.ImagePath))
+                    {
+                        return _selectedMediaItem.ImagePath;
+                    }
                 }
 
                 // Set media item collection level image. E.g. Album image
@@ -926,24 +950,16 @@ namespace CFMediaPlayer.ViewModels
             {          
                 if (IsPlaying)
                 {
-                    if (_selectedMediaItem.IsAllowPause)
+                    if (_selectedMediaItem.IsAllowPause)    // Pause
                     {
                         return "audio_media_media_player_music_pause_icon.png";
                     }
-                    else
+                    else     // Stop
                     {
-                        return "audio_eject_media_media_player_music_icon.png";
+                        return "audio_media_media_player_music_stop_icon.png";
                     }
                 }
                 return "audio_media_media_player_music_play_icon.png";
-
-                /*
-                return IsPlaying switch
-                {
-                    true => "audio_media_media_player_music_pause_icon.png",
-                    _ => "audio_media_media_player_music_play_icon.png"
-                };
-                */
             }
         }
      
@@ -1123,7 +1139,7 @@ namespace CFMediaPlayer.ViewModels
         /// Executes media item action
         /// </summary>
         /// <param name="parameter"></param>
-        public  void ExecuteMediaItemAction(MediaItemAction mediaItemAction)
+        public void ExecuteMediaItemAction(MediaItemAction mediaItemAction)
         {  
             if (mediaItemAction != null)                     
             {
@@ -1145,7 +1161,7 @@ namespace CFMediaPlayer.ViewModels
                     // Check if media item should still be in the current media item list. E.g. If we're displaying the playlist
                     // media source and user removes selected media item then we need to select another media item
                     var mediaItems = CurrentMediaSource.GetMediaItemsForMediaItemCollection(_selectedArtist, _selectedMediaItemCollection, false);
-                    if (!mediaItems.Any(mi => mi.FilePath == mediaItemAction.File))   // Media item state changed
+                    if (!mediaItems.Any(mi => mi.FilePath == mediaItemAction.MediaItemFile))   // Media item state changed
                     {
                         LoadMediaItemCollectionDefaults(_selectedArtist, _selectedMediaItemCollection);
                     }
@@ -1179,25 +1195,40 @@ namespace CFMediaPlayer.ViewModels
         }
         
         /// <summary>
-        /// Command to execute search.
+        /// Command to start search. Runs asynchronously.
         /// </summary>
-        /// <remarks>We could search all media locations but that could be slow</remarks>
-        public ICommand SearchCommand => new Command<string>((string text) =>
+        /// <remarks>We could search all media locations but that could be slow</remarks>        
+        public ICommand StartSearchCommand => new Command<string>((string text) =>
         {
-            System.Diagnostics.Debug.WriteLine($"Search for {text}");
+            var task = Task.Factory.StartNew(() =>
+            {
+                IsSearchBusy = true;
+                System.Diagnostics.Debug.WriteLine($"Search for {text}");
 
-            // Clear results
-            SearchResults = new List<SearchResult>();            
+                // Clear results
+                SearchResults = new List<SearchResult>();
 
-            // Get results
-            var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
-            var results = _mediaSearchService.SearchAsync(searchOptions).Result;
-            
-            // Set results
-            SearchResults = results;
+                //Thread.Sleep(5000); // Simulate delay
 
-            System.Diagnostics.Debug.WriteLine($"Search for {text} found {results.Count} items");
-        });
+                // Get results
+                var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
+                var results = _mediaSearchService.SearchAsync(searchOptions).Result;
+                
+                //if (!results.Any())
+                //{
+                //    for (int index = 0; index < 10; index++)
+                //    {
+                //        results.Add(new SearchResult() { Name = $"Result {index + 1}" });
+                //    }
+                //}
+
+                // Set results
+                SearchResults = results;
+
+                System.Diagnostics.Debug.WriteLine($"Search for {text} found {results.Count} items");
+                IsSearchBusy = false;
+            });            
+        });   
 
         public bool IsSearchResults => _searchResults.Any();
 
@@ -1326,7 +1357,7 @@ namespace CFMediaPlayer.ViewModels
         {         
             // Clear selected media item location
             SelectedMediaLocation = null;
-            LoadAvailableMediaLocations();
+            LoadMediaLocationsToDisplayInUI();
 
             // Set media location. When the property is set then we load the child items and set a default selected child
             // item and we repeat this until the lowest level (Media item actions)
@@ -1381,8 +1412,9 @@ namespace CFMediaPlayer.ViewModels
             SearchResults = new List<SearchResult>();
         }
 
-        public string SearchBarPlaceholderText => SelectedMediaLocation == null ? "" :
-                                        String.Format(LocalizationResources.Instance["SearchWithParam"].ToString(), SelectedMediaLocation.Name);
+        //public string SearchBarPlaceholderText => SelectedMediaLocation == null ? "" :
+        //                                String.Format(LocalizationResources.Instance["SearchWithParam"].ToString(), SelectedMediaLocation.Name);
+        public string SearchBarPlaceholderText => LocalizationResources.Instance["Search"].ToString();         
 
         /// <summary>
         /// Whether the Shuffle Play switch is visible

@@ -11,12 +11,12 @@
         Cloud,
 
         /// <summary>
-        /// Playlists
+        /// Playlists. Won't include radio streams that are in the RadioStreams folder.
         /// </summary>
         Playlist,
 
         /// <summary>
-        /// Queue (In memory)
+        /// Queue (in memory) of media items to play. User can manually add media items to the queue.
         /// </summary>
         Queue,
 
@@ -27,7 +27,7 @@
         RadioStreams,
 
         /// <summary>
-        /// Internal or external phone storage
+        /// Internal or external phone storage for music, podcasts and audiobooks
         /// </summary>
         /// <remarks>No real need to split between external or internal</remarks>
         Storage

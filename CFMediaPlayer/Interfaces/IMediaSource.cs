@@ -21,9 +21,14 @@ namespace CFMediaPlayer.Interfaces
         bool IsAvailable { get; }
 
         /// <summary>
-        /// Whether there are media items available
+        /// Whether to display media source in UI.
         /// </summary>
-        bool HasMediaItems { get; }
+        bool IsDisplayInUI { get; }
+
+        ///// <summary>
+        ///// Whether there are media items available
+        ///// </summary>
+        //bool HasMediaItems { get; }
 
         /// <summary>
         /// Gets all artists

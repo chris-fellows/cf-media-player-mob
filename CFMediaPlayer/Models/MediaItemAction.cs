@@ -19,12 +19,14 @@ namespace CFMediaPlayer.Models
         public string Name { get; set; } = String.Empty;
 
         /// <summary>
-        /// File, type determined by ActionToExecute:
-        /// - If playlist related then refers to playlist file.
-        /// - If media item related then refers to media item file. It doesn't matter too much because the MediaItem
-        ///   is passed to the Execute... method and it contains the file.
+        /// Media item file (if any)
         /// </summary>
-        public string File { get; set; } = String.Empty;
+        public string MediaItemFile { get; set; } = String.Empty;
+
+        /// <summary>
+        /// Playlist file (if any)
+        /// </summary>
+        public string PlaylistFile { get; set; } = String.Empty;
 
         /// <summary>
         /// Action

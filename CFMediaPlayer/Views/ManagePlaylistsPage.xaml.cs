@@ -12,5 +12,12 @@ public partial class ManagePlaylistsPage : ContentPage
 
 		_model = model;
 		this.BindingContext = _model;
-	}
+
+        // Set event handler for media start error
+        _model.OnError += (exception) =>
+        {
+            var alertResult = DisplayAlert(LocalizationResources.Instance["Error"].ToString(), exception.Message,
+                LocalizationResources.Instance["Close"].ToString());
+        };
+    }
 }

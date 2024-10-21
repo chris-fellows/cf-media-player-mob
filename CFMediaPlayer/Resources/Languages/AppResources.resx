@@ -237,4 +237,16 @@
   <data name="MediaSourcePodcastsText" xml:space="preserve">
     <value>Podcasts</value>
   </data>
+  <data name="StorageLocationInternal" xml:space="preserve">
+    <value>Internal</value>
+  </data>
+  <data name="StorageLocationExternal" xml:space="preserve">
+    <value>External</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
 </root>

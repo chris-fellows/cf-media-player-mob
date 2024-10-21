@@ -2,6 +2,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using System.Linq;
 using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.Sources
@@ -24,14 +25,7 @@ namespace CFMediaPlayer.Sources
 
         public bool IsAvailable => true;        // Always
 
-        public bool HasMediaItems
-        {
-            get
-            {
-                // Always
-                return true;
-            }
-        }
+        public bool IsDisplayInUI => true;
 
         public List<Artist> GetArtists(bool includeNonReal)
         {
@@ -87,9 +81,8 @@ namespace CFMediaPlayer.Sources
                             {
                                 ActionToExecute = MediaItemActions.OpenMediaItemCollection,
                                 MediaLocationName = mediaSource.MediaLocation.Name,
-                                File = mediaItem.FilePath,
-                                ImagePath = ancestors.Item2.ImagePath,
-                                //ImagePath = "picture.png",
+                                MediaItemFile = mediaItem.FilePath,
+                                ImagePath = ancestors.Item2.ImagePath,                                
                                 Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
@@ -105,7 +98,7 @@ namespace CFMediaPlayer.Sources
                     {
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
-                        File = mediaItem.FilePath,
+                        MediaItemFile = mediaItem.FilePath,
                         ActionToExecute = MediaItemActions.RemoveFromQueue,
                         ImagePath = "cross.png"
                     };
@@ -117,7 +110,7 @@ namespace CFMediaPlayer.Sources
                     {
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
-                        File = mediaItem.FilePath,
+                        MediaItemFile = mediaItem.FilePath,
                         ActionToExecute = MediaItemActions.AddToQueueEnd,
                         ImagePath = "plus.png",
                     };
@@ -127,7 +120,7 @@ namespace CFMediaPlayer.Sources
                     {
                         MediaLocationName = _mediaLocation.Name,
                         Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
-                        File = mediaItem.FilePath,
+                        MediaItemFile = mediaItem.FilePath,
                         ActionToExecute = MediaItemActions.AddToQueueNext,
                         ImagePath = "plus.png"
                     };
@@ -160,7 +153,7 @@ namespace CFMediaPlayer.Sources
         public List<SearchResult> Search(SearchOptions searchOptions)
         {
             var searchResults = new List<SearchResult>();         
-
+            
             searchResults.AddRange(_mediaItemQueue.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
                    .Select(mi => new SearchResult()
                    {
@@ -168,8 +161,11 @@ namespace CFMediaPlayer.Sources
                        Name = mi.Name,
                        Artist = Artist.InstanceNone,
                        MediaItemCollection = MediaItemCollection.InstanceNone,
-                       MediaItem = mi
-                   }));        
+                       MediaItem = mi,                
+                       ImagePath = GetMediaItemCollectionImagePath(mi)
+                   }));
+
+            searchResults = searchResults.OrderBy(s => s.Name).ToList();
 
             return searchResults;
         }

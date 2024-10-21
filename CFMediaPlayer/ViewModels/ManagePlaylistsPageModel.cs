@@ -1,27 +1,28 @@
 ﻿using Android.Content;
 using CFMediaPlayer.Enums;
+using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace CFMediaPlayer.ViewModels
 {
     public class ManagePlaylistsPageModel : INotifyPropertyChanged
-    {
-        private readonly IMediaSourceService _mediaSourceService;
-        private readonly IMediaSource _mediaSource;
-        private readonly List<IPlaylist> _playlists;
-        private readonly string _playlistFolder;
-        //private string _lastNewPlaylistName = String.Empty;
+    {        
+        private readonly IMediaSourceService _mediaSourceService;        
+        private IMediaSource _mediaSource;        
+        private readonly List<IPlaylistManager> _playlistManagers;    
         private bool _isPlaylistsUpdated = false;
+
+        private List<MediaLocation> _mediaLocations = new List<MediaLocation>();
+
+        public delegate void Error(Exception exception);
+        public event Error? OnError;
 
         public LocalizationResources LocalizationResources => LocalizationResources.Instance;
 
@@ -31,12 +32,10 @@ namespace CFMediaPlayer.ViewModels
                      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public ManagePlaylistsPageModel(IMediaSourceService mediaSourceService,
-                IEnumerable<IPlaylist> playlists)
+                IEnumerable<IPlaylistManager> playlistManagers)
         {
-            _mediaSourceService = mediaSourceService;
-            _mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Playlist);
-            _playlists = playlists.ToList();
-            _playlistFolder = FileSystem.AppDataDirectory;            
+            _mediaSourceService = mediaSourceService;            
+            _playlistManagers = playlistManagers.ToList();            
 
             // Set commands
             DeleteCommand = new Command(DoDelete);
@@ -46,8 +45,60 @@ namespace CFMediaPlayer.ViewModels
 
             // Set default new playlist
             NewPlaylistName = "My Favourites";
+
+            // Set all playlist media locations
+            var mediaSources = _mediaSourceService.GetAll();
+            var mediaLocations = mediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Playlist && 
+                                            ms.IsAvailable)
+                                            .Select(ms => ms.MediaLocation).ToList();            
+            if (!mediaLocations.Any())
+            {
+                mediaLocations.Add(MediaLocation.InstanceNone);
+            }
+            MediaLocations = mediaLocations;
             
-            LoadPlaylists();
+            // Default to first media location
+            SelectedMediaLocation = MediaLocations.First();           
+        }
+
+        private MediaLocation _selectedMediaLocation;
+      
+        public MediaLocation SelectedMediaLocation
+        {
+            get
+            {
+                return _selectedMediaLocation;
+            }
+
+            set
+            {
+                _selectedMediaLocation = value;
+
+                // Notify properties on change of selected media location
+                OnPropertyChanged(nameof(SelectedMediaLocation));
+
+                _mediaSource = null;
+                if (_selectedMediaLocation != null && _selectedMediaLocation.EntityCategory == EntityCategory.Real)
+                {
+                    _mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaLocation.Name);
+                }
+
+                LoadPlaylists();
+            }
+        }
+
+        /// <summary>
+        /// Media locations
+        /// </summary>
+        public List<MediaLocation> MediaLocations
+        {
+            get { return _mediaLocations; }
+            set
+            {
+                _mediaLocations = value;
+
+                OnPropertyChanged(nameof(MediaLocations));                
+            }
         }
 
         private string _newPlaylistName = String.Empty;
@@ -67,28 +118,41 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (String.IsNullOrEmpty(NewPlaylistName)) return false;
-                var playlistFile = Path.Combine(_playlistFolder, $"{NewPlaylistName}.playlist");
-                return !File.Exists(playlistFile);
+                if (String.IsNullOrEmpty(NewPlaylistName) ||
+                    _selectedMediaLocation == null ||
+                    _selectedMediaLocation.EntityCategory != EntityCategory.Real) return false;
+
+                // Check that playlist doesn't exist. Media source could relate to multiple folders but we just prevent
+                // create if any folder contains it
+                var playlists = _mediaSource.GetMediaItemCollectionsForArtist(null, false);
+                return !playlists.Any(mic => mic.Name.Equals(NewPlaylistName, StringComparison.OrdinalIgnoreCase));                
             }
         }
 
-        private void LoadPlaylists(string? selectedName = null)
+        /// <summary>
+        /// Loads playlist and selects one playlist
+        /// </summary>
+        /// <param name="selectedPlaylistFile"></param>
+        private void LoadPlaylists(string? selectedPlaylistFile = null)
         {
-            // Get playlists
-            var playlists = _mediaSource.GetMediaItemCollectionsForArtist(null, false);
+            List<MediaItemCollection> mediaItemCollections = new List<MediaItemCollection>();
+            if (_selectedMediaLocation.EntityCategory == EntityCategory.Real)
+            {
+                // Get playlists
+                mediaItemCollections = _mediaSource.GetMediaItemCollectionsForArtist(null, false);
+            }
 
             // Add None if no playlists
-            if (!playlists.Any())
+            if (!mediaItemCollections.Any())
             {
-                playlists.Add(MediaItemCollection.InstanceNone);                
+                mediaItemCollections.Add(MediaItemCollection.InstanceNone);
             }
-            Playlists = playlists;
+            Playlists = mediaItemCollections;
 
-            // Select playlist
-            var playlist = String.IsNullOrEmpty(selectedName) ? Playlists[0] : Playlists.First(p => p.Name == selectedName);
-            SelectedPlaylist = playlist;
-        }            
+            // Select playlist            
+            var playlist = String.IsNullOrEmpty(selectedPlaylistFile) ? Playlists[0] : Playlists.First(p => p.Path == selectedPlaylistFile);
+            SelectedPlaylist = playlist;           
+        }
 
         private List<MediaItemCollection> _mediaItemCollections = new List<MediaItemCollection>();
         public List<MediaItemCollection> Playlists
@@ -115,7 +179,7 @@ namespace CFMediaPlayer.ViewModels
                 _selectedPlaylist = value;
 
                 OnPropertyChanged(nameof(SelectedPlaylist));
-                OnPropertyChanged(nameof(IsPlaylistSelected));
+                OnPropertyChanged(nameof(IsRealPlaylistSelected));
             }
         }
 
@@ -134,7 +198,7 @@ namespace CFMediaPlayer.ViewModels
             {
                 ActionToExecute = MediaItemActions.DeletePlaylist,
                 MediaLocationName = _mediaSource.MediaLocation.Name,
-                File = _selectedPlaylist.Path 
+                PlaylistFile = _selectedPlaylist.Path 
             };
 
             _mediaSource.ExecuteMediaItemAction(new(), mediaItemAction);
@@ -145,7 +209,10 @@ namespace CFMediaPlayer.ViewModels
             LoadPlaylists();
         }
 
-        public bool IsPlaylistSelected => _selectedPlaylist != null && _selectedPlaylist.EntityCategory == EntityCategory.Real;
+        /// <summary>
+        /// Whether real playlist is selected (i.e. Not None)
+        /// </summary>
+        public bool IsRealPlaylistSelected => _selectedPlaylist != null && _selectedPlaylist.EntityCategory == EntityCategory.Real;
 
         /// <summary>
         /// Command to create playlist
@@ -155,18 +222,19 @@ namespace CFMediaPlayer.ViewModels
         private void DoCreate()
         {
             // Create playlist
-            var playlist = _playlists.First(pl => pl.SupportsFile(Path.Combine(_playlistFolder, "Test.playlist")));                        
-            var playlistFile = Path.Combine(_playlistFolder, $"{NewPlaylistName}.playlist");
-            playlist.SetFile(playlistFile);
-            playlist.SaveAll(new());
+            var playlistFolder = _selectedMediaLocation.Sources.First();
+            var playlistManager = _playlistManagers.First(pl => pl.SupportsFile(Path.Combine(playlistFolder, "Test.playlist")));
+            var playlistFile = Path.Combine(playlistFolder, $"{NewPlaylistName}.playlist");
+            playlistManager.FilePath = playlistFile;
+            playlistManager.Name = NewPlaylistName;
+            playlistManager.SaveAll(new());
+            playlistManager.FilePath = "";   // Clean up
 
             _isPlaylistsUpdated = true;
 
-            // Record name of playlist so that we can select it when we direct to main page
-            //_lastNewPlaylistName = NewPlaylistName;
 
             // Refresh playlists, with new playlist selected
-            LoadPlaylists(NewPlaylistName);            
+            LoadPlaylists(playlistFile);        
         }
 
         public ICommand CloseCommand { get; set; }
@@ -183,9 +251,6 @@ namespace CFMediaPlayer.ViewModels
             {
                 Shell.Current.GoToAsync($"//{nameof(MainPage)}");
             }
-
-            //Shell.Current.GoToAsync($"//{nameof(MainPage)}?NewPlaylistName={Name}");
-            //Shell.Current.GoToAsync($"//{nameof(MainPage)}");
         }
 
         /// <summary>
@@ -203,7 +268,7 @@ namespace CFMediaPlayer.ViewModels
             {
                 ActionToExecute = MediaItemActions.ClearPlaylist,
                 MediaLocationName = _mediaSource.MediaLocation.Name,
-                File = _selectedPlaylist.Path
+                PlaylistFile = _selectedPlaylist.Path
             };
 
             _mediaSource.ExecuteMediaItemAction(new(), mediaItemAction);

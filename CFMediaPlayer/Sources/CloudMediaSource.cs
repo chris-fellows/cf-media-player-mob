@@ -25,14 +25,7 @@ namespace CFMediaPlayer.Sources
             }
         }
 
-        public bool HasMediaItems
-        {
-            get
-            {
-                // TODO: Check specific cloud
-                return true;
-            }
-        }
+        public bool IsDisplayInUI => false; // IsAvailable;
 
         public List<Artist> GetArtists(bool includeNonReal)
         {

@@ -11,7 +11,9 @@ namespace CFMediaPlayer.Sources
     /// Media source from storage (Internal/SD card)
     /// </summary>
     internal class StorageMediaSource : MediaSourceBase, IMediaSource
-    {        
+    {
+        private const int _maxParallelThreads = 4;
+
         public StorageMediaSource(MediaLocation mediaLocation) : base(mediaLocation)
         {
      
@@ -26,7 +28,11 @@ namespace CFMediaPlayer.Sources
                 return _mediaLocation.Sources.Any(folder => Directory.Exists(folder));
             }
         }
-        public bool HasMediaItems => GetArtists(false).Any();
+
+        /// <summary>
+        /// Whether to display in UI. Always display music folder and other folders only if media items
+        /// </summary>
+        public bool IsDisplayInUI => IsAvailable && (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.Music) || GetArtists(false).Any());
 
         /// <summary>
         /// Whether artist folder should be checked for media items. If this media source is for music then we ignore
@@ -39,11 +45,11 @@ namespace CFMediaPlayer.Sources
         {
             if (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.Music))
             {
-                var names = new[] { Android.OS.Environment.DirectoryAudiobooks,
-                                "Playlists",
-                                Android.OS.Environment.DirectoryPodcasts,
-                                "Radiostreams" };
-                var folderName = new DirectoryInfo(artistFolder).Name;
+                var names = new[] { Android.OS.Environment.DirectoryAudiobooks.ToLower(),
+                                "playlists",
+                                Android.OS.Environment.DirectoryPodcasts.ToLower(),
+                                "radiostreams" };
+                var folderName = new DirectoryInfo(artistFolder).Name.ToLower();
                 return !names.Contains(folderName);
             }
 
@@ -59,27 +65,51 @@ namespace CFMediaPlayer.Sources
                 foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                 {
                     var artistFolders = Directory.GetDirectories(mediaLocationSource);
-                    foreach (var artistFolder in artistFolders.Where(f => IsCheckArtistFolder(f)))
+                    if (artistFolders.Any())
                     {
-                        // Check that folder contains albums
-                        var isHasMediaItemCollections = false;
-                        foreach (var mediaItemCollectionFolder in Directory.GetDirectories(artistFolder))
-                        {
-                            if (!new DirectoryInfo(mediaItemCollectionFolder).Name.StartsWith(".")) // Ignore folders prefixed with . (E.g. .RadioStreams)
-                            {
-                                if (MediaUtilities.IsFolderHasAudioFiles(mediaItemCollectionFolder))
-                                {
-                                    isHasMediaItemCollections = true;
-                                    break;
-                                }
-                            }
-                        }
+                        Parallel.ForEach(artistFolders,
+                                            new ParallelOptions { MaxDegreeOfParallelism = _maxParallelThreads },
+                                            artistFolder =>
+                                            {
+                                                if (IsCheckArtistFolder(artistFolder))
+                                                {
+                                                    // Check that folder contains albums
+                                                    var isHasMediaItemCollections = false;
+                                                    foreach (var mediaItemCollectionFolder in Directory.GetDirectories(artistFolder))
+                                                    {
+                                                        if (MediaUtilities.IsFolderHasAudioFiles(mediaItemCollectionFolder))
+                                                        {
+                                                            isHasMediaItemCollections = true;
+                                                            break;
+                                                        }
+                                                    }
 
-                        if (isHasMediaItemCollections)
-                        {
-                            artists.Add(new Artist() { Path = artistFolder, Name = new DirectoryInfo(artistFolder).Name });
-                        }
+                                                    if (isHasMediaItemCollections)
+                                                    {
+                                                        artists.Add(new Artist() { Path = artistFolder, Name = new DirectoryInfo(artistFolder).Name });
+                                                    }
+                                                }
+                                            });
                     }
+
+                    //foreach (var artistFolder in artistFolders.Where(f => IsCheckArtistFolder(f)))
+                    //{
+                    //    // Check that folder contains albums
+                    //    var isHasMediaItemCollections = false;
+                    //    foreach (var mediaItemCollectionFolder in Directory.GetDirectories(artistFolder))
+                    //    {
+                    //        if (MediaUtilities.IsFolderHasAudioFiles(mediaItemCollectionFolder))
+                    //        {
+                    //            isHasMediaItemCollections = true;
+                    //            break;
+                    //        }                        
+                    //    }
+
+                    //    if (isHasMediaItemCollections)
+                    //    {
+                    //        artists.Add(new Artist() { Path = artistFolder, Name = new DirectoryInfo(artistFolder).Name });
+                    //    }
+                    //}
                 }
             }
 
@@ -169,7 +199,8 @@ namespace CFMediaPlayer.Sources
                     mediaItems.Add(new MediaItem()
                     {
                         FilePath = file,
-                        Name = Path.GetFileNameWithoutExtension(file)
+                        Name = Path.GetFileNameWithoutExtension(file),
+                        ImagePath = "music.png"
                     });
                 }
             }
@@ -189,6 +220,22 @@ namespace CFMediaPlayer.Sources
                     // Media item collection will be [Multiple]
                     foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                     {
+                        var artistFolders = Directory.GetDirectories(mediaLocationSource);
+
+                        Parallel.ForEach(artistFolders,
+                                          new ParallelOptions { MaxDegreeOfParallelism = _maxParallelThreads },
+                                          artistFolder =>
+                                          {
+                                              if (IsCheckArtistFolder(artistFolder))
+                                              {
+                                                  foreach (var albumFolder in Directory.GetDirectories(artistFolder))
+                                                  {
+                                                      mediaItems.AddRange(GetMediaItemsFromFolder(albumFolder));
+                                                  }
+                                              }
+                                          });
+
+                        /*
                         foreach (var artistFolder in Directory.GetDirectories(mediaLocationSource).Where(f => IsCheckArtistFolder(f)))
                         {
                             foreach (var albumFolder in Directory.GetDirectories(artistFolder))
@@ -196,6 +243,7 @@ namespace CFMediaPlayer.Sources
                                 mediaItems.AddRange(GetMediaItemsFromFolder(albumFolder));
                             }
                         }
+                        */
                     }
                 }
                 else if (mediaItemCollection.EntityCategory == EntityCategory.All)
@@ -255,53 +303,110 @@ namespace CFMediaPlayer.Sources
             {
                 var artists = GetArtists(false);
 
-                foreach (var artist in artists.Where(a => a.EntityCategory == EntityCategory.Real))
+                if (artists.Any())
                 {
-                    if (SearchUtilities.IsValidSearchResult(artist, searchOptions))
-                    {
-                        searchResults.Add(new SearchResult()
-                        {
-                            EntityType = EntityTypes.Artist,
-                            Name = artist.Name,
-                            Artist = artist,
-                            MediaLocationName = MediaLocation.Name
-                        });
-                    }
+                    Parallel.ForEach(artists,
+                                new ParallelOptions { MaxDegreeOfParallelism = _maxParallelThreads },
+                                artist =>
+                                {
+                                    if (SearchUtilities.IsValidSearchResult(artist, searchOptions))
+                                    {
+                                        searchResults.Add(new SearchResult()
+                                        {
+                                            EntityType = EntityTypes.Artist,
+                                            Name = artist.Name,
+                                            Artist = artist,
+                                            MediaLocationName = MediaLocation.Name,
+                                            ImagePath = "music.png"
+                                        });
+                                    }
 
-                    // Get media item collections
-                    var mediaItemCollections = GetMediaItemCollectionsForArtist(artist, false).Where(mic => mic.EntityCategory == EntityCategory.Real);
+                                    // Get media item collections
+                                    var mediaItemCollections = GetMediaItemCollectionsForArtist(artist, false).Where(mic => mic.EntityCategory == EntityCategory.Real);
 
-                    searchResults.AddRange(mediaItemCollections.Where(mic => SearchUtilities.IsValidSearchResult(mic, searchOptions))
-                        .Select(mic => new SearchResult()
-                        {
-                            EntityType = EntityTypes.MediaItemCollection,
-                            Name = mic.Name,
-                            Artist = artist,
-                            MediaItemCollection = mic,
-                            MediaLocationName = MediaLocation.Name,
-                            ImagePath = mic.ImagePath
-                        }));
+                                    searchResults.AddRange(mediaItemCollections.Where(mic => SearchUtilities.IsValidSearchResult(mic, searchOptions))
+                                        .Select(mic => new SearchResult()
+                                        {
+                                            EntityType = EntityTypes.MediaItemCollection,
+                                            Name = mic.Name,
+                                            Artist = artist,
+                                            MediaItemCollection = mic,
+                                            MediaLocationName = MediaLocation.Name,
+                                            ImagePath = mic.ImagePath
+                                        }));
 
-                    // Check each media item collection
-                    foreach (var mediaItemCollection in mediaItemCollections)
-                    {
-                        // Get media items for collection
-                        var mediaItems = GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, false).Where(mi => mi.EntityCategory == EntityCategory.Real);
+                                    // Check each media item collection
+                                    foreach (var mediaItemCollection in mediaItemCollections)
+                                    {
+                                        // Get media items for collection
+                                        var mediaItems = GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, false).Where(mi => mi.EntityCategory == EntityCategory.Real);
 
-                        searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
-                            .Select(mi => new SearchResult()
-                            {
-                                EntityType = EntityTypes.MediaItem,
-                                Name = mi.Name,
-                                Artist = artist,
-                                MediaItemCollection = mediaItemCollection,
-                                MediaItem = mi,
-                                MediaLocationName = MediaLocation.Name,
-                                ImagePath = mediaItemCollection.ImagePath
-                            }));
-                    }
+                                        searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
+                                            .Select(mi => new SearchResult()
+                                            {
+                                                EntityType = EntityTypes.MediaItem,
+                                                Name = mi.Name,
+                                                Artist = artist,
+                                                MediaItemCollection = mediaItemCollection,
+                                                MediaItem = mi,
+                                                MediaLocationName = MediaLocation.Name,
+                                                ImagePath = mediaItemCollection.ImagePath
+                                            }));
+                                    }
+                                });
                 }
+
+            //    foreach (var artist in artists.Where(a => a.EntityCategory == EntityCategory.Real))
+            //    {
+            //        if (SearchUtilities.IsValidSearchResult(artist, searchOptions))
+            //        {
+            //            searchResults.Add(new SearchResult()
+            //            {
+            //                EntityType = EntityTypes.Artist,
+            //                Name = artist.Name,
+            //                Artist = artist,
+            //                MediaLocationName = MediaLocation.Name,
+            //                ImagePath = "music.png"
+            //            });
+            //        }
+
+            //        // Get media item collections
+            //        var mediaItemCollections = GetMediaItemCollectionsForArtist(artist, false).Where(mic => mic.EntityCategory == EntityCategory.Real);
+
+            //        searchResults.AddRange(mediaItemCollections.Where(mic => SearchUtilities.IsValidSearchResult(mic, searchOptions))
+            //            .Select(mic => new SearchResult()
+            //            {
+            //                EntityType = EntityTypes.MediaItemCollection,
+            //                Name = mic.Name,
+            //                Artist = artist,
+            //                MediaItemCollection = mic,
+            //                MediaLocationName = MediaLocation.Name,
+            //                ImagePath = mic.ImagePath
+            //            }));
+
+            //        // Check each media item collection
+            //        foreach (var mediaItemCollection in mediaItemCollections)
+            //        {
+            //            // Get media items for collection
+            //            var mediaItems = GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, false).Where(mi => mi.EntityCategory == EntityCategory.Real);
+
+            //            searchResults.AddRange(mediaItems.Where(mi => SearchUtilities.IsValidSearchResult(mi, searchOptions))
+            //                .Select(mi => new SearchResult()
+            //                {
+            //                    EntityType = EntityTypes.MediaItem,
+            //                    Name = mi.Name,
+            //                    Artist = artist,
+            //                    MediaItemCollection = mediaItemCollection,
+            //                    MediaItem = mi,
+            //                    MediaLocationName = MediaLocation.Name,
+            //                    ImagePath = mediaItemCollection.ImagePath
+            //                }));
+            //        }
+            //    }
+
             }
+
+            searchResults = searchResults.OrderBy(s => s.Name).ToList();
             
             return searchResults;
         }

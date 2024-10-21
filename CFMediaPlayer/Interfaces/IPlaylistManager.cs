@@ -3,10 +3,20 @@
 namespace CFMediaPlayer.Interfaces
 {
     /// <summary>
-    /// Interface for media playlist
+    /// Interface for managing playlist
     /// </summary>
-    public interface IPlaylist
-    {                
+    public interface IPlaylistManager
+    {
+        /// <summary>
+        /// Playlist file
+        /// </summary>
+        string FilePath { get; set; }
+
+        /// <summary>
+        /// Playlist name
+        /// </summary>
+        string Name { get; set; }
+
         /// <summary>
         /// Returns all playlist items
         /// </summary>
@@ -19,11 +29,11 @@ namespace CFMediaPlayer.Interfaces
         /// <param name="mediaItems"></param>
         void SaveAll(List<MediaItem> mediaItems);
 
-        /// <summary>
-        /// Sets file to read/write
-        /// </summary>
-        /// <param name="file"></param>
-        void SetFile(string file);
+        ///// <summary>
+        ///// Sets file to read/write
+        ///// </summary>
+        ///// <param name="file"></param>
+        //void SetFile(string file);
 
         /// <summary>
         /// Whether file is supported

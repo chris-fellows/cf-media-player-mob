@@ -11,10 +11,5 @@ namespace CFMediaPlayer.Services
         {
 
         } 
-
-        //public SystemSettings? Get()
-        //{
-        //    return GetAll().FirstOrDefault();            
-        //}
     }
 }
