@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CFMediaPlayer.LibraryPage"
+             Title="Library">
+
+    <ScrollView>
+        <VerticalStackLayout
+        Padding="10,0"
+        Spacing="2">
+
+            <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
+                <StackLayout Orientation="Horizontal">
+                    <Picker x:Name="MediaLocation" 
+                   ItemsSource="{Binding MediaLocations}"
+                  ItemDisplayBinding="{Binding Name}"                    
+                  SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+                  Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+                    </Picker>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy, Mode=OneWay}"                                        
+                                 WidthRequest="25"
+                                 Color="Orange"/>
+
+                    <SearchBar x:Name="MediaSearchBar"        
+                 IsReadOnly="{Binding IsSearchBusy, Mode=OneWay}"                               
+                 Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
+                 IsSpellCheckEnabled="false"
+                 IsTextPredictionEnabled="false"
+                 TextChanged="MediaSearchBar_TextChanged"                     
+                 SearchCommand="{Binding StartSearchCommand}"
+                 SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
+                </StackLayout>
+
+                <Border StrokeThickness="1" 
+                    IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                    <ListView x:Name="SearchResultsList"                      
+                  ItemsSource="{Binding SearchResults, Mode=OneWay}"                            
+                  ItemTapped="SearchResultsList_ItemTapped"                            
+                  IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Image Source="{Binding ImagePath}" HeightRequest="20" />
+                                        <Label Text="{Binding Name}" VerticalOptions="Center" FontSize="Small" />
+                                    </StackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
+            </StackLayout>
+
+            <Image
+  Source="{Binding MainLogoImage}"
+  HeightRequest="140"
+  Aspect="AspectFit"
+  SemanticProperties.Description="CF Media Player" />
+       
+            <Picker x:Name="ArtistList" 
+                  ItemsSource="{Binding Artists}"
+                  ItemDisplayBinding="{Binding Name}"
+                  SelectedItem="{Binding SelectedArtist, Mode=TwoWay}"
+                Title="{Binding LocalizationResources[MainSelectArtistText], Mode=OneWay}">
+            </Picker>
+
+            <Picker x:Name="MediaItemCollectionList" 
+                ItemsSource="{Binding MediaItemCollections}"
+                ItemDisplayBinding="{Binding Name}"
+                SelectedItem="{Binding SelectedMediaItemCollection, Mode=TwoWay}"
+                 
+                Title="{Binding LocalizationResources[MainSelectAlbumText], Mode=OneWay}">
+            </Picker>
+
+            <CollectionView x:Name="MediaItemListView"
+                HeightRequest="420"                         
+                VerticalScrollBarVisibility="Always"
+                ItemsSource="{Binding MediaItems}"                                                  
+                SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"
+                SelectionMode="Single" Margin="10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="40">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="30"/>
+                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <CollectionView x:Name="MediaActionsView"
+                        ItemsSource="{Binding MediaActions}"
+                        SelectionChanged="MediaActionsView_SelectionChanged"    
+                        SelectionMode="Single" Margin="10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="40">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="30"/>
+                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label
+          x:Name="DebugLabel"
+            IsVisible="{Binding IsDebugMode, Mode=OneWay}"
+            Text="Debug"                    
+            SemanticProperties.HeadingLevel="Level1" />
+
+            <Button
+          x:Name="DebugInfoBtn"
+           IsVisible="{Binding IsDebugMode, Mode=OneWay}"
+          Text="Debug info"                 
+          SemanticProperties.Hint="Displays debug info"
+          Clicked="OnDebugInfoClicked"
+          HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

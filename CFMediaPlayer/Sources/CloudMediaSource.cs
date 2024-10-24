@@ -1,4 +1,5 @@
-﻿using CFMediaPlayer.Enums;
+﻿using Android.Media;
+using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
@@ -10,7 +11,8 @@ namespace CFMediaPlayer.Sources
     /// </summary>
     public class CloudMediaSource : MediaSourceBase, IMediaSource
     {        
-        public CloudMediaSource(MediaLocation mediaLocation) : base(mediaLocation)
+        public CloudMediaSource(ICurrentState currentState, 
+                            MediaLocation mediaLocation) : base(currentState, mediaLocation)
         {            
         }
 
@@ -26,6 +28,10 @@ namespace CFMediaPlayer.Sources
         }
 
         public bool IsDisplayInUI => false; // IsAvailable;
+
+        public bool IsShufflePlayAllowed => false;
+
+        public bool IsAutoPlayNextAllowed => false;
 
         public List<Artist> GetArtists(bool includeNonReal)
         {
@@ -44,17 +50,22 @@ namespace CFMediaPlayer.Sources
             return new List<MediaItem>();
         }
    
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
+        public List<MediaAction> GetMediaActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
-            var items = new List<MediaItemAction>();          
+            var items = new List<MediaAction>();          
 
             return items;
         }
+        public List<MediaAction> GetMediaActionsForMediaLocation(MediaLocation mediaLocation)
+        {
+            var mediaActions = new List<MediaAction>();
+            return mediaActions;
+        }
 
-        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)                                
+        public void ExecuteMediaAction(MediaAction mediaItemAction)                                
         {
             
-        }
+        }        
 
         public List<SearchResult> Search(SearchOptions searchOptions)
         {
@@ -66,6 +77,11 @@ namespace CFMediaPlayer.Sources
         public List<Tuple<Artist, MediaItemCollection>> GetAncestorsForMediaItem(MediaItem mediaItem)
         {
             return new();
+        }
+
+        public MediaItem? GetMediaItemByFile(string filePath)
+        {
+            return null;
         }
     }
 }

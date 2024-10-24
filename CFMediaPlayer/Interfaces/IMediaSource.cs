@@ -14,7 +14,7 @@ namespace CFMediaPlayer.Interfaces
         MediaLocation MediaLocation { get; }
 
         string ImagePath { get; }
-        
+
         /// <summary>
         /// Whether media source is currently available. E.g. User may unmount SD card.
         /// </summary>
@@ -24,6 +24,10 @@ namespace CFMediaPlayer.Interfaces
         /// Whether to display media source in UI.
         /// </summary>
         bool IsDisplayInUI { get; }
+
+        bool IsShufflePlayAllowed { get; }
+
+        bool IsAutoPlayNextAllowed { get; }
 
         ///// <summary>
         ///// Whether there are media items available
@@ -56,16 +60,23 @@ namespace CFMediaPlayer.Interfaces
         /// <summary>
         /// Gets actions for media item. E.g. Add to playlist X, remove from playist Y, add to queue etc
         /// </summary>        
-        /// <param name="mediaItem"></param>
+        /// /// <param name="currentMediaLocation"></param>
+        /// <param name="mediaItem"></param>        
         /// <returns></returns>
-        List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem);
+        List<MediaAction> GetMediaActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem);
+
+        /// <summary>
+        /// Gets actions for media mlocation
+        /// </summary>        
+        /// <param name="mediaLocation"></param>
+        /// <returns></returns>
+        List<MediaAction> GetMediaActionsForMediaLocation(MediaLocation mediaLocation);
 
         /// <summary>
         /// Executes action for media item. E.g. Add to playlist X, add to queue etc
-        /// </summary>        
-        /// <param name="mediaItem"></param>
-        /// <param name="mediaItemAction"></param>
-        void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction);                                  
+        /// </summary>                
+        /// <param name="mediaAction"></param>
+        void ExecuteMediaAction(MediaAction mediaAction);        
 
         /// <summary>
         /// Search media source
@@ -88,5 +99,12 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         /// <param name="allMediaSources"></param>
         void SetAllMediaSources(List<IMediaSource> allMediaSources);
+
+        /// <summary>
+        /// Gets MediaItem by media item file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        MediaItem? GetMediaItemByFile(string file);        
     }
 }

@@ -17,20 +17,11 @@ namespace CFMediaPlayer.Models
         /// Name
         /// </summary>
         public string Name { get; set; } = String.Empty;
-        
+
         /// <summary>
         /// Path to image (Album artwork)
         /// </summary>
-        public string ImagePath
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(Path) || !Directory.Exists(Path)) return String.Empty;
-                var files = Directory.GetFiles(Path, "Folder.jpg"); // Hard-coding is fine for the moment
-                if (files.Any()) return files[0];
-                return String.Empty;
-            }
-        }
+        public string ImagePath { get; set; } = String.Empty;
 
         [XmlIgnore]
         public EntityCategory EntityCategory
@@ -43,10 +34,10 @@ namespace CFMediaPlayer.Models
                     {
                         return EntityCategory.None;
                     }
-                    else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
-                    {
-                        return EntityCategory.Multiple;
-                    }
+                    //else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
+                    //{
+                    //    return EntityCategory.Multiple;
+                    //}
                     else if (Name == LocalizationResources.Instance["AllText"].ToString())
                     {
                         return EntityCategory.All;
@@ -58,7 +49,7 @@ namespace CFMediaPlayer.Models
 
         public static MediaItemCollection InstanceNone => new MediaItemCollection() { Name = LocalizationResources.Instance["NoneText"].ToString() };
 
-        public static MediaItemCollection InstanceMultiple => new MediaItemCollection() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
+        //public static MediaItemCollection InstanceMultiple => new MediaItemCollection() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
 
         public static MediaItemCollection InstanceAll => new MediaItemCollection() { Name = LocalizationResources.Instance["AllText"].ToString() };
     }

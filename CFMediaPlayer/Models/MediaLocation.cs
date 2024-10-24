@@ -41,10 +41,10 @@ namespace CFMediaPlayer.Models
                     {
                         return EntityCategory.None;
                     }
-                    else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
-                    {
-                        return EntityCategory.Multiple;
-                    }
+                    //else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
+                    //{
+                    //    return EntityCategory.Multiple;
+                    //}
                     else if (Name == LocalizationResources.Instance["AllText"].ToString())
                     {
                         return EntityCategory.All;

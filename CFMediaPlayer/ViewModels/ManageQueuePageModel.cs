@@ -14,9 +14,10 @@ namespace CFMediaPlayer.ViewModels
 {
     public class ManageQueuePageModel : INotifyPropertyChanged
     {
+        private readonly ICurrentState _currentState;
         private readonly IMediaSourceService _mediaSourceService;
         private readonly IMediaSource _mediaSource;
-        private bool _isQueueUpdated = false;
+        //private bool _isQueueUpdated = false;
 
         public LocalizationResources LocalizationResources => LocalizationResources.Instance;
 
@@ -25,14 +26,22 @@ namespace CFMediaPlayer.ViewModels
         public void OnPropertyChanged([CallerMemberName] string name = "") =>
                      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public ManageQueuePageModel(IMediaSourceService mediaSourceService)
+        public ManageQueuePageModel(ICurrentState currentState,
+                                    IMediaSourceService mediaSourceService)
         {
+            _currentState = currentState;
             _mediaSourceService = mediaSourceService;
             _mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue);
 
+            // Set action to handle change of queue updated
+            _currentState.QueueUpdatedAction += () =>
+            {
+                LoadMediaItems();                
+            };
+               
             // Set commands            
             ClearCommand = new Command(DoClear);
-            CloseCommand = new Command(DoClose);
+            //CloseCommand = new Command(DoClose);
 
             LoadMediaItems();
         }
@@ -61,21 +70,21 @@ namespace CFMediaPlayer.ViewModels
             }
         }
 
-        public ICommand CloseCommand { get; set; }
+        //public ICommand CloseCommand { get; set; }
 
-        private void DoClose()
-        {
-            // Redirect to main page. Indicating queue updated causes a page refresh and so we avoid doing it
-            // unless necessary.            
-            if (_isQueueUpdated)
-            {
-                Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=QueueUpdated");
-            }
-            else
-            {
-                Shell.Current.GoToAsync($"//{nameof(MainPage)}");
-            }
-        }
+        //private void DoClose()
+        //{
+        //    // Redirect to main page. Indicating queue updated causes a page refresh and so we avoid doing it
+        //    // unless necessary.            
+        //    if (_isQueueUpdated)
+        //    {
+        //        Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=QueueUpdated");
+        //    }
+        //    else
+        //    {
+        //        Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+        //    }
+        //}
 
         /// <summary>
         /// Command to clear queue
@@ -88,15 +97,14 @@ namespace CFMediaPlayer.ViewModels
         /// <param name="parameter"></param>
         private void DoClear(object parameter)
         {
-            var mediaItemAction = new MediaItemAction()
+            var mediaAction = new MediaAction()
             {
-                ActionToExecute = MediaItemActions.ClearQueue,
+                ActionType = MediaActionTypes.ClearQueue,
                 MediaLocationName = _mediaSource.MediaLocation.Name
             };
 
-            _mediaSource.ExecuteMediaItemAction(new(), mediaItemAction);
-
-            _isQueueUpdated = true;
+            // Executing will trigger ICurrentState.QueueUpdatedAction
+            _mediaSource.ExecuteMediaAction(mediaAction);            
         }
     }
 }

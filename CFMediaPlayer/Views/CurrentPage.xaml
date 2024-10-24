@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CFMediaPlayer.CurrentPage" 
+             IsVisible="{Binding IsRealMediaItemSelected, Mode=OneWay}"
+             Title="Current">
+    <ScrollView>
+        <VerticalStackLayout
+        Padding="10,0"
+        Spacing="2">
+            <Image
+  Source="{Binding MainLogoImage}"
+  HeightRequest="140"
+  Aspect="AspectFit"
+  SemanticProperties.Description="CF Media Player" />
+
+            <Label Text="{Binding MediaItemName, Mode=OneWay}" HorizontalOptions="Center" />
+
+            <StackLayout Margin="0,0,0,0">
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="5">
+
+                    <ImageButton 
+            x:Name="PrevMediaImageBtn"
+            HeightRequest="50"
+            Source="audio_media_media_player_music_rewind_icon.png"                         
+            Command="{Binding PrevCommand}"
+            IsEnabled="{Binding Path=IsPrevEnabled, Mode=OneWay}"
+            IsVisible="{Binding Path=IsPrevVisible, Mode=OneWay}"
+            HorizontalOptions="Fill" />
+
+                    <ImageButton
+           x:Name="PlayMediaImageBtn"
+           HeightRequest="50"
+           Source="{Binding PlayButtonImageSource}"
+           SemanticProperties.Hint="Plays or stops or pauses media"
+           Command="{Binding PlayOrNotCommand}"
+           IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
+           HorizontalOptions="Fill" />
+
+                    <ImageButton
+             x:Name="NextMediaImageBtn"
+             HeightRequest="50"
+             Source="audio_fast_forward_media_media_player_icon.png"
+             SemanticProperties.Hint="Next item"
+             Command="{Binding NextCommand}"
+             IsEnabled="{Binding Path=IsNextEnabled, Mode=OneWay}"
+             IsVisible="{Binding Path=IsNextVisible, Mode=OneWay}"
+             HorizontalOptions="Fill" />
+                </StackLayout>
+            </StackLayout>
+
+            <StackLayout>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label
+             x:Name="ElapsedLabel"               
+             Grid.Row="0" Grid.Column="0"
+             HorizontalTextAlignment="Start"                         
+             Text="{Binding Mode=OneWay, Path=ElapsedTime}"                       
+             SemanticProperties.HeadingLevel="Level1" />
+
+                    <Label
+             x:Name="RemainingLabel"                                     
+             Grid.Row="0" Grid.Column="2"
+             HorizontalTextAlignment="End"                         
+             Text="{Binding Mode=OneWay, Path=RemainingTime}"
+            IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
+             SemanticProperties.HeadingLevel="Level1" />
+
+                    <StackLayout Orientation="Horizontal" HorizontalOptions="End" Grid.Row="0" Grid.Column="1">
+                        <Label x:Name="ShufflePlaySwitchLabel"
+                         Text="Shuffle" 
+                         IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                         VerticalOptions="Center"></Label>
+                        <Switch x:Name="ShufflePlaySwitch"
+                      HeightRequest="25"
+                      VerticalOptions="Center"
+                      IsVisible="{Binding Path=IsShufflePlayVisible, Mode=OneWay}"
+                      IsToggled="{Binding ShufflePlay}"></Switch>
+
+                        <Label x:Name="AutoPlayNextSwitchLabel" 
+                         Text="Auto-play" 
+                         IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                         VerticalOptions="Center"></Label>
+                        <Switch x:Name="AutoPlayNextSwitch"
+                          HeightRequest="25"
+                          VerticalOptions="Center"
+                          IsVisible="{Binding Path=IsAutoPlayNextVisible, Mode=OneWay}"
+                      IsToggled="{Binding AutoPlayNext}"></Switch>
+                    </StackLayout>
+
+                    <Slider x:Name="ElapsedSlider"                    
+                 Grid.Row="1" Grid.ColumnSpan="3"    
+                 DragCompleted="ElapsedSlider_DragCompleted"
+                 IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
+                 Minimum="0"                             
+                 Maximum="{Binding Path=DurationMS, Mode=OneWay}" />
+                </Grid>
+            </StackLayout>
+
+            <CollectionView x:Name="MediaActionsView"
+                        ItemsSource="{Binding MediaActions}"
+                        SelectionChanged="MediaActionsView_SelectionChanged"    
+                        SelectionMode="Single" Margin="10,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="40">
+                            <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="30"/>
+                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label
+          x:Name="DebugLabel"
+            IsVisible="{Binding IsDebugMode, Mode=OneWay}"
+            Text="Debug"                    
+            SemanticProperties.HeadingLevel="Level1" />
+
+            <Button
+          x:Name="DebugInfoBtn"
+           IsVisible="{Binding IsDebugMode, Mode=OneWay}"
+          Text="Debug info"                 
+          SemanticProperties.Hint="Displays debug info"
+          Clicked="OnDebugInfoClicked"
+          HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

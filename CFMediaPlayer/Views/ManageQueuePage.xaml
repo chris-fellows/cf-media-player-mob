@@ -13,25 +13,21 @@
            Command="{Binding ClearCommand}"                     
            Text="{Binding LocalizationResources[Clear], Mode=OneWay}"
            HorizontalOptions="Fill" />
-
-        <Button 
-           x:Name="CloseBtn"
-           WidthRequest="100"
-           SemanticProperties.Hint="Close"            
-           Command="{Binding CloseCommand}"
-           Text="{Binding LocalizationResources[Close], Mode=OneWay}" />
         </HorizontalStackLayout>
 
-        <ListView x:Name="MediaItemList"
-            ItemsSource="{Binding MediaItems}"
-            SelectionMode="None" >
-            <ListView.ItemTemplate>
+        <CollectionView x:Name="MediaItemListView"
+         HeightRequest="420"                         
+         VerticalScrollBarVisibility="Always"
+         ItemsSource="{Binding MediaItems}"                                                       
+         Margin="10,0">
+            <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <ViewCell>
-                        <Label Text="{Binding Name}" VerticalOptions="Center" />
-                    </ViewCell>
+                    <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="40">
+                        <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="30"/>
+                        <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                    </StackLayout>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </VerticalStackLayout>
 </ContentPage>

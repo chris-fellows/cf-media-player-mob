@@ -3,10 +3,9 @@
 namespace CFMediaPlayer.Models
 {
     /// <summary>
-    /// Action that can be executed against a media item. E.g. Add to playlist, remove from playlist,
-    /// add to queue etc.
+    /// Action that can be executed against media (Media item, playlists etc)
     /// </summary>
-    public class MediaItemAction
+    public class MediaAction
     {
         /// <summary>
         /// Media location
@@ -31,11 +30,14 @@ namespace CFMediaPlayer.Models
         /// <summary>
         /// Action
         /// </summary>
-        public MediaItemActions ActionToExecute { get; set; }
+        public MediaActionTypes ActionType { get; set; }
 
+        /// <summary>
+        /// Image to display in UI
+        /// </summary>
         public string ImagePath { get; set; } = String.Empty;
 
 
-        public static MediaItemAction InstanceNone => new MediaItemAction() { Name = LocalizationResources.Instance["NoneText"].ToString() };
+        public static MediaAction InstanceNone => new MediaAction() { Name = LocalizationResources.Instance["NoneText"].ToString() };
     }
 }

@@ -61,13 +61,16 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         bool IsPaused { get; }
 
-        void ApplyEqualizerTest();
-
         /// <summary>
-        /// Equalizer preset name to use
+        /// Current file being played (if any)
         /// </summary>
-        string EqualizerPresetName { get; set; }
-
         string CurrentFilePath { get; }
+
+        void ApplyEqualizerTest();
+        
+        /// <summary>
+        /// Audio equalizer
+        /// </summary>
+        IAudioEqualizer AudioEqualizer { get; }
     }
 }

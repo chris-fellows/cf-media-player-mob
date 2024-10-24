@@ -31,7 +31,7 @@ namespace CFMediaPlayer
          {
              File.Delete(file);
          }
-         */
+         */            
 
             // Create folders
             var musicFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic);
@@ -44,6 +44,8 @@ namespace CFMediaPlayer
             // Config services                       
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
+
+            builder.Services.AddSingleton<ICurrentState, CurrentState>();
 
             //// Set IStreamSourceService, load sources if not set
             //builder.Services.AddSingleton<IStreamSourceService>((scope) =>
@@ -135,25 +137,26 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<IMediaSourceService>((scope) =>
             {                          
                 List <IMediaSource> mediaSources = new List<IMediaSource>();
+                var currentState = scope.GetRequiredService<ICurrentState>();
                 var mediaLocationService = scope.GetRequiredService<IMediaLocationService>();                
                 foreach(var mediaLocation in mediaLocationService.GetAll())
                 {
                     switch (mediaLocation.MediaSourceType)
                     {
                         case MediaSourceTypes.Cloud:
-                            mediaSources.Add(new CloudMediaSource(mediaLocation));
+                            mediaSources.Add(new CloudMediaSource(currentState,mediaLocation));
                             break;
                         case MediaSourceTypes.Playlist:
-                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylistManager>()));
+                            mediaSources.Add(new PlaylistMediaSource(currentState,mediaLocation, scope.GetServices<IPlaylistManager>()));
                             break;
                         case MediaSourceTypes.Queue:
-                            mediaSources.Add(new QueueMediaSource(mediaLocation));
+                            mediaSources.Add(new QueueMediaSource(currentState, mediaLocation));
                             break;
                         case MediaSourceTypes.RadioStreams:                          
-                            mediaSources.Add(new PlaylistMediaSource(mediaLocation, scope.GetServices<IPlaylistManager>()));
+                            mediaSources.Add(new PlaylistMediaSource(currentState,mediaLocation, scope.GetServices<IPlaylistManager>()));
                             break;
                         case MediaSourceTypes.Storage:
-                            mediaSources.Add(new StorageMediaSource(mediaLocation));
+                            mediaSources.Add(new StorageMediaSource(currentState, mediaLocation));
                             break;
                     }
                 }
@@ -161,9 +164,13 @@ namespace CFMediaPlayer
                 return new MediaSourceService(mediaSources);
             });            
             
-            builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();
+            builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();            
 
             // Register main page & model
+            builder.Services.AddSingleton<CurrentPage>();
+            builder.Services.AddSingleton<CurrentPageModel>();
+            builder.Services.AddSingleton<LibraryPage>();
+            builder.Services.AddSingleton<LibraryPageModel>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
 
@@ -171,9 +178,11 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<ManagePlaylistsPageModel>();
             builder.Services.AddSingleton<ManagePlaylistsPage>();
             builder.Services.AddSingleton<ManageQueuePageModel>();
-            builder.Services.AddSingleton<ManageQueuePage>();         
+            builder.Services.AddSingleton<ManageQueuePage>();
+            builder.Services.AddSingleton<TestPage>();
+            builder.Services.AddSingleton<TestPageModel>();
             builder.Services.AddSingleton<UserSettingsPageModel>();
-            builder.Services.AddSingleton<UserSettingsPage>();
+            builder.Services.AddSingleton<UserSettingsPage>();            
 
 #if DEBUG
             builder.Logging.AddDebug();

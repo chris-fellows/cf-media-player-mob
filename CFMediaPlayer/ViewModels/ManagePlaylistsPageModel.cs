@@ -32,7 +32,7 @@ namespace CFMediaPlayer.ViewModels
                      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public ManagePlaylistsPageModel(IMediaSourceService mediaSourceService,
-                IEnumerable<IPlaylistManager> playlistManagers)
+                                       IEnumerable<IPlaylistManager> playlistManagers)
         {
             _mediaSourceService = mediaSourceService;            
             _playlistManagers = playlistManagers.ToList();            
@@ -41,7 +41,7 @@ namespace CFMediaPlayer.ViewModels
             DeleteCommand = new Command(DoDelete);
             ClearCommand = new Command(DoClear);
             CreateCommand = new Command(DoCreate);
-            CloseCommand = new Command(DoClose);
+            //CloseCommand = new Command(DoClose);
 
             // Set default new playlist
             NewPlaylistName = "My Favourites";
@@ -194,14 +194,14 @@ namespace CFMediaPlayer.ViewModels
         /// <param name="parameter"></param>
         private void DoDelete(object parameter)
         {
-            var mediaItemAction = new MediaItemAction()
+            var mediaItemAction = new MediaAction()
             {
-                ActionToExecute = MediaItemActions.DeletePlaylist,
+                ActionType = MediaActionTypes.DeletePlaylist,
                 MediaLocationName = _mediaSource.MediaLocation.Name,
                 PlaylistFile = _selectedPlaylist.Path 
             };
 
-            _mediaSource.ExecuteMediaItemAction(new(), mediaItemAction);
+            _mediaSource.ExecuteMediaAction(mediaItemAction);
 
             _isPlaylistsUpdated = true;
 
@@ -237,21 +237,21 @@ namespace CFMediaPlayer.ViewModels
             LoadPlaylists(playlistFile);        
         }
 
-        public ICommand CloseCommand { get; set; }
+        //public ICommand CloseCommand { get; set; }
 
-        private void DoClose()
-        {
-            // Redirect to main page. Indicating playlists updated causes a page refresh and so we avoid doing it
-            // unless necessary.            
-            if (_isPlaylistsUpdated)
-            {
-                Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=PlaylistsUpdated");
-            }
-            else
-            {
-                Shell.Current.GoToAsync($"//{nameof(MainPage)}");
-            }
-        }
+        //private void DoClose()
+        //{
+        //    // Redirect to main page. Indicating playlists updated causes a page refresh and so we avoid doing it
+        //    // unless necessary.            
+        //    if (_isPlaylistsUpdated)
+        //    {
+        //        Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=PlaylistsUpdated");
+        //    }
+        //    else
+        //    {
+        //        Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+        //    }
+        //}
 
         /// <summary>
         /// Command to clear playlist
@@ -264,14 +264,14 @@ namespace CFMediaPlayer.ViewModels
         /// <param name="parameter"></param>
         private void DoClear(object parameter)
         {
-            var mediaItemAction = new MediaItemAction()
+            var mediaItemAction = new MediaAction()
             {
-                ActionToExecute = MediaItemActions.ClearPlaylist,
+                ActionType = MediaActionTypes.ClearPlaylist,
                 MediaLocationName = _mediaSource.MediaLocation.Name,
                 PlaylistFile = _selectedPlaylist.Path
             };
 
-            _mediaSource.ExecuteMediaItemAction(new(), mediaItemAction);
+            _mediaSource.ExecuteMediaAction(mediaItemAction);
 
             _isPlaylistsUpdated = true;
         }

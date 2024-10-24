@@ -27,6 +27,7 @@ namespace CFMediaPlayer.ViewModels
                      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         private readonly IAudioSettingsService _audioSettingsService;
+        private readonly ICurrentState _currentState;
         private readonly IUIThemeService _uiThemeService;
         private readonly IUserSettingsService _userSettingsService;
 
@@ -36,16 +37,19 @@ namespace CFMediaPlayer.ViewModels
         private List<AudioSettings> _audioSettingsList = new List<AudioSettings>();
 
         public UserSettingsPageModel(IAudioSettingsService audioSettingsService,
+                                ICurrentState currentState,
                                 IUIThemeService uiThemeService,
                                 IUserSettingsService userSettingsService)
         {
             _audioSettingsService = audioSettingsService;
+            _currentState = currentState;
             _uiThemeService = uiThemeService;
             _userSettingsService = userSettingsService;            
 
             // Set commands
             SaveCommand = new Command(Save);
             CancelCommand = new Command(Cancel);
+            RefreshCommand = new Command(Refresh);
 
             // Get current user settings
             _userSettings = _userSettingsService.GetByUsername(Environment.UserName)!;
@@ -62,6 +66,8 @@ namespace CFMediaPlayer.ViewModels
 
         public ICommand CancelCommand { get; set; }
 
+        public ICommand RefreshCommand { get; set; }
+
         /// <summary>
         /// Saves user settings
         /// </summary>
@@ -73,12 +79,43 @@ namespace CFMediaPlayer.ViewModels
             _userSettingsService.Update(_userSettings);
                      
             //Shell.Current.GoToAsync($"//{nameof(MainPage)}?UserSettingsUpdated={_userSettings.Id}");
-            Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=UserSettingsUpdated");
+            //Shell.Current.GoToAsync($"//{nameof(MainPage)}?EventData=UserSettingsUpdated");
+
+            if (_currentState.UserSettingsUpdatedAction != null)
+            {
+                _currentState.UserSettingsUpdatedAction();
+            }
         }
 
         private void Cancel(object parameter)
         {            
-            Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+            //Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+        }
+
+        private void Refresh(object parameter)
+        {
+            //Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMax0));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMax1));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMax2));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMax3));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMax4));
+
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMin0));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMin1));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMin2));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMin3));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeMin4));
+
+            OnPropertyChanged(nameof(EqualizerBandLevelRangeMin));
+            OnPropertyChanged(nameof(EqualizerBandLevelRangeMax));
+
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeText0));            
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeText1));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeText2));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeText3));
+            OnPropertyChanged(nameof(EqualizerBandFrequencyRangeText4));
         }
 
         /// <summary>
@@ -121,6 +158,247 @@ namespace CFMediaPlayer.ViewModels
                 _selectedAudioSettings = value;
 
                 OnPropertyChanged(nameof(SelectedAudioSettings));
+            }
+        }
+
+        public short EqualizerBandLevelRangeMin
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevelRange();
+                return value == null ? (short)0 : value[0];
+            }
+        }
+
+        public short EqualizerBandLevelRangeMax
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevelRange();
+                return value == null ? (short)0 : value[1];
+            }
+        }
+
+        public short EqualizerBandLevel0
+        {
+            get
+            {                
+                return _currentState == null ||  _currentState.MediaPlayer == null ? (short)0 :
+                      _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevel(0);
+            }
+            set
+            {
+                if (_currentState != null && _currentState.MediaPlayer != null)
+                {
+                    _currentState.MediaPlayer.AudioEqualizer.SetBandLevel(0, value);
+                }
+            }
+        }
+
+        public short EqualizerBandLevel1
+        {
+            get
+            {
+                return _currentState == null ||  _currentState.MediaPlayer == null ? (short)0 :
+                      _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevel(1);
+            }
+            set
+            {
+                if (_currentState != null && _currentState.MediaPlayer != null)
+                {
+                    _currentState.MediaPlayer.AudioEqualizer.SetBandLevel(1, value);
+                }
+            }
+        }
+
+        public short EqualizerBandLevel2
+        {
+            get
+            {
+                return _currentState == null || _currentState.MediaPlayer == null ? (short)0 :
+                      _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevel(2);
+            }
+            set
+            {
+                if (_currentState != null && _currentState.MediaPlayer != null)
+                {
+                    _currentState.MediaPlayer.AudioEqualizer.SetBandLevel(2, value);
+                }
+            }
+        }
+
+        public short EqualizerBandLevel3
+        {
+            get
+            {
+                return _currentState == null || _currentState.MediaPlayer == null ? (short)0 :
+                      _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevel(3);
+            }
+            set
+            {
+                if (_currentState != null && _currentState.MediaPlayer != null)
+                {
+                    _currentState.MediaPlayer.AudioEqualizer.SetBandLevel(3, value);
+                }
+            }
+        }
+
+        public short EqualizerBandLevel4
+        {
+            get
+            {
+                return _currentState == null || _currentState.MediaPlayer == null ? (short)0 :
+                      _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandLevel(4);
+            }
+            set
+            {
+                if (_currentState != null && _currentState.MediaPlayer != null)
+                {
+                    _currentState.MediaPlayer.AudioEqualizer.SetBandLevel(4, value);
+                }
+            }
+        }
+
+        public string EqualizerBandFrequencyRangeText0
+        {
+            get
+            {
+                return $"{EqualizerBandFrequencyRangeMin0} to {EqualizerBandFrequencyRangeMax0}";
+            }
+        }
+
+        public string EqualizerBandFrequencyRangeText1
+        {
+            get
+            {
+                return $"{EqualizerBandFrequencyRangeMin1} to {EqualizerBandFrequencyRangeMax1}";
+            }
+        }
+
+        public string EqualizerBandFrequencyRangeText2
+        {
+            get
+            {
+                return $"{EqualizerBandFrequencyRangeMin2} to {EqualizerBandFrequencyRangeMax2}";
+            }
+        }
+
+        public string EqualizerBandFrequencyRangeText3
+        {
+            get
+            {
+                return $"{EqualizerBandFrequencyRangeMin3} to {EqualizerBandFrequencyRangeMax3}";
+            }
+        }
+
+        public string EqualizerBandFrequencyRangeText4
+        {
+            get
+            {
+                return $"{EqualizerBandFrequencyRangeMin4} to {EqualizerBandFrequencyRangeMax4}";
+            }
+        }
+
+        public int EqualizerBandFrequencyRangeMin0
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(0);
+                return value == null ? 0 : value[0];
+            }
+
+        }
+        public int EqualizerBandFrequencyRangeMax0
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(0);
+                return value == null ? 0 : value[0];
+            }
+        }
+
+        public int EqualizerBandFrequencyRangeMin1
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(1);
+                return value == null ? 0 : value[0];
+            }
+
+        }
+        public int EqualizerBandFrequencyRangeMax1
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(1);
+                return value == null ? 0 : value[1];
+            }
+        }
+
+        public int EqualizerBandFrequencyRangeMin2
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(2);
+                return value == null ? 0 : value[0];
+            }
+
+        }
+        public int EqualizerBandFrequencyRangeMax2
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(2);
+                return value == null ? 0 : value[1];
+            }
+        }
+
+        public int EqualizerBandFrequencyRangeMin3
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(3);
+                return value == null ? 0 : value[0];
+            }
+
+        }
+        public int EqualizerBandFrequencyRangeMax3
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(3);
+                return value == null ? 0 : value[1];
+            }
+        }
+
+        public int EqualizerBandFrequencyRangeMin4
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(4);
+                return value == null ? 0 : value[0];
+            }
+
+        }
+        public int EqualizerBandFrequencyRangeMax4
+        {
+            get
+            {
+                if (_currentState == null || _currentState.MediaPlayer == null) return 0;
+                var value = _currentState.MediaPlayer.AudioEqualizer.GetEqualizerBandFrequencyRange(4);
+                return value == null ? 0 : value[1];
             }
         }
     }

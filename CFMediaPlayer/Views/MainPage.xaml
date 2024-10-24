@@ -162,7 +162,7 @@
             </Picker>
 
             <CollectionView x:Name="MediaItemListView"
-                    HeightRequest="250"
+                    HeightRequest="250"                         
                     VerticalScrollBarVisibility="Always"
                     ItemsSource="{Binding MediaItems}"                                                  
                     SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"

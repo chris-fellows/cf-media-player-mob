@@ -250,11 +250,20 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open album {0}.
+        ///   Looks up a localized string similar to Go to album {0}.
         /// </summary>
         internal static string MediaItemActionsOpenMediaItemCollection {
             get {
                 return ResourceManager.GetString("MediaItemActionsOpenMediaItemCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Media location.
+        /// </summary>
+        internal static string MediaLocation {
+            get {
+                return ResourceManager.GetString("MediaLocation", resourceCulture);
             }
         }
         
@@ -349,6 +358,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New playlist.
+        /// </summary>
+        internal static string NewPlaylist {
+            get {
+                return ResourceManager.GetString("NewPlaylist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Playlist name.
         /// </summary>
         internal static string NewPlaylistPlaylistNameLabel {
@@ -372,6 +390,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string NoneText {
             get {
                 return ResourceManager.GetString("NoneText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playlist.
+        /// </summary>
+        internal static string Playlist {
+            get {
+                return ResourceManager.GetString("Playlist", resourceCulture);
             }
         }
         

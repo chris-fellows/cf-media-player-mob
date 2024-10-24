@@ -29,10 +29,10 @@ namespace CFMediaPlayer.Models
                     {
                         return EntityCategory.None;
                     }
-                    else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
-                    {
-                        return EntityCategory.Multiple;
-                    }
+                    //else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
+                    //{
+                    //    return EntityCategory.Multiple;
+                    //}
                     else if (Name == LocalizationResources.Instance["AllText"].ToString())
                     {
                         return EntityCategory.All;
@@ -44,7 +44,7 @@ namespace CFMediaPlayer.Models
 
         public static Artist InstanceNone => new Artist() { Name = LocalizationResources.Instance["NoneText"].ToString() };
 
-        public static Artist InstanceMultiple => new Artist() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
+        //public static Artist InstanceMultiple => new Artist() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
 
         public static Artist InstanceAll => new Artist() { Name = LocalizationResources.Instance["AllText"].ToString() };
     }

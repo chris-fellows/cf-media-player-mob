@@ -6,7 +6,7 @@ namespace CFMediaPlayer.Models
     /// <summary>
     /// Media item
     /// </summary>
-    public class MediaItem
+    public class MediaItem : ICloneable
     {   
         /// <summary>
         /// Path to media item file
@@ -34,10 +34,10 @@ namespace CFMediaPlayer.Models
                     {
                         return EntityCategory.None;
                     }
-                    else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
-                    {
-                        return EntityCategory.Multiple;
-                    }
+                    //else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
+                    //{
+                    //    return EntityCategory.Multiple;
+                    //}
                     else if (Name == LocalizationResources.Instance["AllText"].ToString())
                     {
                         return EntityCategory.All;
@@ -47,22 +47,26 @@ namespace CFMediaPlayer.Models
             }
         }
 
+        public object Clone()
+        {
+            return new MediaItem()
+            {
+                FilePath = FilePath,
+                Name = Name,
+                ImagePath = ImagePath
+            };
+        }
+
         public static MediaItem InstanceNone => new MediaItem() { Name = LocalizationResources.Instance["NoneText"].ToString() };
 
-        public static MediaItem InstanceMultiple => new MediaItem() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
+        //public static MediaItem InstanceMultiple => new MediaItem() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
 
         public static MediaItem InstanceAll => new MediaItem() { Name = LocalizationResources.Instance["AllText"].ToString() };
 
+        /// <summary>
+        /// Whether media item is streamed
+        /// </summary>
         [XmlIgnore]
-        public bool IsAllowPrev => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
-
-        [XmlIgnore]
-        public bool IsAllowNext => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
-
-        [XmlIgnore]
-        public bool IsCanSelectPosition => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
-
-        [XmlIgnore]
-        public bool IsAllowPause => !FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+        public bool IsStreamed => FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
     }
 }

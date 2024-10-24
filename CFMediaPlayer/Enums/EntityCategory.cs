@@ -5,11 +5,11 @@
     /// </summary>
     public enum EntityCategory
     {
-        /// <summary>
-        /// Multiple items. E.g. For playlists then we display Multiple for artists because there is no artist
-        /// to select.
-        /// </summary>
-        Multiple,
+    //    /// <summary>
+    //    /// Multiple items. E.g. For playlists then we display Multiple for artists because there is no artist
+    //    /// to select.
+    //    /// </summary>
+    //    Multiple,
 
         /// <summary>
         /// No item selected. Typically when no real items in the list.

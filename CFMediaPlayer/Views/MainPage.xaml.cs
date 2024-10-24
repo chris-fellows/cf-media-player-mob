@@ -11,7 +11,7 @@ namespace CFMediaPlayer
     /// Main page view
     /// </summary>
     //[QueryProperty(nameof(NewPlaylistName), "NewPlaylistName")]
-    [QueryProperty(nameof(EventData), "EventData")]
+    //[QueryProperty(nameof(EventData), "EventData")]
     public partial class MainPage : ContentPage
     {
         int count = 0;       
@@ -46,27 +46,27 @@ namespace CFMediaPlayer
             }
         }        
 
-        /// <summary>
-        /// Event data property set by QueryProperty from external page
-        /// </summary>
-        public string EventData
-        {
-            set
-            {                
-                switch(value)
-                {
-                    case "PlaylistsUpdated":
-                        _model.HandlePlaylistsUpdated();
-                        break;
-                    case "QueueUpdated":
-                        _model.HandleQueueUpdated();
-                        break;
-                    case "UserSettingsUpdated":
-                        _model.HandleUserSettingsUpdated();
-                        break;
-                }                
-            }
-        }        
+        ///// <summary>
+        ///// Event data property set by QueryProperty from external page
+        ///// </summary>
+        //public string EventData
+        //{
+        //    set
+        //    {                
+        //        switch(value)
+        //        {
+        //            case "PlaylistsUpdated":
+        //                _model.HandlePlaylistsUpdated();
+        //                break;
+        //            case "QueueUpdated":
+        //                _model.HandleQueueUpdated();
+        //                break;
+        //            case "UserSettingsUpdated":
+        //                _model.HandleUserSettingsUpdated();
+        //                break;
+        //        }                
+        //    }
+        //}        
    
         private void OnElapsedSliderValueChanged(object? sender, ValueChangedEventArgs e)
         {
@@ -164,7 +164,7 @@ namespace CFMediaPlayer
 
         private void MediaItemActionsView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {            
-            _model.ExecuteMediaItemAction((MediaItemAction)e.CurrentSelection.First());
+            _model.ExecuteMediaItemAction((MediaAction)e.CurrentSelection.First());
         }
     }
 }

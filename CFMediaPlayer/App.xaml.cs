@@ -1,19 +1,31 @@
 ﻿using CFMediaPlayer.ViewModels;
+using System.Runtime.CompilerServices;
 
 namespace CFMediaPlayer
 {
     public partial class App : Application
     {
-        private MainPageModel _mainPageModel;
+        //private MainPageModel _mainPageModel;
+        private TestPageModel _testPageModel;
 
-        public App(MainPageModel mainPageModel)
+        public App(TestPageModel testPageModel)
         {
             InitializeComponent();
 
-            _mainPageModel = mainPageModel;
+            _testPageModel = testPageModel;
 
-            MainPage = new AppShell();            
+            //MainPage = new AppShell();            
+            MainPage = new TestPage();
         }
+
+        //public App(MainPageModel mainPageModel)
+        //{
+        //    InitializeComponent();
+
+        //    _mainPageModel = mainPageModel;
+
+        //    MainPage = new AppShell();
+        //}
 
         protected override void OnSleep()
         {

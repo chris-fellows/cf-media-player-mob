@@ -1,16 +1,20 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using System.Runtime.CompilerServices;
 
 namespace CFMediaPlayer.Sources
 {
     public abstract class MediaSourceBase
     {
+        protected readonly ICurrentState _currentState;
         protected List<IMediaSource> _allMediaSources = new List<IMediaSource>();        
         protected readonly MediaLocation _mediaLocation;
 
-        public MediaSourceBase(MediaLocation mediaLocation)
+        public MediaSourceBase(ICurrentState currentState, 
+                MediaLocation mediaLocation)
         {
+            _currentState = currentState;
             _mediaLocation = mediaLocation;
         }
 
@@ -38,6 +42,25 @@ namespace CFMediaPlayer.Sources
                     return ancestors.Item2.ImagePath;
                 }
             }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets media item by file from original source
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        protected MediaItem? GetMediaItemByFileFromOriginalSource(string file)
+        {            
+            MediaItem? mediaItem = null;
+
+            foreach (var mediaSource in _allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage &&
+                                    ms.IsAvailable))
+            {
+                mediaItem = mediaSource.GetMediaItemByFile(file);
+                if (mediaItem != null) return mediaItem;
+            }
+
             return null;
         }
     }

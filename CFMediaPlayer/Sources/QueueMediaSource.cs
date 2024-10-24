@@ -2,8 +2,6 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
-using System.Linq;
-using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.Sources
 {
@@ -16,7 +14,8 @@ namespace CFMediaPlayer.Sources
     {        
         private readonly List<MediaItem> _mediaItemQueue = new List<MediaItem>();
 
-        public QueueMediaSource(MediaLocation mediaLocation) : base(mediaLocation)
+        public QueueMediaSource(ICurrentState currentState,
+                                MediaLocation mediaLocation) : base(currentState, mediaLocation)
         {
             
         }
@@ -27,12 +26,20 @@ namespace CFMediaPlayer.Sources
 
         public bool IsDisplayInUI => true;
 
+        public bool IsShufflePlayAllowed => false;    // Play in queue order
+
+        public bool IsAutoPlayNextAllowed => true;
+
         public List<Artist> GetArtists(bool includeNonReal)
         {
-            return new List<Artist>()
+            if (includeNonReal)
             {
-                Artist.InstanceMultiple                
-            };
+                return new List<Artist>()
+                {
+                    Artist.InstanceAll
+                };
+            }
+            return new List<Artist>();
         }
 
         public List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal)
@@ -40,9 +47,8 @@ namespace CFMediaPlayer.Sources
             var mediaItemCollections = new List<MediaItemCollection>();
 
             if (includeNonReal)
-            {
-                // Add multiple                
-                mediaItemCollections.Insert(0, MediaItemCollection.InstanceMultiple);
+            {                
+                mediaItemCollections.Insert(0, MediaItemCollection.InstanceAll);
             }
 
             return mediaItemCollections;
@@ -63,9 +69,9 @@ namespace CFMediaPlayer.Sources
             return mediaItems;
         }
 
-        public List<MediaItemAction> GetActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
+        public List<MediaAction> GetMediaActionsForMediaItem(MediaLocation currentMediaLocation, MediaItem mediaItem)
         {
-            var items = new List<MediaItemAction>();
+            var mediaActions = new List<MediaAction>();
 
             if (mediaItem != null)
             {
@@ -77,16 +83,17 @@ namespace CFMediaPlayer.Sources
                         var ancestors = mediaSource.GetAncestorsForMediaItem(mediaItem).FirstOrDefault();
                         if (ancestors != null)
                         {
-                            var item = new MediaItemAction()
+                            var mediaAction = new MediaAction()
                             {
-                                ActionToExecute = MediaItemActions.OpenMediaItemCollection,
+                                ActionType = MediaActionTypes.OpenMediaItemCollection,
                                 MediaLocationName = mediaSource.MediaLocation.Name,
                                 MediaItemFile = mediaItem.FilePath,
-                                ImagePath = ancestors.Item2.ImagePath,                                
-                                Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.OpenMediaItemCollection)].ToString(),
+                                //ImagePath = ancestors.Item2.ImagePath,                                
+                                ImagePath = "picture.png",  // No need to display album image, it's the main logo image
+                                Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.OpenMediaItemCollection)].ToString(),
                                         ancestors.Item2.Name)
                             };
-                            items.Add(item);
+                            mediaActions.Add(mediaAction);
                             break;
                         }
                     }
@@ -94,62 +101,101 @@ namespace CFMediaPlayer.Sources
 
                 if (_mediaItemQueue.Any(mi => mi.FilePath == mediaItem.FilePath))   // Queued
                 {
-                    var item3 = new MediaItemAction()
+                    var item3 = new MediaAction()
                     {
                         MediaLocationName = _mediaLocation.Name,
-                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.RemoveFromQueue)].ToString(),
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.RemoveFromQueue)].ToString(),
                         MediaItemFile = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.RemoveFromQueue,
+                        ActionType = MediaActionTypes.RemoveFromQueue,
                         ImagePath = "cross.png"
                     };
-                    items.Add(item3);
+                    mediaActions.Add(item3);
                 }
                 else   // Not queue
                 {
-                    var item1 = new MediaItemAction()
+                    var item1 = new MediaAction()
                     {
                         MediaLocationName = _mediaLocation.Name,
-                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueEnd)].ToString(),
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueEnd)].ToString(),
                         MediaItemFile = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.AddToQueueEnd,
+                        ActionType = MediaActionTypes.AddToQueueEnd,
                         ImagePath = "plus.png",
                     };
-                    items.Add(item1);
+                    mediaActions.Add(item1);
 
-                    var item2 = new MediaItemAction()
+                    var item2 = new MediaAction()
                     {
                         MediaLocationName = _mediaLocation.Name,
-                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaItemActions.AddToQueueNext)].ToString(),
+                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueNext)].ToString(),
                         MediaItemFile = mediaItem.FilePath,
-                        ActionToExecute = MediaItemActions.AddToQueueNext,
+                        ActionType = MediaActionTypes.AddToQueueNext,
                         ImagePath = "plus.png"
                     };
-                    items.Add(item2);
+                    mediaActions.Add(item2);
                 }            
             }
 
-            return items;
+            return mediaActions;
         }
 
-        public void ExecuteMediaItemAction(MediaItem mediaItem, MediaItemAction mediaItemAction)
+        public List<MediaAction> GetMediaActionsForMediaLocation(MediaLocation mediaLocation)
         {
-            switch (mediaItemAction.ActionToExecute)
+            var mediaActions = new List<MediaAction>();
+
+            if (_mediaItemQueue.Any())
             {
-                case MediaItemActions.AddToQueueEnd:
-                    _mediaItemQueue.Add(mediaItem);
+                // Add action to clear queue
+                var mediaAction = new MediaAction()
+                {
+                    ActionType = MediaActionTypes.ClearQueue,
+                    MediaLocationName = mediaLocation.Name,
+                    ImagePath = "cross.png",
+                    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.ClearQueue)].ToString()
+                };
+                mediaActions.Add(mediaAction);
+            }
+
+            return mediaActions;
+        }
+
+        public void ExecuteMediaAction(MediaAction mediaAction)
+        {
+            // Load media item
+            MediaItem? mediaItem = String.IsNullOrEmpty(mediaAction.MediaItemFile) ? null : GetMediaItemByFileFromOriginalSource(mediaAction.MediaItemFile);
+
+            switch (mediaAction.ActionType)
+            {
+                case MediaActionTypes.AddToQueueEnd:
+                    {
+                        // Clone media item, set album image for display
+                        var mediaItemCopy = (MediaItem)mediaItem.Clone();
+                        mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                        _mediaItemQueue.Add(mediaItemCopy);
+                    }
                     break;
-                case MediaItemActions.AddToQueueNext:
-                    _mediaItemQueue.Insert(0, mediaItem);
+                case MediaActionTypes.AddToQueueNext:
+                    {
+                        // Clone media item, set album image for display
+                        var mediaItemCopy = (MediaItem)mediaItem.Clone();
+                        mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                        _mediaItemQueue.Insert(0, mediaItemCopy);
+                    }
                     break;
-                case MediaItemActions.ClearQueue:
+                case MediaActionTypes.ClearQueue:
                     _mediaItemQueue.Clear();
                     break;
-                case MediaItemActions.RemoveFromQueue:
+                case MediaActionTypes.RemoveFromQueue:
                     _mediaItemQueue.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);
                     break;
-            }       
-        }
+            }
 
+            // Notify queue updated
+            if (_currentState.QueueUpdatedAction != null)
+            {
+                _currentState.QueueUpdatedAction();
+            }
+        }
+       
         public List<SearchResult> Search(SearchOptions searchOptions)
         {
             var searchResults = new List<SearchResult>();         
@@ -195,5 +241,10 @@ namespace CFMediaPlayer.Sources
         //    }
         //    return null;
         //}
+
+        public MediaItem? GetMediaItemByFile(string filePath)
+        {
+            return null;
+        }
     }
 }

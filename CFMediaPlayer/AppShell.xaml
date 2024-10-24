@@ -7,7 +7,7 @@
     Shell.FlyoutBehavior="Flyout"
     Shell.TabBarIsVisible="False"
     Title="CFMediaPlayer">
-
+   
     <FlyoutItem Title="Home" FlyoutDisplayOptions="AsMultipleItems">
         <ShellContent
             Title="Home"
@@ -27,7 +27,7 @@
         <ShellContent
             Title="Settings"
             ContentTemplate="{DataTemplate local:UserSettingsPage}"
-            Route="UserSettingsPage" />  
+            Route="UserSettingsPage" />
     </FlyoutItem>
 
 </Shell>

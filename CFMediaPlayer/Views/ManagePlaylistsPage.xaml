@@ -5,6 +5,7 @@
              x:Class="CFMediaPlayer.ManagePlaylistsPage"
              Title="Manage Playlists">
     <VerticalStackLayout>
+        <Label Text="{Binding LocalizationResources[MediaLocation], Mode=OneWay}"/>
         <Picker x:Name="MediaLocation" 
             ItemsSource="{Binding MediaLocations}"
            ItemDisplayBinding="{Binding Name}"                    
@@ -12,7 +13,7 @@
            Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
         </Picker>
 
-
+        <Label Text="{Binding LocalizationResources[Playlist], Mode=OneWay}"/>
         <Picker x:Name="PlaylistListPicker" 
           ItemsSource="{Binding Playlists}"
          ItemDisplayBinding="{Binding Name}"                    
@@ -40,9 +41,10 @@
                HorizontalOptions="Fill" />
         </HorizontalStackLayout>
 
+
+        <Label Text="{Binding LocalizationResources[NewPlaylist], Mode=OneWay}" VerticalOptions="Center" />
         <Frame Padding="10, 2, 10, 2">
             <HorizontalStackLayout>
-                <Label Text="{Binding LocalizationResources[NewPlaylistPlaylistNameLabel], Mode=OneWay}" VerticalOptions="Center" />
                 <Entry x:Name="NameEntry"  
       VerticalOptions="Center"             
       MaxLength="100"
@@ -57,11 +59,6 @@
            Command="{Binding CreateCommand}"
            IsEnabled="{Binding IsCreateEnabled}"                                        
            Text="{Binding LocalizationResources[Create], Mode=OneWay}" />
-
-            <Button x:Name="CloseBtn"
-           WidthRequest="100"
-           Command="{Binding CloseCommand}"
-           Text="{Binding LocalizationResources[Close], Mode=OneWay}" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
        

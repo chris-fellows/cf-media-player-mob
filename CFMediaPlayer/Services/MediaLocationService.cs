@@ -30,24 +30,7 @@ namespace CFMediaPlayer.Services
                                 MediaSourceType = MediaSourceTypes.Storage,
                                 Sources = new() { "/storage/emulated/0/Download" },
                                 MediaItemTypes = new() { MediaItemTypes.Music }
-                                },      // TODO: Remove this                
-                
-                //new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString(),
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic) },
-
-                //new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceAudiobooksText"].ToString(),
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryAudiobooks) },
-
-                //// Handle local Playlists folder if created
-                //new MediaLocation() { Name = LocalizationResources.Instance["MediaSourcePlaylists"].ToString(),
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "Playlists") },
-
-                //new MediaLocation() { Name = LocalizationResources.Instance["MediaSourcePodcastsText"].ToString(),
-                //                MediaSourceType = MediaSourceTypes.Storage,
-                //                Source = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryPodcasts) }                                                 
+                                },      // TODO: Remove this                                                                         
             };
             
             // Set local sources to check
@@ -188,7 +171,7 @@ namespace CFMediaPlayer.Services
             //    });
             //}
 
-            return mediaLocations;
+            return mediaLocations.OrderBy(ml => ml.Name).ToList();
         }
     }
 }
