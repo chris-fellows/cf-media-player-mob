@@ -1,11 +1,14 @@
 ﻿using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Services;
 using CFMediaPlayer.Utilities;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
+using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.ViewModels
 {
@@ -74,6 +77,19 @@ namespace CFMediaPlayer.ViewModels
             LoadMediaLocationsToDisplayInUI();
             //MediaLocations = _mediaLocationService.GetAll();
 
+            //foreach (var myMediaLocation in MediaLocations.Where(ml => ml.MediaSourceType == MediaSourceTypes.Storage && ml.MediaItemTypes.Contains(MediaItemTypes.Music)))
+            //{
+            //    var myMediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == myMediaLocation.Name);
+            //    var myArtists = myMediaSource.GetArtists(false);
+            //    if (myArtists.Any())
+            //    {
+            //        var indexDataFolder = Path.Combine(FileSystem.AppDataDirectory, "Index");                    
+            //        IIndexedData indexedData = new IndexedData(indexDataFolder);
+            //        IndexData(indexedData, myMediaSource);
+            //        SearchIndexData(indexedData);
+            //    }
+            //}
+
             // Set default media location
             var mediaLocation = MediaLocations.FirstOrDefault(ml => ml.MediaSourceType == MediaSourceTypes.Storage &&
                                                     ml.MediaItemTypes.Contains(MediaItemTypes.Music));
@@ -83,6 +99,101 @@ namespace CFMediaPlayer.ViewModels
             }
             SelectedMediaLocation = mediaLocation;                                                    
         }
+
+        //private void IndexData(IIndexedData indexedData, IMediaSource mediaSource)
+        //{
+        //    var artistIndexedItems = new List<IndexedItem>();
+        //    var mediaItemCollectionIndexedItems = new List<IndexedItem>();
+        //    var mediaItemIndexedItems = new List<IndexedItem>();
+
+        //    var stopwatch = new Stopwatch();
+        //    stopwatch.Start();
+
+        //    // Index artists
+        //    var artists = mediaSource.GetArtists(false);
+
+        //    foreach (var artist in artists)
+        //    {
+        //        artistIndexedItems.Add(GetIndexedItem(artist));
+
+        //        var mediaItemCollections = mediaSource.GetMediaItemCollectionsForArtist(artist, false);
+
+        //        foreach (var mediaItemCollection in mediaItemCollections)
+        //        {                    
+        //            mediaItemCollectionIndexedItems.Add(GetIndexedItem(mediaItemCollection));
+
+        //            var mediaItems = mediaSource.GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, false);
+
+        //            foreach (var mediaItem in mediaItems)
+        //            {                        
+        //                mediaItemIndexedItems.Add(GetIndexedItem(mediaItem));
+        //            }
+        //        }
+        //    }
+
+        //    stopwatch.Stop();
+        //    var elaped = stopwatch.Elapsed;
+
+        //    // Save indexed
+        //    indexedData.Write(artistIndexedItems, "Artist");
+        //    indexedData.Write(mediaItemCollectionIndexedItems, "MediaItemCollection");
+        //    indexedData.Write(mediaItemIndexedItems, "MediaItem");
+        //}
+
+        //private void SearchIndexData(IIndexedData indexedData)
+        //{
+        //    var text = "Muse";
+
+        //    var stopwatch = new Stopwatch();
+        //    stopwatch.Start();
+        //    var indexedItems = indexedData.Search(text, new List<string>() { "Artist", "MediaItemCollection", "MediaItem" });
+        //    stopwatch.Stop();
+        //    var elaped = stopwatch.Elapsed;
+        //    int xxx = 1000;
+
+        //}
+
+        //private IndexedItem GetIndexedItem(Artist artist)
+        //{
+        //    var indexedItem = new IndexedItem()
+        //    {
+        //        Values = new List<IndexedItemValue>()
+        //        {
+        //            new IndexedItemValue() { Name = "Name", Value = artist.Name }
+        //        },
+        //        Items = $"{artist.Name}"
+        //    };
+
+        //    return indexedItem;
+        //}
+
+        //private IndexedItem GetIndexedItem(MediaItemCollection mediaItemCollection)
+        //{
+        //    var indexedItem = new IndexedItem()
+        //    {
+        //        Values = new List<IndexedItemValue>()
+        //        {
+        //            new IndexedItemValue() { Name = "Name", Value = mediaItemCollection.Name }
+        //        },
+        //        Items = $"{mediaItemCollection.Name}"
+        //    };
+
+        //    return indexedItem;
+        //}
+
+        //private IndexedItem GetIndexedItem(MediaItem mediaItem)
+        //{
+        //    var indexedItem = new IndexedItem()
+        //    {
+        //        Values = new List<IndexedItemValue>()
+        //        {
+        //            new IndexedItemValue() { Name = "Name", Value = mediaItem.Name }
+        //        },
+        //        Items = $"{mediaItem.Name}"
+        //    };
+
+        //    return indexedItem;
+        //}
 
         public string GetDebugInfo()
         {

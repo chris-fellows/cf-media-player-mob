@@ -5,13 +5,6 @@
              x:Class="CFMediaPlayer.UserSettingsPage"
              Title="Settings">
     <VerticalStackLayout>
-        <Picker x:Name="AudioSettings" 
-           ItemsSource="{Binding AudioSettingsList}"
-          ItemDisplayBinding="{Binding Name}"
-          SelectedItem="{Binding SelectedAudioSettings, Mode=TwoWay}"
-          Title="{Binding LocalizationResources[SelectAudioSettingsText], Mode=OneWay}">
-        </Picker>
-
         <Picker x:Name="UITheme" 
             ItemsSource="{Binding UIThemes}"
            ItemDisplayBinding="{Binding Name}"
@@ -19,66 +12,63 @@
            Title="{Binding LocalizationResources[SelectThemeText], Mode=OneWay}">
         </Picker>
 
-        <HorizontalStackLayout HorizontalOptions="Center">
-            <Button
-            x:Name="SaveBtn"
-            WidthRequest="100"
-            Text="{Binding LocalizationResources[Save], Mode=OneWay}"                 
-            SemanticProperties.Hint="Saves user settings"
-            Command="{Binding SaveCommand}"                    
-            HorizontalOptions="Fill" />
-
-            <Button
-              x:Name="CancelBtn"
-              WidthRequest="100"
-              Text="{Binding LocalizationResources[Cancel], Mode=OneWay}"                 
-              SemanticProperties.Hint="Cancels changes"
-              Command="{Binding CancelCommand}"                    
-              HorizontalOptions="Fill" />
-        </HorizontalStackLayout>
-
-        <Label Text="{Binding EqualizerBandFrequencyRangeText0, Mode=OneWay}"/>
-        <Slider x:Name="SliderBand0"
-            DragCompleted="SliderBand0_DragCompleted"
-            Minimum="{Binding EqualizerBandLevelRangeMin, Mode=TwoWay}"
-            Maximum="{Binding EqualizerBandLevelRangeMax, Mode=TwoWay}"
-            Value="{Binding EqualizerBandLevel0, Mode=OneWay}" />
-
-        <Label Text="{Binding EqualizerBandFrequencyRangeText1, Mode=OneWay}"/>
-        <Slider x:Name="SliderBand1" 
-                DragCompleted="SliderBand1_DragCompleted"
-            Minimum="{Binding EqualizerBandLevelRangeMin, Mode=TwoWay}"
-            Maximum="{Binding EqualizerBandLevelRangeMax, Mode=TwoWay}"
-            Value="{Binding EqualizerBandLevel1, Mode=OneWay}" />
-
-        <Label Text="{Binding EqualizerBandFrequencyRangeText2, Mode=OneWay}"/>
-        <Slider x:Name="SliderBand2"
-                DragCompleted="SliderBand2_DragCompleted"
-            Minimum="{Binding EqualizerBandLevelRangeMin, Mode=TwoWay}"
-            Maximum="{Binding EqualizerBandLevelRangeMax, Mode=TwoWay}"
-            Value="{Binding EqualizerBandLevel2, Mode=OneWay}" />
-
-        <Label Text="{Binding EqualizerBandFrequencyRangeText3, Mode=OneWay}"/>
-        <Slider x:Name="SliderBand3"
-                DragCompleted="SliderBand3_DragCompleted"
-            Minimum="{Binding EqualizerBandLevelRangeMin, Mode=TwoWay}"
-            Maximum="{Binding EqualizerBandLevelRangeMax, Mode=TwoWay}"
-            Value="{Binding EqualizerBandLevel3, Mode=OneWay}" />
-
-        <Label Text="{Binding EqualizerBandFrequencyRangeText4, Mode=OneWay}"/>
-        <Slider x:Name="SliderBand4" 
-                DragCompleted="SliderBand4_DragCompleted"
-            Minimum="{Binding EqualizerBandLevelRangeMin, Mode=TwoWay}"
-            Maximum="{Binding EqualizerBandLevelRangeMax, Mode=TwoWay}"
-            Value="{Binding EqualizerBandLevel4, Mode=OneWay}" />
-
+        <Label Text="{Binding LocalizationResources[SelectedAudioPreset], Mode=OneWay}" />
+        <Picker x:Name="AudioSettingsListPicker" 
+      ItemsSource="{Binding AudioSettingsList}"
+     ItemDisplayBinding="{Binding Name}"                
+     SelectedItem="{Binding SelectedAudioSettings, Mode=TwoWay}"
+     Title="{Binding LocalizationResources[SelectAudioSettingsText], Mode=OneWay}">
+        </Picker>
 
         <Button
-     x:Name="RefreshBtn"
-     WidthRequest="100"
-     Text="Refresh"                 
-     SemanticProperties.Hint="Cancels changes"
-     Command="{Binding RefreshCommand}"                    
-     HorizontalOptions="Fill" />
+             x:Name="CopyToCustomPresetBtn" 
+             Text="Copy Preset To Custom"                 
+             IsEnabled="{Binding IsNotCustomAudioSettingsSelected, Mode=OneWay}"
+             SemanticProperties.Hint="Cancels changes"
+             Command="{Binding CopyPresetToCustomCommand}"                                
+             HorizontalOptions="Center" />
+
+        <Label Text="{Binding LocalizationResources[CustomAudioPresetSettings], Mode=OneWay}" />
+        <Picker x:Name="CustomAudioSettingsListPicker" 
+                ItemsSource="{Binding CustomAudioSettingsList}"
+               ItemDisplayBinding="{Binding Name}"
+               SelectedItem="{Binding SelectedCustomAudioSettings, Mode=TwoWay}"
+               Title="{Binding LocalizationResources[SelectThemeText], Mode=OneWay}">
+            </Picker>
+        <ListView x:Name="CustomAudioBandList"                                  
+                ItemsSource="{Binding CustomAudioBands, Mode=OneWay}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <StackLayout Orientation="Vertical">
+                            <Label Text="{Binding Description}" />
+                            <Slider          
+                                Minimum="{Binding LevelRangeMin, Mode=OneWay}"
+                                Maximum="{Binding LevelRangeMax, Mode=OneWay}"
+                                Value="{Binding Level, Mode=TwoWay}" />
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Button
+       x:Name="SaveBtn"
+       WidthRequest="100"
+       Text="{Binding LocalizationResources[Save], Mode=OneWay}"                 
+       SemanticProperties.Hint="Saves user settings"
+       Command="{Binding SaveCommand}"                    
+       HorizontalOptions="Center" />
+
+            <Button
+         x:Name="CancelBtn"
+         WidthRequest="100"
+         Text="{Binding LocalizationResources[Cancel], Mode=OneWay}"                 
+         SemanticProperties.Hint="Cancels changes"
+         Command="{Binding CancelCommand}"                    
+         HorizontalOptions="Center" />
+        </HorizontalStackLayout>
+
     </VerticalStackLayout>
 </ContentPage>

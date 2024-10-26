@@ -1,4 +1,5 @@
-﻿using CFMediaPlayer.Enums;
+﻿using CFMediaPlayer.Constants;
+using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Services;
@@ -22,61 +23,40 @@ namespace CFMediaPlayer
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            builder.Services.AddTransient<IMediaPlayer, AndroidMediaPlayer>();           
+            builder.Services.AddSingleton<IMediaPlayer, AndroidMediaPlayer>();      // Was AddTransient
+            builder.Services.AddSingleton<IAudioEqualizer, AndroidAudioEqualizer>();
             builder.Services.RegisterAllTypes<IPlaylistManager>(new[] { Assembly.GetExecutingAssembly() });
 
-            /* Delete data files
-         var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
-         foreach(var file in dataFiles)
-         {
-             File.Delete(file);
-         }
-         */            
+            //// Enable this to reset all data files
+            //// Delete data files
+            //var dataFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "*.xml");
+            //foreach (var file in dataFiles)
+            //{
+            //    File.Delete(file);
+            //}
 
             // Create folders
             var musicFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, Android.OS.Environment.DirectoryMusic);
             if (Directory.Exists(musicFolder))
             {
-                Directory.CreateDirectory(Path.Combine(musicFolder, "Playlists"));
-                Directory.CreateDirectory(Path.Combine(musicFolder, "RadioStreams"));
+                Directory.CreateDirectory(Path.Combine(musicFolder, GeneralConstants.PlaylistsFolderName));
+                Directory.CreateDirectory(Path.Combine(musicFolder, GeneralConstants.RadioStreamsFolderName));
             }
 
-            // Config services                       
+            // Config services            
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
-
             builder.Services.AddSingleton<ICurrentState, CurrentState>();
 
-            //// Set IStreamSourceService, load sources if not set
-            //builder.Services.AddSingleton<IStreamSourceService>((scope) =>
-            //{
-            //    var streamSourceService = new StreamSourceService(FileSystem.AppDataDirectory);
-            //    var mediaItems = streamSourceService.GetAll();
-            //    if (!mediaItems.Any())
-            //    {
-            //        streamSourceService.LoadDefaults();
-            //        mediaItems = streamSourceService.GetAll();
-
-            //        //// Save to playlist format
-            //        //var folder = Path.Combine(FileSystem.AppDataDirectory, "RadioStreams");
-            //        //Directory.CreateDirectory(folder);
-            //        //var playlists = scope.GetServices<IPlaylist>();
-            //        //var playlist = playlists.FirstOrDefault(p => p.SupportsFile("Test.m3u"));
-            //        //playlist.SetFile(Path.Combine(folder, "Radio Streams 1.m3u"));
-            //        //playlist.SaveAll(mediaItems);
-            //        //playlist.SetFile("");
-            //    }
-                
-            //    return streamSourceService;
-            //});
+            //builder.Services.AddSingleton<IIndexedData, XmlIndexedData>();
 
             // Set IAudioSettingsService, create if not present
             builder.Services.AddScoped<IAudioSettingsService>((scope) =>
-            {
-                var audioSettingsService = new AudioSettingsService(FileSystem.AppDataDirectory);
+            {                                
+                var audioSettingsService = new AudioSettingsService(scope.GetRequiredService<IAudioEqualizer>(), FileSystem.AppDataDirectory);
 
-                // Create audio settings
-                var audioSettings = audioSettingsService.GetAll();
+                // Create audio settings                
+                var audioSettings = audioSettingsService.GetAll();               
                 if (!audioSettings.Any())
                 {
                     audioSettingsService.AddDefaults();
@@ -94,15 +74,24 @@ namespace CFMediaPlayer
                 if (userSettings == null)
                 {
                     var uiThemes = scope.GetRequiredService<IUIThemeService>().GetAll();
-                    var systemSettings = scope.GetService<ISystemSettingsService>().GetAll().FirstOrDefault();                    
-
+                    var systemSettings = scope.GetService<ISystemSettingsService>().GetAll().FirstOrDefault();
+                    
                     userSettings = new UserSettings()
                     {
                         Id = Guid.NewGuid().ToString(),
                         Username = Environment.UserName,
-                        AudioSettingsId = systemSettings.DefaultAudioSettingsId,
+                        AudioSettingsId = systemSettings.DefaultAudioSettingsId,               
                         UIThemeId = systemSettings.DefaultUIThemeId,
-                        CloudCredentialList = new List<CloudCredentials>()                        
+                        CloudCredentialList = new List<CloudCredentials>(),
+                        CustomAudioSettingsList = Enumerable.Range(0, GeneralConstants.NumberOfCustomAudioSettings).Select(index =>
+                        {
+                            return new CustomAudioSettings()
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Name = $"{GeneralConstants.CustomPresetName} {index + 1}",
+                                AudioBands = systemSettings.DefaultCustomAudioBands
+                            };
+                        }).ToList()
                     };
                     userSettingsService.Update(userSettings);
                 }
@@ -118,13 +107,15 @@ namespace CFMediaPlayer
                 var systemSettings = systemSettingsService.GetAll().FirstOrDefault();                
                 if (systemSettings == null)
                 {
-                    var audioSettings = scope.GetService<IAudioSettingsService>().GetAll().First(s => s.Name.Equals("Normal"));
+                    var defaultAudioSettings = scope.GetService<IAudioSettingsService>().GetAll().First(s => s.Name.Equals(GeneralConstants.NormalAudioPresetName));
                     var uiTheme = scope.GetRequiredService<IUIThemeService>().GetAll().First();
 
                     systemSettings = new SystemSettings()
                     {                        
-                        DefaultUIThemeId = uiTheme.Id,
-                        DefaultAudioSettingsId = audioSettings.Id                        
+                        Id = Guid.NewGuid().ToString(),                        
+                        DefaultUIThemeId = uiTheme.Id,                                             
+                        DefaultCustomAudioBands = new List<short>() { 500, 500, 500, 500, 500 },   // TODO: Remove this hard-coding
+                        DefaultAudioSettingsId = defaultAudioSettings.Id                      
                     };
                     systemSettingsService.Update(systemSettings);
                 }

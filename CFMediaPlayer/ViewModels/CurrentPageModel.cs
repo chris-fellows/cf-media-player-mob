@@ -42,9 +42,7 @@ namespace CFMediaPlayer.ViewModels
         private readonly IUserSettingsService _userSettingsService;
         
         private List<MediaAction> _mediaActions = new List<MediaAction>();
-
-        private UITheme _uiTheme;
-        private AudioSettings _audioSettings;        
+    
         private bool _isSearchBusy = false;
 
         public CurrentPageModel(IAudioSettingsService audioSettingsService,
@@ -64,21 +62,17 @@ namespace CFMediaPlayer.ViewModels
             _currentState.MediaPlayer = mediaPlayer;
 
             // Set handler for selected media item changed
-            _currentState.RegisterSelectedMediaItemChanged(() => SelectedMediaItem = _currentState.SelectedMediaItem);
+            //_currentState.RegisterSelectedMediaItemChanged(() => SelectedMediaItem = _currentState.SelectedMediaItem);
+            _currentState.SelectedMediaItemChangedAction += (mediaItem) =>
+            {
+                SelectedMediaItem = mediaItem;
+                //SelectedMediaItem = _currentState.SelectedMediaItem;
+            };
 
             // Set action when user settings updated
             _currentState.UserSettingsUpdatedAction += () =>
-            {
-                var oldPreset = _audioSettings.PresetName;
-
-                LoadUserSettings();
-
-                // Apply audio preset changes
-                if (oldPreset != _audioSettings.PresetName)
-                {                    
-                    _mediaPlayer.AudioEqualizer.EqualizerPresetName = _audioSettings.PresetName;
-                    _mediaPlayer.AudioEqualizer.ApplyPreset();
-                }
+            {                               
+                ApplyEqualizerDefaults();
             };
 
             // Handle media play status changes
@@ -101,22 +95,37 @@ namespace CFMediaPlayer.ViewModels
             ShufflePlay = false;
             AutoPlayNext = false;
 
-            // Load user settings
-            LoadUserSettings();
-
             // Set equalizer preset
-            _mediaPlayer.AudioEqualizer.EqualizerPresetName = _audioSettings.PresetName;
+            ApplyEqualizerDefaults();            
         }
 
-        private void LoadUserSettings()
+        /// <summary>
+        /// Applies equalizer defaults
+        /// </summary>
+        private void ApplyEqualizerDefaults()
         {
-            // Get user settings (Theme, audio settings)
+            // Get user settings
             var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
-            _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);
-            _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
-        }
 
-        //public bool IsShouldBeVisible => _currentState.SelectedMediaItem != null;
+            // Clear defaults
+            _mediaPlayer.AudioEqualizer.DefaultPresetName = "";
+            _mediaPlayer.AudioEqualizer.DefaultCustomBandLevels = new List<short>();
+           
+            // Set defaults, doesn't apply them
+            var customAudioSettings = userSettings.CustomAudioSettingsList.FirstOrDefault(s => s.Id == userSettings.AudioSettingsId);
+            if (customAudioSettings == null)   // Preset
+            {
+                var audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId);
+                _mediaPlayer.AudioEqualizer.DefaultPresetName = audioSettings.Name;
+            }
+            else       // Custom
+            {
+                _mediaPlayer.AudioEqualizer.DefaultCustomBandLevels = customAudioSettings.AudioBands;
+            }
+
+            // Apply preset
+            _mediaPlayer.AudioEqualizer.ApplyDefault();
+        }
 
         public bool IsDebugMode => false;
 
@@ -464,7 +473,7 @@ namespace CFMediaPlayer.ViewModels
   
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"_timer_Elapsed: ElapsedMS={ElapsedMS}");
+            //System.Diagnostics.Debug.WriteLine($"_timer_Elapsed: ElapsedMS={ElapsedMS}");
 
             // Execute action for elapsed time
             if (_elapsedAction != null)

@@ -32,21 +32,30 @@ namespace CFMediaPlayer.Models
             {
                 _selectedMediaItem = value;
 
+                if (SelectedMediaItemChangedAction != null)
+                {
+                    SelectedMediaItemChangedAction(_selectedMediaItem);
+                }
+
+                /*
                 if (_selectedMediaItemChangedAction != null)
                 {
                     _selectedMediaItemChangedAction();
                 }
+                */
             }
         }
 
         public List<MediaItem> MediaItems { get; set; } = new List<MediaItem>();
 
-        private Action _selectedMediaItemChangedAction;
+        public IMediaPlayer MediaPlayer { get; set; }
 
-        public void RegisterSelectedMediaItemChanged(Action action)
-        {
-            _selectedMediaItemChangedAction = action;
-        }
+        //private Action _selectedMediaItemChangedAction;
+
+        //public void RegisterSelectedMediaItemChanged(Action action)
+        //{
+        //    _selectedMediaItemChangedAction = action;
+        //}
 
         public Action<MediaItem>? SelectMediaItemAction { get; set; }
 
@@ -56,6 +65,6 @@ namespace CFMediaPlayer.Models
 
         public Action? UserSettingsUpdatedAction { get; set; }
 
-        public IMediaPlayer MediaPlayer { get; set; }
+        public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
     }
 }

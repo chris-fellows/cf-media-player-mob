@@ -23,9 +23,16 @@ namespace CFMediaPlayer.Models
         public string UIThemeId { get; set; } = String.Empty;
 
         /// <summary>
-        /// Audio settings
+        /// Audio settings. Refers to either AudioSettings.Id (Preset) or CustomAudioSettings
         /// </summary>
         public string AudioSettingsId { get; set; } = String.Empty;
+
+        //public string AudioPresetName { get; set; } = String.Empty;
+
+        /// <summary>
+        /// Custom audio settings
+        /// </summary>
+        public List<CustomAudioSettings> CustomAudioSettingsList { get; set; } = new List<CustomAudioSettings>();
 
         /// <summary>
         /// Cloud credentials

@@ -106,6 +106,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Custom Preset Settings.
+        /// </summary>
+        internal static string CustomAudioPresetSettings {
+            get {
+                return ResourceManager.GetString("CustomAudioPresetSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         internal static string Delete {
@@ -435,6 +444,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string SelectAudioSettingsText {
             get {
                 return ResourceManager.GetString("SelectAudioSettingsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected Audio Preset.
+        /// </summary>
+        internal static string SelectedAudioPreset {
+            get {
+                return ResourceManager.GetString("SelectedAudioPreset", resourceCulture);
             }
         }
         

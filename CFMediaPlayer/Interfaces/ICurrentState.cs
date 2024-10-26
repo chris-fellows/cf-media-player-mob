@@ -53,6 +53,11 @@ namespace CFMediaPlayer.Interfaces
         List<MediaItem> MediaItems { get; set; }
 
         /// <summary>
+        /// Media player
+        /// </summary>
+        public IMediaPlayer? MediaPlayer { get; set; }
+
+        /// <summary>
         /// Action to select media item. Assumed within same current media item collection.
         /// </summary>
         public Action<MediaItem>? SelectMediaItemAction { get; set; }
@@ -67,14 +72,20 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         public Action? QueueUpdatedAction { get; set; }        
 
-        public Action? UserSettingsUpdatedAction { get; set; }
+        /// <summary>
+        /// Action when user settings updated
+        /// </summary>
+        public Action? UserSettingsUpdatedAction { get; set; }        
 
         /// <summary>
-        /// Register method to be notified when SelectedMediaItem changes
+        /// Action when selected media item changed
         /// </summary>
-        /// <param name="action"></param>
-        void RegisterSelectedMediaItemChanged(Action action);
+        public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
 
-        public IMediaPlayer? MediaPlayer { get; set; }
+        ///// <summary>
+        ///// Register method to be notified when SelectedMediaItem changes
+        ///// </summary>
+        ///// <param name="action"></param>
+        //void RegisterSelectedMediaItemChanged(Action action);
     }
 }

@@ -127,7 +127,7 @@ namespace CFMediaPlayer.ViewModels
             _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
 
             // Set equalizer preset
-            _mediaPlayer.AudioEqualizer.EqualizerPresetName = _audioSettings.PresetName;
+            //_mediaPlayer.AudioEqualizer.DefaultPresetName = _audioSettings.PresetName;
         }        
 
         public bool IsDebugMode => false;

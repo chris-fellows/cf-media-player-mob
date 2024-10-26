@@ -258,4 +258,10 @@
   <data name="NewPlaylist" xml:space="preserve">
     <value>New playlist</value>
   </data>
+  <data name="CustomAudioPresetSettings" xml:space="preserve">
+    <value>Custom Preset Settings</value>
+  </data>
+  <data name="SelectedAudioPreset" xml:space="preserve">
+    <value>Selected Audio Preset</value>
+  </data>
 </root>
