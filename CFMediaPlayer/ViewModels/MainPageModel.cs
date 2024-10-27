@@ -1295,53 +1295,7 @@ namespace CFMediaPlayer.ViewModels
             //_mediaPlayer.ApplyEqualizerTest();
             //int xxx = 1000;
         }
-        
-        ///// <summary>
-        ///// Handles user settings updated
-        ///// </summary>
-        //public void HandleUserSettingsUpdated()
-        //{            
-        //    var userSettings = _userSettingsService.GetByUsername(Environment.UserName)!;                        
-
-        //    // Handle them change
-        //    var isThemeChanged = _uiTheme.Id != userSettings.UIThemeId;
-        //    if (isThemeChanged)
-        //    {
-        //        _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);
-        //    }
-
-        //    // Handle audio settings
-        //    var isAudioSettingsChanged = _audioSettings.Id != userSettings.AudioSettingsId;
-        //    if (isAudioSettingsChanged)
-        //    {
-        //        _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
-        //        _mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Handles playlists updated. Playlist changes may playlist lists displayed, media item actions for adding/
-        ///// removing media items from playlists.
-        ///// </summary>
-        //public void HandlePlaylistsUpdated()
-        //{
-        //    Reset(SelectedMediaLocation.Name,
-        //                SelectedArtist!.Name,
-        //                SelectedMediaItemCollection!.Name,
-        //                SelectedMediaItem!.Name);
-        //}
-
-        ///// <summary>
-        ///// Handles queue updated. E.g. Cleared.
-        ///// </summary>
-        //public void HandleQueueUpdated()
-        //{
-        //    Reset(SelectedMediaLocation.Name,
-        //                SelectedArtist!.Name,
-        //                SelectedMediaItemCollection!.Name,
-        //                SelectedMediaItem!.Name);
-        //}
-
+     
         /// <summary>
         /// Resets UI state. Selects requested items, if not available then selects default
         /// </summary>

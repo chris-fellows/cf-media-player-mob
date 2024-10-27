@@ -16,7 +16,7 @@ namespace CFMediaPlayer.Sources
         {            
         }
 
-        public string ImagePath => InternalUtilities.DefaultImagePath;
+        public string ImagePath => GetImagePathByMediaItemTypes();
 
         public bool IsAvailable
         {

@@ -24,7 +24,7 @@ namespace CFMediaPlayer
                 });
 
             builder.Services.AddSingleton<IMediaPlayer, AndroidMediaPlayer>();      // Was AddTransient
-            builder.Services.AddSingleton<IAudioEqualizer, AndroidAudioEqualizer>();
+            builder.Services.AddSingleton<IAudioEqualizer, AndroidAudioEqualizer>();             
             builder.Services.RegisterAllTypes<IPlaylistManager>(new[] { Assembly.GetExecutingAssembly() });
 
             //// Enable this to reset all data files
@@ -47,6 +47,7 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
             builder.Services.AddSingleton<ICurrentState, CurrentState>();
+            //builder.Services.AddSingleton<IEvents, EventsObject>();
 
             //builder.Services.AddSingleton<IIndexedData, XmlIndexedData>();
 

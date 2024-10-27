@@ -32,17 +32,14 @@ namespace CFMediaPlayer.Models
             {
                 _selectedMediaItem = value;
 
+                Events.RaiseOnSelectedMediaItemChanged(_selectedMediaItem);
+
+                /*
                 if (SelectedMediaItemChangedAction != null)
                 {
                     SelectedMediaItemChangedAction(_selectedMediaItem);
                 }
-
-                /*
-                if (_selectedMediaItemChangedAction != null)
-                {
-                    _selectedMediaItemChangedAction();
-                }
-                */
+                */                
             }
         }
 
@@ -61,10 +58,15 @@ namespace CFMediaPlayer.Models
 
         public Action<MediaLocation, Artist, MediaItemCollection>? SelectMediaItemCollectionAction { get; set; }
 
-        public Action? QueueUpdatedAction { get; set; }
+        //public Action? QueueUpdatedAction { get; set; }
 
-        public Action? UserSettingsUpdatedAction { get; set; }
+        //public Action? UserSettingsUpdatedAction { get; set; }
 
-        public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
+        //public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
+
+        //public Action<MediaItemCollection, MediaItem?>? PlaylistUpdatedAction { get; set; }
+
+        private CurrentStateEvents _events = new CurrentStateEvents();
+        public CurrentStateEvents Events => _events;
     }
 }

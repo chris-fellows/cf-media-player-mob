@@ -78,12 +78,18 @@
                 VerticalScrollBarVisibility="Always"
                 ItemsSource="{Binding MediaItems}"                                                  
                 SelectedItem="{Binding SelectedMediaItem, Mode=TwoWay}"
-                SelectionMode="Single" Margin="10,0">
+                SelectionMode="Single">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="40">
+                        <StackLayout Orientation="Horizontal" Spacing="4" HeightRequest="35" Padding="2,2,2,2">
                             <Image Source="{Binding ImagePath, Mode=OneWay}" WidthRequest="30"/>
-                            <Label Text="{Binding Name, Mode=OneWay}" VerticalOptions="Center"/>
+                            <Label Text="{Binding Name, Mode=OneWay}"                                   
+                                   VerticalOptions="Center"/>
+                            <Image Source="{Binding StatusImage, Mode=OneWay}"                                                                       
+                                   IsAnimationPlaying="{Binding IsStatusImageAnimating, Mode=OneWay}" 
+                                   HorizontalOptions="EndAndExpand"
+                                   VerticalOptions="Center"                                  
+                                   WidthRequest="30" />
                         </StackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

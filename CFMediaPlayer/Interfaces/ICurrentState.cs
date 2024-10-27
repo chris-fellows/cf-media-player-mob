@@ -67,20 +67,27 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         public Action<MediaLocation, Artist, MediaItemCollection>? SelectMediaItemCollectionAction { get; set; }
 
-        /// <summary>
-        /// Action when queue updated
-        /// </summary>
-        public Action? QueueUpdatedAction { get; set; }        
+        ///// <summary>
+        ///// Action when queue updated
+        ///// </summary>
+        //public Action? QueueUpdatedAction { get; set; }        
+
+        ///// <summary>
+        ///// Action when user settings updated
+        ///// </summary>
+        //public Action? UserSettingsUpdatedAction { get; set; }        
+
+        ///// <summary>
+        ///// Action when selected media item changed
+        ///// </summary>
+        //public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }        
+
+        //public Action<MediaItemCollection, MediaItem?>? PlaylistUpdatedAction { get; set; }
 
         /// <summary>
-        /// Action when user settings updated
+        /// Events to raise
         /// </summary>
-        public Action? UserSettingsUpdatedAction { get; set; }        
-
-        /// <summary>
-        /// Action when selected media item changed
-        /// </summary>
-        public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
+        public CurrentStateEvents Events { get; }
 
         ///// <summary>
         ///// Register method to be notified when SelectedMediaItem changes

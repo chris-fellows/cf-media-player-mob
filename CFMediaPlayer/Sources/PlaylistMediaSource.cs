@@ -26,10 +26,8 @@ namespace CFMediaPlayer.Sources
         {            
             _playlistManagers = playlistManagers.ToList();
         }
-
-        public string ImagePath => _mediaLocation != null && _mediaLocation.MediaSourceType == MediaSourceTypes.RadioStreams ?
-                            "radio.png" :
-                            InternalUtilities.DefaultImagePath;
+    
+        public string ImagePath => GetImagePathByMediaItemTypes();        
 
         public bool IsAvailable
         {
@@ -192,11 +190,11 @@ namespace CFMediaPlayer.Sources
                                 {
                                     if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))   // Exclude duplicates
                                     {
-                                        // Set image path to be album image if not set
-                                        if (String.IsNullOrEmpty(mediaItem.ImagePath))
-                                        {
-                                            mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                                        }
+                                        //// Set image path to be album image if not set
+                                        //if (String.IsNullOrEmpty(mediaItem.ImagePath))
+                                        //{
+                                        //    mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                                        //}
                                         mediaItems.Add(mediaItem);
                                     }
                                 }
@@ -208,73 +206,11 @@ namespace CFMediaPlayer.Sources
                     foreach (var mediaLocationSource in _mediaLocation.Sources.Where(f => Directory.Exists(f)))
                     {
                         processFolder(mediaLocationSource);
-
-                        //foreach (var file in Directory.GetFiles(mediaLocationSource))
-                        //{
-                        //    // Get media item collection for playlist
-                        //    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForPlaylist(file, true);
-                        //    if (mediaItemCollectionDetails != null)
-                        //    {
-                        //        foreach (var mediaItem in mediaItemCollectionDetails.MediaItems)
-                        //        {
-                        //            if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))   // Exclude duplicates
-                        //            {
-                        //                // Set image path to be album image if not set
-                        //                if (String.IsNullOrEmpty(mediaItem.ImagePath))
-                        //                {
-                        //                    mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                        //                }
-                        //                mediaItems.Add(mediaItem);
-                        //            }
-                        //        }
-                        //    }
-
-                        //    //// Get playlist handler
-                        //    //var playlistManager = _playlistManagers.FirstOrDefault(pl => pl.SupportsFile(playlistFile));
-                        //    //if (playlistManager != null)   // Playlist
-                        //    //{
-                        //    //    playlistManager.FilePath = playlistFile;
-                        //    //    var playlistMediaItems = playlistManager.GetAll();
-                        //    //    foreach (var mediaItem in playlistMediaItems)
-                        //    //    {
-                        //    //        if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))
-                        //    //        {
-                        //    //            // Set image path to be album image if not set
-                        //    //            if (String.IsNullOrEmpty(mediaItem.ImagePath))
-                        //    //            {
-                        //    //                mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                        //    //            }
-                        //    //            mediaItems.Add(mediaItem);
-                        //    //        }
-                        //    //    }
-                        //    //    playlistManager.FilePath = "";  // Clean up
-                        //    //}
-                        //}
-
+                   
                         // Check sub-folders
                         foreach (var subFolder in Directory.GetDirectories(mediaLocationSource))
                         {
                             processFolder(subFolder);
-
-                            //foreach (var file in Directory.GetFiles(subFolder))
-                            //{
-                            //    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForPlaylist(file, false);
-                            //    if (mediaItemCollectionDetails != null)
-                            //    {
-                            //        foreach(var mediaItem in mediaItemCollectionDetails.MediaItems)
-                            //        {
-                            //            if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))   // Exclude duplicates
-                            //            {
-                            //                // Set image path to be album image if not set
-                            //                if (String.IsNullOrEmpty(mediaItem.ImagePath))
-                            //                {
-                            //                    mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                            //                }
-                            //                mediaItems.Add(mediaItem);
-                            //            }
-                            //        }                                    
-                            //    }
-                            //}
                         }
                     }
                 }
@@ -284,11 +220,11 @@ namespace CFMediaPlayer.Sources
                     var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForPlaylist(playlistFile, true);
                     if (mediaItemCollectionDetails != null)
                     {
-                        // Set image path to be album image if not set
-                        foreach (var mediaItem in mediaItemCollectionDetails.MediaItems.Where(mi => String.IsNullOrEmpty(mi.ImagePath)))
-                        {
-                            mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                        }
+                        //// Set image path to be album image if not set
+                        //foreach (var mediaItem in mediaItemCollectionDetails.MediaItems.Where(mi => String.IsNullOrEmpty(mi.ImagePath)))
+                        //{
+                        //    mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                        //}
                         mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
                     }
                 }
@@ -413,6 +349,9 @@ namespace CFMediaPlayer.Sources
                     MediaItem? mediaItem = String.IsNullOrEmpty(mediaAction.MediaItemFile) ? null :
                                             GetMediaItemByFileFromOriginalSource(mediaAction.MediaItemFile);
 
+                    // Get MediaItemCollectionDetails so that we can notify playlist updated
+                    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForPlaylist(mediaAction.PlaylistFile, false);
+
                     // Add or remove playlist item
                     var isSavePlaylist = true;
                     switch (mediaAction.ActionType)
@@ -439,6 +378,9 @@ namespace CFMediaPlayer.Sources
                         playlistManager.SaveAll(mediaItems);
                     }
                     playlistManager.FilePath = "";  // Clean up
+
+                    // Notify playlist updated
+                    _currentState.Events.RaiseOnPlaylistUpdated(mediaItemCollectionDetails.MediaItemCollection, mediaItem);
                 }
             }
         }      
@@ -540,6 +482,8 @@ namespace CFMediaPlayer.Sources
                 var playlistManager = _playlistManagers.FirstOrDefault(pm => pm.SupportsFile(file));
                 if (playlistManager != null)
                 {
+                    var defaultMediaItemImagePath = GetImagePathByMediaItemTypes();
+                    
                     playlistManager.FilePath = file;
                     var mediaItems = playlistManager.GetAll();  // Needed in order to set IPlaylistManager.Name
                     MediaItemCollectionDetails mediaItemCollectionDetails = new MediaItemCollectionDetails()
@@ -556,7 +500,25 @@ namespace CFMediaPlayer.Sources
                             ImagePath = MediaUtilities.GetMediaItemCollectionImagePath(Path.GetDirectoryName(file))
                         },
                         MediaItems = getMediaItems ? mediaItems : new()
-                    };
+                    };                
+                                        
+                    // If media item image path not set then use original media item collection image. If radio stream then
+                    // image path may be set to radio station image.
+                    foreach(var mediaItem in mediaItemCollectionDetails.MediaItems.Where(mi => String.IsNullOrEmpty(mi.ImagePath)))
+                    {
+                        mediaItem.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                        if (String.IsNullOrEmpty(mediaItem.ImagePath))  // Default to image for media item type
+                        {
+                            mediaItem.ImagePath = defaultMediaItemImagePath;
+                        }
+                    }
+                    
+                    // Default media item collection image path
+                    if (String.IsNullOrEmpty(mediaItemCollectionDetails.MediaItemCollection.ImagePath))
+                    {
+                        mediaItemCollectionDetails.MediaItemCollection.ImagePath = defaultMediaItemImagePath;
+                    }
+
                     playlistManager.FilePath = "";  // Clean up
                     return mediaItemCollectionDetails;
                 }

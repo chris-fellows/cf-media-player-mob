@@ -20,7 +20,7 @@ namespace CFMediaPlayer.Sources
             
         }
 
-        public string ImagePath => InternalUtilities.DefaultImagePath;
+        public string ImagePath => GetImagePathByMediaItemTypes();
 
         public bool IsAvailable => true;        // Always
 
@@ -190,10 +190,7 @@ namespace CFMediaPlayer.Sources
             }
 
             // Notify queue updated
-            if (_currentState.QueueUpdatedAction != null)
-            {
-                _currentState.QueueUpdatedAction();
-            }
+            _currentState.Events.RaiseOnQueueUpdated(mediaItem);            
         }
        
         public List<SearchResult> Search(SearchOptions searchOptions)

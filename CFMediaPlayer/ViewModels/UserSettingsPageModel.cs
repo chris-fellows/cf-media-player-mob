@@ -306,12 +306,9 @@ namespace CFMediaPlayer.ViewModels
         {            
             // Save user settings
             _userSettingsService.Update(_userSettings);
-                     
+
             // Notify user settings changed
-            if (_currentState.UserSettingsUpdatedAction != null)
-            {
-                _currentState.UserSettingsUpdatedAction();
-            }
+            _currentState.Events.RaiseOnUserSettingsUpdated(_userSettings);            
         }      
 
         private void Cancel(object parameter)

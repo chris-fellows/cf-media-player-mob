@@ -24,9 +24,9 @@ namespace CFMediaPlayer.Sources
                                 MediaLocation mediaLocation) : base(currentState, mediaLocation)
         {
          
-        }       
+        }
 
-        public string ImagePath => InternalUtilities.DefaultImagePath;        
+        public string ImagePath => GetImagePathByMediaItemTypes();        
 
         public bool IsAvailable
         {
@@ -235,27 +235,7 @@ namespace CFMediaPlayer.Sources
             }
 
             return mediaItemCollections.OrderBy(mic => mic.Name).ToList();
-        }
-
-        //private static List<MediaItem> GetMediaItemsFromFolder(string path)
-        //{
-        //    var mediaItems = new List<MediaItem>();
-        //    var files = Directory.GetFiles(path);
-        //    foreach (var file in files)
-        //    {
-        //        if (Array.IndexOf(MediaUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
-        //        {
-        //            // Don't set image path so that system uses default (Album cover)
-        //            mediaItems.Add(new MediaItem()
-        //            {
-        //                FilePath = file,                        
-        //                Name = MediaUtilities.GetMediaItemNameForMediaItemPath(file),   // Path.GetFileNameWithoutExtension(file),
-        //                ImagePath = "music.png"
-        //            });
-        //        }
-        //    }
-        //    return mediaItems;
-        //}
+        }        
       
         public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, 
                                                             bool includeNonReal)
@@ -392,6 +372,8 @@ namespace CFMediaPlayer.Sources
 
                 if (artists.Any())
                 {
+                    var defaultMediaItemImagePath = GetImagePathByMediaItemTypes();
+
                     Parallel.ForEach(artists,
                                 new ParallelOptions { MaxDegreeOfParallelism = _maxParallelThreads },
                                 artist =>
@@ -404,7 +386,7 @@ namespace CFMediaPlayer.Sources
                                             Name = artist.Name,
                                             Artist = artist,
                                             MediaLocationName = MediaLocation.Name,
-                                            ImagePath = "music.png"
+                                            ImagePath = defaultMediaItemImagePath
                                         });
                                     }
 
@@ -532,7 +514,7 @@ namespace CFMediaPlayer.Sources
         /// <param name="folder">Folder to check</param>
         /// <param name="getMediaItems">Whether to return media item list</param>
         /// <returns>MediaItemCollectionDetails is folder contains audio files else null</returns>
-        private static MediaItemCollectionDetails? GetMediaItemCollectionDetailsForFolder(string folder, bool getMediaItems)
+        private MediaItemCollectionDetails? GetMediaItemCollectionDetailsForFolder(string folder, bool getMediaItems)
         {
             if (Directory.Exists(folder))
             {
@@ -540,13 +522,14 @@ namespace CFMediaPlayer.Sources
                 string firstMediaItemFile = "";
                 var mediaItems = new List<MediaItem>();
 
+                string mediaItemImagePath = GetImagePathByMediaItemTypes();                
+
                 // Check folder for audio files
                 var files = Directory.GetFiles(folder);
                 foreach (var file in files)
                 {
                     if (Array.IndexOf(MediaUtilities.AudioFileExtensions, Path.GetExtension(file).ToLower()) != -1)
-                    {
-                        // Don't set image path so that system uses default (Album cover)
+                    {                        
                         isContainsMediaItems = true;
                         if (String.IsNullOrEmpty(firstMediaItemFile)) firstMediaItemFile = file;
 
@@ -555,8 +538,8 @@ namespace CFMediaPlayer.Sources
                             mediaItems.Add(new MediaItem()
                             {
                                 FilePath = file,
-                                Name = MediaUtilities.GetMediaItemNameForMediaItemPath(file),   // Path.GetFileNameWithoutExtension(file),
-                                ImagePath = "music.png"
+                                Name = MediaUtilities.GetMediaItemNameForMediaItemPath(file),
+                                ImagePath = mediaItemImagePath
                             });
                         }
                         else    // Just needed to get one audio file so that we can get the artist & album names
@@ -584,6 +567,12 @@ namespace CFMediaPlayer.Sources
                         },
                         MediaItems = mediaItems
                     };
+                    
+                    // If no media item collection image path then set default
+                    if (String.IsNullOrEmpty(mediaItemCollectionDetails.MediaItemCollection.ImagePath))
+                    {
+                        mediaItemCollectionDetails.MediaItemCollection.ImagePath = GetImagePathByMediaItemTypes();
+                    }
 
                     return mediaItemCollectionDetails;
                 }
@@ -603,13 +592,13 @@ namespace CFMediaPlayer.Sources
                         {
                             FilePath = file,
                             Name = MediaUtilities.GetMediaItemNameForMediaItemPath(file),
-                            ImagePath = "music.png"
+                            ImagePath = GetImagePathByMediaItemTypes()
                         };
                         return mediaItem;
                     }
                 }        
 
             return null;
-        }
+        }        
     }
 }

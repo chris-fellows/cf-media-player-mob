@@ -23,6 +23,13 @@ namespace CFMediaPlayer.Models
         /// </summary>
         public string ImagePath { get; set; } = String.Empty;
 
+        /// <summary>
+        /// Status image. E.g. None, playing, paused etc.
+        /// </summary>
+        public string StatusImage { get; set; } = String.Empty;
+
+        public bool IsStatusImageAnimating { get; set; }
+
         [XmlIgnore]
         public EntityCategory EntityCategory
         {
@@ -53,7 +60,8 @@ namespace CFMediaPlayer.Models
             {
                 FilePath = FilePath,
                 Name = Name,
-                ImagePath = ImagePath
+                ImagePath = ImagePath,
+                StatusImage = StatusImage
             };
         }
 

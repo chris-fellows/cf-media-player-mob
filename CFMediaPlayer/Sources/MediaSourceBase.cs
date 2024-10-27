@@ -42,6 +42,7 @@ namespace CFMediaPlayer.Sources
                     return ancestors.Item2.ImagePath;
                 }
             }
+
             return null;
         }
 
@@ -62,6 +63,15 @@ namespace CFMediaPlayer.Sources
             }
 
             return null;
+        }
+
+        protected string GetImagePathByMediaItemTypes()
+        {
+            if (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.Audiobooks)) return "audio_book.png";
+            if (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.Podcasts)) return "microphone.png";
+            if (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.RadioStreams)) return "radio.png";
+            if (_mediaLocation.MediaItemTypes.Contains(MediaItemTypes.PlaylistMediaItems)) return "playlist.png";
+            return "music.png";
         }
     }
 }

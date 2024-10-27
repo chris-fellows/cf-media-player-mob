@@ -156,6 +156,7 @@ namespace CFMediaPlayer.Services
             mediaLocations.Add(new MediaLocation()
             {
                 Name = LocalizationResources.Instance["MediaSourceQueueText"].ToString(),
+                MediaItemTypes = new List<MediaItemTypes>() { MediaItemTypes.Music },
                 MediaSourceType = MediaSourceTypes.Queue,
                 Sources = new()
             });

@@ -57,6 +57,7 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\Images\arrow_click_cursor_pointer_icon.png" />
+	  <None Remove="Resources\Images\audio_book.png" />
 	  <None Remove="Resources\Images\audio_eject_media_media_player_music_icon.png" />
 	  <None Remove="Resources\Images\audio_fast_forward_media_media_player_icon.png" />
 	  <None Remove="Resources\Images\audio_media_media_player_music_pause_icon.png" />
@@ -66,12 +67,15 @@
 	  <None Remove="Resources\Images\audio_media_media_player_music_stop_icon.png" />
 	  <None Remove="Resources\Images\cassette_player_audio_speaker_sound_icon.png" />
 	  <None Remove="Resources\Images\cross.png" />
+	  <None Remove="Resources\Images\equalizer.gif" />
 	  <None Remove="Resources\Images\ic_media_ff.png" />
 	  <None Remove="Resources\Images\ic_media_pause.png" />
 	  <None Remove="Resources\Images\ic_media_play.png" />
 	  <None Remove="Resources\Images\ic_media_rew.png" />
+	  <None Remove="Resources\Images\microphone.png" />
 	  <None Remove="Resources\Images\music.png" />
 	  <None Remove="Resources\Images\picture.png" />
+	  <None Remove="Resources\Images\playlist.png" />
 	  <None Remove="Resources\Images\plus.png" />
 	  <None Remove="Resources\Images\radio.png" />
 	</ItemGroup>

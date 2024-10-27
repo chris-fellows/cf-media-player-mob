@@ -33,7 +33,7 @@ namespace CFMediaPlayer.ViewModels
         private List<MediaLocation> _mediaLocations = new List<MediaLocation>();
         private List<Artist> _artists = new List<Artist>();
         private List<MediaItemCollection> _mediaItemCollections = new List<MediaItemCollection>();
-        private List<MediaItem> _mediaItems = new List<MediaItem>();
+        private List<MediaItem> _mediaItems = new List<MediaItem>();        
 
         private UITheme _uiTheme;
         private AudioSettings _audioSettings;       
@@ -73,6 +73,8 @@ namespace CFMediaPlayer.ViewModels
                 _currentState.SelectTabByTitleAction("Library");
             };
 
+            ConfigureEvents();
+           
             // Display media locations
             LoadMediaLocationsToDisplayInUI();
             //MediaLocations = _mediaLocationService.GetAll();
@@ -98,6 +100,94 @@ namespace CFMediaPlayer.ViewModels
                 mediaLocation = MediaLocations.First();
             }
             SelectedMediaLocation = mediaLocation;                                                    
+        }
+
+        /// <summary>
+        /// Configure events
+        /// </summary>
+        private void ConfigureEvents()
+        {
+            // Set event handler for playlist updated.
+            // Reasons:
+            // - Media item added to playlist X (Only for storage media source).
+            // - Media item removed from playlist X (Only for storage media source).
+            // - Clear playlist.
+            // - Delete playlist.
+            //
+            // If we're not displaying playlists then we don't need to take action. If we're displaying another media source (E.g. Storage)
+            // then CurrentPage will handle updates such as adding/removing from playlist which typically just requires a refresh of the
+            // media actions for the media item.
+            _currentState.Events.OnPlaylistUpdated += (mediaItemCollection, mediaItem) =>
+            {
+                System.Diagnostics.Debug.WriteLine("OnPlaylistUpdated in LibraryPageModel");
+
+                var isPlaylistDeleted = !File.Exists(mediaItemCollection.Path);
+                if (_selectedMediaLocation.MediaSourceType == MediaSourceTypes.Playlist &&
+                    _selectedMediaItemCollection.Name == mediaItemCollection.Name)   // Updated playlist selected
+                {
+                    // Set media item collection to select, select any if playlist just deleted                    
+                    var mediaItemCollectionNameToSelect = isPlaylistDeleted ? "" : mediaItemCollection.Name;
+
+                    // Reset selected item:
+                    // If update was media item removed from playlist then we reset to selected playlist but a different media item.
+                    // If update was playlist cleared then we reset to selected playlist with None for selected media item.
+                    // If update was playlist deleted then we reset to any other playlist or None.
+                    Reset(SelectedMediaLocation.Name, SelectedArtist.Name, mediaItemCollectionNameToSelect, "");
+                }
+            };
+
+            // Set event handler for queue updated.
+            // Reasons:
+            // - Media item added to queue (Only for storage media source).
+            // - Media item removed from queue (Only for storage media source).
+            // - Queue cleared (Only for queue media source).
+            _currentState.Events.OnQueueUpdated += (mediaItem) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[in] OnQueueUpdated in LibraryPageModel");
+
+                if (_selectedMediaLocation.MediaSourceType == MediaSourceTypes.Queue)   // Displaying queue
+                {
+                    Reset(SelectedMediaLocation.Name, SelectedArtist.Name, SelectedMediaItemCollection.Name, "");    // Clear queue?                    
+                }
+
+                System.Diagnostics.Debug.WriteLine("[out] OnQueueUpdated in LibraryPageModel");
+            };
+
+            // Set event handled for current media item status. 
+            // - If playing imaging then animated equalizer.
+            // - If paused then non-animated equalized.
+            // - Else no image.
+            _currentState.Events.OnCurrentMediaItemStatusChanged += (mediaItem, isPlaying, isPaused) =>
+            {
+                if (mediaItem != null && _selectedMediaItem != null)
+                {                   
+                    if (isPlaying || isPaused)
+                    {                        
+                        _selectedMediaItem.StatusImage = "equalizer.gif";
+                        _selectedMediaItem.IsStatusImageAnimating = isPlaying;
+                    }
+                  
+                    // Clear image for all other media items
+                    foreach (var currentMediaItem in _mediaItems.Where(mi => mi.FilePath != mediaItem.FilePath))
+                    {
+                        currentMediaItem.StatusImage = "";
+                        currentMediaItem.IsStatusImageAnimating = false;
+                    }
+                }
+                else    // Clear image for all media items
+                {
+                    _mediaItems.ForEach(mi =>
+                    {
+                        mi.StatusImage = "";
+                        mi.IsStatusImageAnimating = false;
+                    });
+                }
+
+                // Force refresh
+                var mediaItems = MediaItems;
+                MediaItems = new List<MediaItem>();
+                MediaItems = mediaItems;
+            };
         }
 
         //private void IndexData(IIndexedData indexedData, IMediaSource mediaSource)
@@ -467,7 +557,7 @@ namespace CFMediaPlayer.ViewModels
 
         private void ClearMediaItems()
         {
-            MediaItems = new List<MediaItem>();
+            MediaItems = new();
             SelectedMediaItem = null;
         }
 
@@ -615,29 +705,8 @@ namespace CFMediaPlayer.ViewModels
                 // Notify properties on change of selected media item
                 OnPropertyChanged(nameof(SelectedMediaItem));
                 OnPropertyChanged(nameof(IsRealMediaItemSelected));
-                OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image
-
-                //// Stop current media
-                //var isWasPlaying = IsPlaying;
-                //if (isWasPlaying || IsPaused)
-                //{
-                //    Stop();
-                //}
-
-                //if (_selectedMediaItem != null)
-                //{
-                //    // Set actions for media item (Add to playlist X etc)
-                //    //LoadMediaItemActions(_selectedMediaItem);
-
-                //    //// Respect previous play state. Only play if was playing. Don't play if was paused or stopped.
-                //    //if (isWasPlaying && IsRealMediaItemSelected)
-                //    //{
-                //    //    PlayMediaItem(_selectedMediaItem);
-                //    //}
-                //}
-
-                // Notify play state changed. Can now play media item
-                //NotifyPropertiesChangedForPlayState();
+                System.Diagnostics.Debug.WriteLine("[SelectedMediaItem] Notifying OnPropertyChanged for MainLogoImage");
+                OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image            
             }
         }
 
@@ -663,6 +732,7 @@ namespace CFMediaPlayer.ViewModels
 
                 // Notify properties on change of selected media item collection
                 OnPropertyChanged(nameof(SelectedMediaItemCollection));
+                System.Diagnostics.Debug.WriteLine("[SelectedMediaItemCollection] Notifying OnPropertyChanged for MainLogoImage");
                 OnPropertyChanged(nameof(MainLogoImage));   // If media item collection specific image
 
                 // Display media items for album, select default
@@ -686,6 +756,7 @@ namespace CFMediaPlayer.ViewModels
                 {
                     if (_selectedMediaItem != null && !String.IsNullOrEmpty(_selectedMediaItem.ImagePath))
                     {
+                        System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItem.ImagePath}");
                         return _selectedMediaItem.ImagePath;
                     }
                 }
@@ -693,12 +764,18 @@ namespace CFMediaPlayer.ViewModels
                 // Set media item collection level image. E.g. Album image
                 if (_selectedMediaItemCollection != null && !String.IsNullOrEmpty(_selectedMediaItemCollection.ImagePath))
                 {
+                    System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItemCollection.ImagePath}");
                     return _selectedMediaItemCollection.ImagePath;
                 }
 
                 // Set media source level image
-                if (SelectedMediaSource != null) return SelectedMediaSource.ImagePath;
+                if (SelectedMediaSource != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"MainLogoImage={SelectedMediaSource.ImagePath}");
+                    return SelectedMediaSource.ImagePath;
+                }
 
+                System.Diagnostics.Debug.WriteLine($"MainLogoImage=cassette_player_audio_speaker_sound_icon.png");
                 return "cassette_player_audio_speaker_sound_icon.png";  // Default
             }
         }
@@ -1513,61 +1590,14 @@ namespace CFMediaPlayer.ViewModels
         //    //_mediaPlayer.ApplyEqualizerTest();
         //    //int xxx = 1000;
         //}
-
-        /// <summary>
-        /// Handles user settings updated
-        /// </summary>
-        public void HandleUserSettingsUpdated()
-        {
-            var userSettings = _userSettingsService.GetByUsername(Environment.UserName)!;
-
-            // Handle them change
-            var isThemeChanged = _uiTheme.Id != userSettings.UIThemeId;
-            if (isThemeChanged)
-            {
-                _uiTheme = _uiThemeService.GetAll().First(t => t.Id == userSettings.UIThemeId);
-            }
-
-            // Handle audio settings
-            var isAudioSettingsChanged = _audioSettings.Id != userSettings.AudioSettingsId;
-            if (isAudioSettingsChanged)
-            {
-                _audioSettings = _audioSettingsService.GetById(userSettings.AudioSettingsId)!;
-                //_mediaPlayer.EqualizerPresetName = _audioSettings.PresetName;
-            }
-        }
-
-        /// <summary>
-        /// Handles playlists updated. Playlist changes may playlist lists displayed, media item actions for adding/
-        /// removing media items from playlists.
-        /// </summary>
-        public void HandlePlaylistsUpdated()
-        {
-            Reset(SelectedMediaLocation.Name,
-                        SelectedArtist!.Name,
-                        SelectedMediaItemCollection!.Name,
-                        SelectedMediaItem!.Name);
-        }
-
-        /// <summary>
-        /// Handles queue updated. E.g. Cleared.
-        /// </summary>
-        public void HandleQueueUpdated()
-        {
-            Reset(SelectedMediaLocation.Name,
-                        SelectedArtist!.Name,
-                        SelectedMediaItemCollection!.Name,
-                        SelectedMediaItem!.Name);
-        }
-
+      
         /// <summary>
         /// Resets UI state. Selects requested items, if not available then selects default
         /// </summary>
         /// <param name="selectedMediaLocationName"></param>
         /// <param name="selectedArtistName"></param>
         /// <param name="selectedMediaItemCollectionName"></param>
-        /// <param name="selectedMediaItemName"></param>
-        /// <param name="selectedMediaItemActionName"></param>
+        /// <param name="selectedMediaItemName"></param>        
         private void Reset(string selectedMediaLocationName,
                             string selectedArtistName,
                             string selectedMediaItemCollectionName,
@@ -1582,7 +1612,7 @@ namespace CFMediaPlayer.ViewModels
             SelectedMediaLocation = MediaLocations.First(ml => ml.Name == selectedMediaLocationName);
 
             // Set selected artist
-            if (!String.IsNullOrEmpty(selectedArtistName)) ;
+            if (!String.IsNullOrEmpty(selectedArtistName))
             {
                 SelectedArtist = Artists.FirstOrDefault(a => a.Name == selectedArtistName);
             }
@@ -1645,7 +1675,7 @@ namespace CFMediaPlayer.ViewModels
         }
 
         /// <summary>
-        /// Executes media action. E.g. Clear queue
+        /// Executes media action. May trigger event from ICurrentState.Events which does more processing.
         /// </summary>
         /// <param name="mediaAction"></param>
         public void ExecuteMediaAction(MediaAction mediaAction)
@@ -1657,12 +1687,6 @@ namespace CFMediaPlayer.ViewModels
 
                 // Execute action. E.g. Clear queue
                 mediaSource.ExecuteMediaAction(mediaAction);
-
-                // TODO: If clear queue then we need to refresh media items. We need some way of determine what's changed
-                // so that we can refresh.
-
-                // Refresh media actions
-                LoadMediaActionsForMediaLocation(SelectedMediaLocation);
             }
         }
     }

@@ -32,18 +32,24 @@ namespace CFMediaPlayer.ViewModels
             _currentState = currentState;
             _mediaSourceService = mediaSourceService;
             _mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Queue);
-
-            // Set action to handle change of queue updated
-            _currentState.QueueUpdatedAction += () =>
-            {
-                LoadMediaItems();                
-            };
                
             // Set commands            
             ClearCommand = new Command(DoClear);
             //CloseCommand = new Command(DoClose);
 
+            ConfigureEvents();
+
             LoadMediaItems();
+        }
+
+        private void ConfigureEvents()
+        {
+            // Set action to handle change of queue updated
+            _currentState.Events.OnQueueUpdated += (mediaItem) =>
+            {
+                LoadMediaItems();
+            };
+
         }
 
         /// <summary>

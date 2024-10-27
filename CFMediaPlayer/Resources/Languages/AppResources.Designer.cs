@@ -205,7 +205,7 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove from playlist {0}.
+        ///   Looks up a localized string similar to Remove from {0}.
         /// </summary>
         internal static string MediaItemActionRemoveFromPlaylist {
             get {
@@ -223,7 +223,7 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to playlist {0}.
+        ///   Looks up a localized string similar to Add to {0}.
         /// </summary>
         internal static string MediaItemActionsAddToPlaylist {
             get {
@@ -259,7 +259,7 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Go to album {0}.
+        ///   Looks up a localized string similar to Go to {0}.
         /// </summary>
         internal static string MediaItemActionsOpenMediaItemCollection {
             get {
@@ -394,7 +394,7 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to None.
+        ///   Looks up a localized string similar to [None].
         /// </summary>
         internal static string NoneText {
             get {
