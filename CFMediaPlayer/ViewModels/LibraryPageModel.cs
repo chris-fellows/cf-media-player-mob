@@ -12,6 +12,24 @@ using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.ViewModels
 {
+    /// <summary>
+    /// 
+    /// Notes:
+    /// - When the Selected[X] property is set (Media item location, artist, media item collection etc) then the
+    ///   child items below are refreshed and a default is selected. This cascades down until the lowest level.
+    ///   When used internally then it can cause un-necessary file system reads because the default might select
+    ///   artist 1 but we want artist 5.
+    ///   We should consider having 2 versions of each property (E.g. SelectedArtist):
+    ///       1) Sets SelectedArtist, loads MediaItemCollections (E.g. Called internally)
+    ///       We could then do this in the code and it would be efficient:
+    ///           SelectedArtist = [Artist]     // Loads MediaItemCollections
+    ///           SelectedMediaItemCollection = [MediaItemCollection]       // Loads MediaItems
+    ///           SelectedMediaItem = [MediaItem]  
+    ///       2) Sets SelectedArtistCascaded, loads MediaItemCollections, Sets SelectedMediaItemCollectionCascaded = [0] 
+    /// 
+    /// - For setting SelectedMediaItemLocation then the child items can be loaded in the background so that the
+    ///   UI can be updated to reflect that the app is busy.
+    /// </summary>
     public class LibraryPageModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -37,7 +55,7 @@ namespace CFMediaPlayer.ViewModels
 
         private UITheme _uiTheme;
         private AudioSettings _audioSettings;       
-        private bool _isSearchBusy = false;
+        private bool _isSearchBusy = false;        
 
         public LibraryPageModel(IAudioSettingsService audioSettingsService,
                                 ICurrentState currentState,
@@ -71,7 +89,7 @@ namespace CFMediaPlayer.ViewModels
 
                 // Select Library tab
                 _currentState.SelectTabByTitleAction("Library");
-            };
+            };           
 
             ConfigureEvents();
            
@@ -100,7 +118,7 @@ namespace CFMediaPlayer.ViewModels
                 mediaLocation = MediaLocations.First();
             }
             SelectedMediaLocation = mediaLocation;                                                    
-        }
+        }     
 
         /// <summary>
         /// Configure events
@@ -154,17 +172,34 @@ namespace CFMediaPlayer.ViewModels
             };
 
             // Set event handled for current media item status. 
-            // - If playing imaging then animated equalizer.
+            // - If playing then animated equalizer.
             // - If paused then non-animated equalized.
-            // - Else no image.
+            // - Else no image.            
             _currentState.Events.OnCurrentMediaItemStatusChanged += (mediaItem, isPlaying, isPaused) =>
             {
-                if (mediaItem != null && _selectedMediaItem != null)
+                if (mediaItem != null && _selectedMediaItem != null &&
+                    mediaItem.FilePath == _selectedMediaItem.FilePath)
                 {                   
+                    foreach(var currentMediaItem in _mediaItems)
+                    {
+                        if (currentMediaItem.FilePath == _selectedMediaItem.FilePath &&
+                            (isPlaying || isPaused))
+                        {                            
+                            _selectedMediaItem.StatusImage = "equalizer.gif";
+                            _selectedMediaItem.IsStatusImageAnimating = isPlaying;                            
+                        }
+                        else
+                        {
+                            currentMediaItem.StatusImage = "";
+                            currentMediaItem.IsStatusImageAnimating = false;
+                        }
+                    }
+
+                    /*
                     if (isPlaying || isPaused)
                     {                        
                         _selectedMediaItem.StatusImage = "equalizer.gif";
-                        _selectedMediaItem.IsStatusImageAnimating = isPlaying;
+                        _selectedMediaItem.IsStatusImageAnimating = isPlaying;                        
                     }
                   
                     // Clear image for all other media items
@@ -172,7 +207,8 @@ namespace CFMediaPlayer.ViewModels
                     {
                         currentMediaItem.StatusImage = "";
                         currentMediaItem.IsStatusImageAnimating = false;
-                    }
+                    } 
+                    */
                 }
                 else    // Clear image for all media items
                 {
@@ -410,14 +446,14 @@ namespace CFMediaPlayer.ViewModels
         /// Whether component is busy. This is typically used for the ActivityIndicator which is used for any
         /// busy functions, not just search.
         /// </summary>
-        public bool IsBusy => IsSearchBusy;
+        public bool IsBusy => IsSearchBusy || IsRefreshBusy;
 
         /// <summary>
         /// Loads media action for media location
         /// </summary>
         /// <param name="mediaLocation"></param>
         /// <param name="maxItems"></param>
-        private void LoadMediaActionsForMediaLocation(MediaLocation mediaLocation, int maxItems = 10)
+        private void LoadMediaActions(MediaLocation mediaLocation, int maxItems = 10)
         {
             // Clear
             MediaActions = new List<MediaAction>();
@@ -436,7 +472,7 @@ namespace CFMediaPlayer.ViewModels
             mediaActions = mediaActions.OrderBy(mia => mia.Name).ToList();
 
             MediaActions = mediaActions;
-        }
+        }        
 
         /// <summary>
         /// Whether search is busy
@@ -448,6 +484,23 @@ namespace CFMediaPlayer.ViewModels
             {
                 _isSearchBusy = value;
 
+                OnPropertyChanged(nameof(IsSearchBusy));
+                OnPropertyChanged(nameof(IsBusy));
+            }
+        }
+
+        /// <summary>
+        /// Whether refresh is busy. E.g. User selected media location.
+        /// </summary>
+        private bool _isRefreshBusy;
+        public bool IsRefreshBusy
+        {
+            get { return _isRefreshBusy; }
+            set
+            {
+                _isRefreshBusy = value;              
+
+                OnPropertyChanged(nameof(IsRefreshBusy));
                 OnPropertyChanged(nameof(IsSearchBusy));
                 OnPropertyChanged(nameof(IsBusy));
             }
@@ -560,29 +613,7 @@ namespace CFMediaPlayer.ViewModels
             MediaItems = new();
             SelectedMediaItem = null;
         }
-
-        ///// <summary>
-        ///// Notifies property changes for media item play state.
-        ///// </summary>
-        //private void NotifyPropertiesChangedForPlayState()
-        //{
-        //    OnPropertyChanged(nameof(IsCanSelectPosition));
-        //    OnPropertyChanged(nameof(IsPlaying));
-        //    OnPropertyChanged(nameof(IsPaused));
-        //    OnPropertyChanged(nameof(IsNextEnabled));
-        //    OnPropertyChanged(nameof(IsNextVisible));
-        //    OnPropertyChanged(nameof(IsPrevEnabled));
-        //    OnPropertyChanged(nameof(IsPrevVisible));
-        //    OnPropertyChanged(nameof(IsAutoPlayNextVisible));
-        //    OnPropertyChanged(nameof(IsShufflePlayVisible));
-        //    OnPropertyChanged(nameof(PlayButtonImageSource));
-        //    OnPropertyChanged(nameof(DurationMS));
-        //    OnPropertyChanged(nameof(ElapsedTime));
-        //    OnPropertyChanged(nameof(ElapsedMS));
-        //    OnPropertyChanged(nameof(RemainingTime));
-        //    OnPropertyChanged(nameof(RemainingMS));
-        //}
-
+      
         private void ClearMediaItemCollections()
         {
             MediaItemCollections = new List<MediaItemCollection>();
@@ -596,6 +627,22 @@ namespace CFMediaPlayer.ViewModels
         }
      
         private MediaLocation? _selectedMediaLocation;
+
+        /// <summary>
+        /// Selected media location where some processing (E.g. Loading artists, albums) is done asynchronously. When this
+        /// property returns then SelectedMediaLocation has been set correctly but the associated data (Artists etc) hasn't
+        /// been loaded.
+        /// 
+        /// This property is used from the UI so that it can be updated with progress while the data is loading.
+        /// </summary>
+        public MediaLocation SelectedMediaLocationAsync
+        {
+            get { return SelectedMediaLocation; }
+            set
+            {
+                SetSelectedMediaLocation(value, true);                                       
+            }
+        }
 
         /// <summary>
         /// Selected media location.
@@ -612,34 +659,161 @@ namespace CFMediaPlayer.ViewModels
 
             set
             {
-                _selectedMediaLocation = value;                
-                _currentState.SelectedMediaLocation = value;
-                _currentState.SelectedMediaSource = value == null ? null : _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaLocation.Name);
+                // Always asynchronously
+                SetSelectedMediaLocation(value, false);
 
-                // Reset ICurrentState.ShufflePlay if not allowed. E.g. Radio streams
-                if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsShufflePlayAllowed)
-                {
-                    _currentState.ShufflePlay = false;
-                }
+                //IsRefreshBusy = true;                
 
-                // Reset ICurrentState.AutoPlayNext if not allowed. E.g. Radio streams
-                if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsAutoPlayNextAllowed)
-                {
-                    _currentState.AutoPlayNext = false;
-                }
+                //_selectedMediaLocation = value;                
+                //_currentState.SelectedMediaLocation = value;
+                //_currentState.SelectedMediaSource = value == null ? null : _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaLocation.Name);
 
-                System.Diagnostics.Debug.WriteLine(_selectedMediaLocation == null ? "Set SelectedMediaLocation=null" : $"Set SelectedMediaLocation={_selectedMediaLocation.Name}");
+                //// Reset ICurrentState.ShufflePlay if not allowed. E.g. Radio streams
+                //if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsShufflePlayAllowed)
+                //{
+                //    _currentState.ShufflePlay = false;
+                //}
 
-                // Notify properties on change of selected media location
-                OnPropertyChanged(nameof(SelectedMediaLocation));
-                OnPropertyChanged(nameof(SearchBarPlaceholderText));
+                //// Reset ICurrentState.AutoPlayNext if not allowed. E.g. Radio streams
+                //if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsAutoPlayNextAllowed)
+                //{
+                //    _currentState.AutoPlayNext = false;
+                //}
 
-                // Display artists for media source
-                if (_selectedMediaLocation != null)
-                {
-                    LoadMediaLocationDefaults();
-                }
+                //System.Diagnostics.Debug.WriteLine(_selectedMediaLocation == null ? "Set SelectedMediaLocation=null" : $"Set SelectedMediaLocation={_selectedMediaLocation.Name}");
+
+                //// Notify properties on change of selected media location
+                //OnPropertyChanged(nameof(SelectedMediaLocation));
+                //OnPropertyChanged(nameof(SearchBarPlaceholderText));
+
+                //// Display artists for media source
+                //if (_selectedMediaLocation != null)
+                //{                    
+                //    LoadMediaLocationDefaults();                    
+                //}
+                
+                //IsRefreshBusy = false;
             }
+        }
+
+        //private Task SetSelectedArtist(Artist? artist, bool async = false)
+        //{
+        //    _selectedArtist = artist;
+        //    _currentState.SelectedArtist = artist;
+
+        //    OnPropertyChanged(nameof(SelectedArtist));
+
+        //    Task task = Task.CompletedTask;
+        //    if (async)
+        //    {
+        //        task = Task.Factory.StartNew(() =>
+        //        {
+        //            if (_selectedArtist != null)
+        //            {
+        //                // Load media item collections for artist
+        //                LoadMediaItemCollections(_selectedArtist);
+
+        //                // Select media item collection
+        //                SelectTheMediaItemCollection(_selectedArtist, null);
+        //            }
+        //        });
+        //    }
+        //    else    // Synchronous
+        //    {
+        //        if (_selectedArtist != null)
+        //        {
+        //            // Load media item collections for artist
+        //            LoadMediaItemCollections(_selectedArtist);
+
+        //            // Select media item collection
+        //            SelectTheMediaItemCollection(_selectedArtist, null);
+        //        }
+        //    }
+        //    return task;
+        //}
+
+        /// <summary>
+        /// Sets SelectedMediaLocation in one of the following ways:
+        /// - Synchronously. E.g. Internal call.
+        /// - Asynchronously. E.g. From UI.
+        /// 
+        /// The property is always set synchrounously. The slow part (Loading associated data such as artists, albums
+        /// is done) may be done synchrously or asynchrously.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
+        private Task SetSelectedMediaLocation(MediaLocation? value, bool async = false)
+        {           
+            IsRefreshBusy = true;
+
+            _selectedMediaLocation = value;
+            _currentState.SelectedMediaLocation = value;
+            _currentState.SelectedMediaSource = value == null ? null : _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == _selectedMediaLocation.Name);
+
+            // Reset ICurrentState.ShufflePlay if not allowed. E.g. Radio streams
+            if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsShufflePlayAllowed)
+            {
+                _currentState.ShufflePlay = false;
+            }
+
+            // Reset ICurrentState.AutoPlayNext if not allowed. E.g. Radio streams
+            if (_selectedMediaLocation != null && !_currentState.SelectedMediaSource.IsAutoPlayNextAllowed)
+            {
+                _currentState.AutoPlayNext = false;
+            }
+
+            System.Diagnostics.Debug.WriteLine(_selectedMediaLocation == null ? "Set SelectedMediaLocation=null" : $"Set SelectedMediaLocation={_selectedMediaLocation.Name}");
+
+            // Notify properties on change of selected media location
+            OnPropertyChanged(nameof(SelectedMediaLocation));
+            OnPropertyChanged(nameof(SearchBarPlaceholderText));
+
+            Task task = Task.CompletedTask;
+            if (async)
+            {
+                task = Task.Factory.StartNew(() =>
+                {
+                    // Run in main thread. If we don't do this then the UI is left in an inconsistent state. We will correctly
+                    // select a real artist but the UI will automatically set SelectedArtist=[All] (First artist).
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        // Clear actions
+                        ClearActionsForMediaLocation();
+
+                        // Load actions
+                        LoadMediaActions(SelectedMediaLocation);
+
+                        // Display artists for media source
+                        if (_selectedMediaLocation != null)
+                        {                         
+                            LoadArtists("SetSelectedMediaLocation(1)");
+
+                            SelectArtist(null);
+                        }
+
+                        IsRefreshBusy = false;
+                    });                  
+                });
+            }
+            else    // Synchronous
+            {
+                // Clear actions
+                ClearActionsForMediaLocation();
+
+                // Load actions
+                LoadMediaActions(SelectedMediaLocation);
+
+                if (_selectedMediaLocation != null)
+                {                    
+                    LoadArtists("SetSelectedMediaLocation(2)");
+                    SelectArtist(null);
+                }
+
+                IsRefreshBusy = false;
+            }
+
+            return task;
         }
 
         ///// <summary>
@@ -698,17 +872,37 @@ namespace CFMediaPlayer.ViewModels
 
             set
             {
+                //SetSelectedMediaItem(value);
+
                 _selectedMediaItem = value;
-                _currentState.SelectedMediaItem = value;
+                _currentState.SelectedMediaItem = value;    // Triggers CurrentPage to load media item actions
                 System.Diagnostics.Debug.WriteLine(_selectedMediaItem == null ? "Set SelectedMediaItem=null" : $"Set SelectedMediaItem={_selectedMediaItem.Name}");
+
+                if (_selectedArtist != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SelectedMediaItem set] SelectedArtist={_selectedArtist.Name}");
+                }
 
                 // Notify properties on change of selected media item
                 OnPropertyChanged(nameof(SelectedMediaItem));
                 OnPropertyChanged(nameof(IsRealMediaItemSelected));
-                System.Diagnostics.Debug.WriteLine("[SelectedMediaItem] Notifying OnPropertyChanged for MainLogoImage");
+                //System.Diagnostics.Debug.WriteLine("[SelectedMediaItem] Notifying OnPropertyChanged for MainLogoImage");
                 OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image            
             }
         }
+
+        //private void SetSelectedMediaItem(MediaItem? value)
+        //{
+        //    _selectedMediaItem = value;
+        //    _currentState.SelectedMediaItem = value;
+        //    System.Diagnostics.Debug.WriteLine(_selectedMediaItem == null ? "Set SelectedMediaItem=null" : $"Set SelectedMediaItem={_selectedMediaItem.Name}");
+
+        //    // Notify properties on change of selected media item
+        //    OnPropertyChanged(nameof(SelectedMediaItem));
+        //    OnPropertyChanged(nameof(IsRealMediaItemSelected));
+        //    System.Diagnostics.Debug.WriteLine("[SelectedMediaItem] Notifying OnPropertyChanged for MainLogoImage");
+        //    OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image            
+        //}
 
         private MediaItemCollection? _selectedMediaItemCollection;
 
@@ -726,22 +920,53 @@ namespace CFMediaPlayer.ViewModels
 
             set
             {
+                //SetSelectedMediaItemCollection(value, true, null);
+
                 _selectedMediaItemCollection = value;
                 _currentState.SelectedMediaItemCollection = value;
-                System.Diagnostics.Debug.WriteLine(_selectedMediaItemCollection == null ? "Set SelectedMediaItemCollection=null" : $"Set SelectedMediaItemCollection={_selectedMediaItemCollection.Name}");
+                System.Diagnostics.Debug.WriteLine(_selectedMediaItemCollection == null ? "Set SelectedMediaItemCollection=null" :
+                                        $"Set SelectedMediaItemCollection={_selectedMediaItemCollection.Name}");
 
                 // Notify properties on change of selected media item collection
-                OnPropertyChanged(nameof(SelectedMediaItemCollection));
-                System.Diagnostics.Debug.WriteLine("[SelectedMediaItemCollection] Notifying OnPropertyChanged for MainLogoImage");
+                OnPropertyChanged(nameof(SelectedMediaItemCollection));              
                 OnPropertyChanged(nameof(MainLogoImage));   // If media item collection specific image
 
                 // Display media items for album, select default
                 if (_selectedMediaItemCollection != null)
                 {
-                    LoadMediaItemCollectionDefaults(_selectedArtist, _selectedMediaItemCollection);
+                    // Load media items
+                    LoadMediaItems(_selectedArtist, _selectedMediaItemCollection, "SelectedMediaItemCollection[set]");
+
+                    // Select media item
+                    SelectMediaItem(null);
                 }
             }
         }
+
+        //private void SetSelectedMediaItemCollection(MediaItemCollection? value, bool setSelectedMediaItem, string? mediaItemNameToSelect)
+        //{
+        //    _selectedMediaItemCollection = value;
+        //    _currentState.SelectedMediaItemCollection = value;
+        //    System.Diagnostics.Debug.WriteLine(_selectedMediaItemCollection == null ? "Set SelectedMediaItemCollection=null" : $"Set SelectedMediaItemCollection={_selectedMediaItemCollection.Name}");
+
+        //    // Notify properties on change of selected media item collection
+        //    OnPropertyChanged(nameof(SelectedMediaItemCollection));
+        //    System.Diagnostics.Debug.WriteLine("[SelectedMediaItemCollection] Notifying OnPropertyChanged for MainLogoImage");
+        //    OnPropertyChanged(nameof(MainLogoImage));   // If media item collection specific image
+
+        //    // Display media items for album, select default
+        //    if (_selectedMediaItemCollection != null)
+        //    {
+        //        // Load media items
+        //        LoadMediaItems(_selectedArtist, _selectedMediaItemCollection);
+
+        //        // Select media item
+        //        if (setSelectedMediaItem)
+        //        {
+        //            SelectMediaItem(mediaItemNameToSelect);
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Main logo image to display   
@@ -756,7 +981,7 @@ namespace CFMediaPlayer.ViewModels
                 {
                     if (_selectedMediaItem != null && !String.IsNullOrEmpty(_selectedMediaItem.ImagePath))
                     {
-                        System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItem.ImagePath}");
+                        //System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItem.ImagePath}");
                         return _selectedMediaItem.ImagePath;
                     }
                 }
@@ -764,18 +989,18 @@ namespace CFMediaPlayer.ViewModels
                 // Set media item collection level image. E.g. Album image
                 if (_selectedMediaItemCollection != null && !String.IsNullOrEmpty(_selectedMediaItemCollection.ImagePath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItemCollection.ImagePath}");
+                    //System.Diagnostics.Debug.WriteLine($"MainLogoImage={_selectedMediaItemCollection.ImagePath}");
                     return _selectedMediaItemCollection.ImagePath;
                 }
 
                 // Set media source level image
                 if (SelectedMediaSource != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"MainLogoImage={SelectedMediaSource.ImagePath}");
+                    //System.Diagnostics.Debug.WriteLine($"MainLogoImage={SelectedMediaSource.ImagePath}");
                     return SelectedMediaSource.ImagePath;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"MainLogoImage=cassette_player_audio_speaker_sound_icon.png");
+                //System.Diagnostics.Debug.WriteLine($"MainLogoImage=cassette_player_audio_speaker_sound_icon.png");
                 return "cassette_player_audio_speaker_sound_icon.png";  // Default
             }
         }
@@ -797,6 +1022,15 @@ namespace CFMediaPlayer.ViewModels
 
             set
             {
+                //SetSelectedArtist(value, true, null);     
+
+                if (value != null && value.Name.Equals("[All]"))
+                {
+                    var artists = new List<Artist>();
+                    artists.AddRange(Artists);
+                    int xxx = 1000;
+                }
+
                 _selectedArtist = value;
                 _currentState.SelectedArtist = value;
                 System.Diagnostics.Debug.WriteLine(_selectedArtist == null ? "Set SelectedArtist=null" : $"Set SelectedArtist={_selectedArtist.Name}");
@@ -807,151 +1041,126 @@ namespace CFMediaPlayer.ViewModels
                 // Display albums & media items for artist, select default
                 if (_selectedArtist != null)
                 {
-                    LoadArtistDefaults(_selectedArtist);
-                }
+                    // Load media item collections for artist
+                    LoadMediaItemCollections(_selectedArtist, "SelectedArtist[set]");
 
-                // Player buttons
-                //NotifyPropertiesChangedForPlayState();
+                    // Select media item collection
+                    SelectMediaItemCollection(null);
+                }
             }
-        }
+        }    
+        
+        ///// <summary>
+        ///// Sets selected artist, loads media item collections and (if required) selects media item collection
+        ///// </summary>
+        ///// <param name="value"></param>
+        ///// <param name="selectMediaItemCollection"></param>
+        //private void SetSelectedArtist(Artist? value, bool selectMediaItemCollection, string? mediaItemCollectionToSelect)
+        //{
+        //    _selectedArtist = value;
+        //    _currentState.SelectedArtist = value;
+        //    System.Diagnostics.Debug.WriteLine(_selectedArtist == null ? "Set SelectedArtist=null" : $"Set SelectedArtist={_selectedArtist.Name}");
+
+        //    // Notify properties on change of selected artist
+        //    OnPropertyChanged(nameof(SelectedArtist));
+
+        //    // Display albums & media items for artist, select default
+        //    if (_selectedArtist != null)
+        //    {
+        //        // Load media item collections for artist
+        //        LoadMediaItemCollections(_selectedArtist);
+
+        //        // Select media item collection
+        //        if (selectMediaItemCollection)
+        //        {
+        //            SelectMediaItemCollection(mediaItemCollectionToSelect);
+        //        }
+        //    }
+        //}
+
+        //private void LoadMediaItemsCollectionsNone()
+        //{
+        //    var mediaItemCollections = new List<MediaItemCollection>() { MediaItemCollection.InstanceNone };
+        //    MediaItemCollections = mediaItemCollections;
+        //}
 
         private void ClearActionsForMediaLocation()
         {
-            MediaActions = new List<MediaAction>();
-            //SelectedMediaItemAction = null;
+            MediaActions = new List<MediaAction>();           
         }
 
         /// <summary>
-        /// Loads the default artist for media location (First artist selected)
+        /// Selects artist from Artists. Selects named artist if specified else other.
         /// </summary>
-        private void LoadMediaLocationDefaults()
+        private void SelectArtist(string? artistNameToSelect)
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadMediaLocationDefaults");
-
-            // Clear everything below media location level
-            ClearActionsForMediaLocation();
-            ClearArtists();
-            ClearMediaItemCollections();
-            ClearMediaItems();            
-            ClearSearchResults();   // Search results are for current media location
-
-            // Load actions
-            LoadMediaActionsForMediaLocation(SelectedMediaLocation);
-
-            // Get artists (Adds None if necessary)
-            LoadArtistsForMediaLocation();
+            System.Diagnostics.Debug.WriteLine("Entered SelectArtist");
+            if (Artists == null)
+            {
+                System.Diagnostics.Debug.WriteLine("SelectArtist: Items=null");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SelectArtist: Items=" + String.Join("; ", Artists.Select(a => a.Name)));
+            }
 
             // Set default artist. Ideally real artist else none else shuffle
-            var defaultArtist = Artists.FirstOrDefault(a => a.EntityCategory == EntityCategory.Real);
-            if (defaultArtist == null) defaultArtist = Artists.FirstOrDefault(a => a.EntityCategory == EntityCategory.None);
-            if (defaultArtist == null) defaultArtist = Artists[0];
+            Artist? artist = String.IsNullOrEmpty(artistNameToSelect) ? null : Artists.FirstOrDefault(a => a.Name == artistNameToSelect);                
+            if (artist == null) artist = Artists.FirstOrDefault(a => a.EntityCategory == EntityCategory.Real);
+            if (artist == null) artist = Artists.FirstOrDefault(a => a.EntityCategory == EntityCategory.None);
+            if (artist == null) artist = Artists[0];
             
-            SelectedArtist = defaultArtist;
+            SelectedArtist = artist;
 
-            System.Diagnostics.Debug.WriteLine("Leaving LoadMediaLocationDefaults");
+            System.Diagnostics.Debug.WriteLine($"Leaving SelectArtist (Selected {artist.Name})");
         }
 
         /// <summary>
-        /// Loads the default media item collections and media items for artist
-        /// </summary>
-        /// <param name="artist"></param>
-        private void LoadArtistDefaults(Artist artist)
+        /// Selects media item collection from MediaItemCollections. Selects named media item collection if specified else other.
+        /// </summary>        
+        /// <param name="mediaItemCollectionNameToSelect">Name of media item collection (if any) to select</param>
+        private void SelectMediaItemCollection(string? mediaItemCollectionNameToSelect)
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadArtistDefaults");
+            System.Diagnostics.Debug.WriteLine("Entered SelectMediaItemCollection");
+            if (MediaItemCollections == null)
+            {
+                System.Diagnostics.Debug.WriteLine("SelectMediaItemCollection: Items=null");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SelectMediaItemCollection: Items=" + String.Join("; ", MediaItemCollections.Select(mic => mic.Name)));
+            }
 
-            // Clear everything below artist level
-            ClearMediaItemCollections();
-            ClearMediaItems();
-            //ClearActionsForMediaItem();
+            // Select media item collection
+            MediaItemCollection? mediaItemCollection = String.IsNullOrEmpty(mediaItemCollectionNameToSelect) ? null :
+                        MediaItemCollections.FirstOrDefault(mic => mic.Name == mediaItemCollectionNameToSelect);                
+            if (mediaItemCollection == null) mediaItemCollection =  MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.Real);
+            if (mediaItemCollection == null) mediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.All);
+            if (mediaItemCollection == null) mediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.None);
+            if (mediaItemCollection == null) mediaItemCollection = MediaItemCollections[0];
+            
+            SelectedMediaItemCollection = mediaItemCollection;        
 
-            // Gets media item collections (Adds None if necessary)
-            LoadMediaItemCollectionsForArtist(artist);
-
-            // Select default media item collection
-            //if (artist.EntityCategory == EntityCategory.All)   // Media item collection only contains [Multiple] if shuffle artist
-            //{
-            //    if (MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.All) == null)
-            //    {
-            //        int xxx = 1000;
-            //    }
-
-            //    SelectedMediaItemCollection = MediaItemCollections.First(mic => mic.EntityCategory == EntityCategory.All);
-            //}
-            //else
-            //{
-                System.Diagnostics.Debug.WriteLine("LoadArtistDefaults: Working out default media item collection");
-
-                // Select preferably real media item collection else none else (presumably) shuffle
-                var selectedMediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.Real);
-                if (selectedMediaItemCollection == null) selectedMediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.All);
-                if (selectedMediaItemCollection == null) selectedMediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.EntityCategory == EntityCategory.None);
-                if (selectedMediaItemCollection == null) selectedMediaItemCollection = MediaItemCollections[0];
-
-                System.Diagnostics.Debug.WriteLine("LoadArtistDefaults: Worked out default media item collection");
-
-                SelectedMediaItemCollection = selectedMediaItemCollection;
-            //}
-
-            System.Diagnostics.Debug.WriteLine("Leaving LoadArtistDefaults");
+            System.Diagnostics.Debug.WriteLine($"Leaving SelectMediaItemCollection (Selected {mediaItemCollection.Name}");
         }
 
         /// <summary>
-        /// Loads the default media items for the artist and album (First media item selected)
-        /// </summary>
-        /// <param name="artist"></param>
-        /// <param name="mediaItemCollection"></param>
-        private void LoadMediaItemCollectionDefaults(Artist artist, MediaItemCollection mediaItemCollection)
+        /// Selected media item from MediaItems. Selects named media item if specified else other.
+        /// </summary>        
+        /// <param name="mediaItemNameToSelect">Name of media item (if any) to select</param>
+        private void SelectMediaItem(string? mediaItemNameToSelect)
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadMediaItemCollectionDefaults");
+            System.Diagnostics.Debug.WriteLine("Entered SelectMediaItem");
+            
+            // Select media item
+            MediaItem? mediaItem = String.IsNullOrEmpty(mediaItemNameToSelect) ? null :
+                            MediaItems.FirstOrDefault(mi => mi.Name == mediaItemNameToSelect);
+            if (mediaItem == null) mediaItem = MediaItems[0];
 
-            // Gets media items for media item collection (Adds None if necessary)            
-            LoadMediaItemsForMediaItemCollection(artist, mediaItemCollection);
+            SelectedMediaItem = mediaItem;
 
-            // Select Nth media item
-            SelectedMediaItem = MediaItems[0];
-
-            System.Diagnostics.Debug.WriteLine("Leaving LoadMediaItemCollectionDefaults");
-        }
-
-        ///// <summary>
-        ///// Selects and plays media item
-        ///// </summary>
-        ///// <param name="mediaItem"></param>
-        //private void SelectAndPlayMediaItem(MediaItem mediaItem)
-        //{
-        //    // Select media item
-        //    if (SelectedMediaItem != mediaItem)
-        //    {
-        //        SelectedMediaItem = mediaItem;
-        //    }
-
-        //    // Play
-        //    PlayMediaItem(mediaItem);
-        //}
-
-        ///// <summary>
-        ///// Plays or resumes media item
-        ///// </summary>
-        ///// <param name="mediaItem"></param>
-        //private void PlayMediaItem(MediaItem mediaItem)
-        //{
-        //    // Stop current media item if different media item to current
-        //    if (IsPlaying || IsPaused)
-        //    {
-        //        if (mediaItem.FilePath != _mediaPlayer.CurrentFilePath)
-        //        {
-        //            Stop();
-        //        }
-        //    }
-
-        //    // Play or resume
-        //    _mediaPlayer.Play(mediaItem.FilePath, (exception) =>
-        //    {
-        //        // TODO: Send to UI
-        //        System.Diagnostics.Debug.WriteLine($"Error playing audio: {exception.Message}");
-        //        //StatusLabel.Text = exception.Message;
-        //    });
-        //}
+            System.Diagnostics.Debug.WriteLine($"Leaving SelectMediaItem (Selected {mediaItem.Name})");
+        }       
 
         /// <summary>      
         /// Loads media items for artist and media item collection:
@@ -961,25 +1170,30 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         /// <param name="artist"></param>
         /// <param name="mediaItemCollection"></param>
-        private void LoadMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection)
+        private void LoadMediaItems(Artist? artist, MediaItemCollection? mediaItemCollection, string? caller = "Unknown")
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadMediaItemsForMediaItemCollection");
+            System.Diagnostics.Debug.WriteLine($"Entered LoadMediaItems (Caller={caller})");
 
-            // Get media items
-            var mediaItems = SelectedMediaSource!.GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, true);
+            // Clear media items and everything below           
+            ClearMediaItems();
 
-            // If shuffle play then sort randomly
-            if (_currentState.ShufflePlay)
+            var mediaItems = new List<MediaItem>();
+            if (SelectedMediaSource != null &&
+                SelectedMediaSource.IsAvailable &&
+                artist != null && 
+                mediaItemCollection != null)
             {
-                mediaItems.SortRandom();
+                mediaItems.AddRange(SelectedMediaSource!.GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, true));
+
+                // If shuffle play then sort randomly
+                if (_currentState.ShufflePlay)
+                {
+                    mediaItems.SortRandom();
+                }
             }
 
-            //// Apply shuffle if required
-            //if (_shufflePlay)
-            //{
-            //    mediaItems.SortRandom();
-            //    _isMediaItemsShuffled = true;
-            //}
+            // Get media items
+            //var mediaItems = SelectedMediaSource!.GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, true);            
 
             // Add None if no media items
             if (!mediaItems.Any())
@@ -989,20 +1203,30 @@ namespace CFMediaPlayer.ViewModels
 
             MediaItems = mediaItems;
 
-            System.Diagnostics.Debug.WriteLine("Entered LoadMediaItemsForMediaItemCollection");
+            System.Diagnostics.Debug.WriteLine($"Entered LoadMediaItems (Caller={caller})");
         }
 
         /// <summary>
         /// Loads all artists for media location. Adds [Shuffle] artist.
         /// </summary>
-        private void LoadArtistsForMediaLocation()
+        private void LoadArtists(string? caller = "Unknown")
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadArtistsForMediaLocation");
+            System.Diagnostics.Debug.WriteLine($"Entered LoadArtists (Caller={caller})");
+
+            // Clear artists and everything below
+            ClearArtists();
+            ClearMediaItemCollections();
+            ClearMediaItems();
+            ClearSearchResults();   // Search results are for current media location
 
             // Get all artists
             // Storage - Real, [Shuffle], [None]
-            var artists = SelectedMediaSource.IsAvailable ? SelectedMediaSource!.GetArtists(true) : new List<Artist>();
-
+            var artists = new List<Artist>();
+            if (SelectedMediaSource != null && SelectedMediaSource.IsAvailable)
+            {
+                artists.AddRange(SelectedMediaSource!.GetArtists(true));
+            }
+                
             // Add None if no artists
             if (!artists.Any())
             {
@@ -1011,18 +1235,26 @@ namespace CFMediaPlayer.ViewModels
 
             Artists = artists;
 
-            System.Diagnostics.Debug.WriteLine("Leaving LoadArtistsForMediaLocation");
+            System.Diagnostics.Debug.WriteLine($"Leaving LoadArtists (Caller={caller})");
         }
 
         /// <summary>
         /// Loads media item collections for artist. May be a real artist or shuffle artist.
         /// </summary>
         /// <param name="artist"></param>
-        private void LoadMediaItemCollectionsForArtist(Artist artist)
+        private void LoadMediaItemCollections(Artist? artist, string? caller = "Unknown")
         {
-            System.Diagnostics.Debug.WriteLine("Entered LoadMediaItemCollectionsForArtist");
+            System.Diagnostics.Debug.WriteLine($"Entered LoadMediaItemCollections (Caller={caller})");
 
-            var mediaItemCollections = SelectedMediaSource!.GetMediaItemCollectionsForArtist(artist, true);
+            // Clear media item collections and below
+            ClearMediaItemCollections();
+            ClearMediaItems();
+
+            var mediaItemCollections = new List<MediaItemCollection>();
+            if (SelectedMediaSource != null && SelectedMediaSource.IsAvailable && artist != null)
+            {
+                mediaItemCollections.AddRange(SelectedMediaSource!.GetMediaItemCollectionsForArtist(artist, true));
+            }
 
             if (!mediaItemCollections.Any())
             {
@@ -1031,7 +1263,7 @@ namespace CFMediaPlayer.ViewModels
 
             MediaItemCollections = mediaItemCollections;
 
-            System.Diagnostics.Debug.WriteLine("Leaving LoadMediaItemCollectionsForArtist");
+            System.Diagnostics.Debug.WriteLine($"Leaving LoadMediaItemCollections (Caller={caller})");
         }
 
         /// <summary>
@@ -1505,18 +1737,12 @@ namespace CFMediaPlayer.ViewModels
 
                 //Thread.Sleep(5000); // Simulate delay
 
+                var cancellationTokenSource = new CancellationTokenSource();
+
                 // Get results
                 var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
-                var results = _mediaSearchService.SearchAsync(searchOptions).Result;
-
-                //if (!results.Any())
-                //{
-                //    for (int index = 0; index < 10; index++)
-                //    {
-                //        results.Add(new SearchResult() { Name = $"Result {index + 1}" });
-                //    }
-                //}
-
+                var results = _mediaSearchService.SearchAsync(searchOptions, cancellationTokenSource.Token).Result;
+               
                 // Set results
                 SearchResults = results;
 

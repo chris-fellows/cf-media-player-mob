@@ -9,10 +9,10 @@ namespace CFMediaPlayer.Services
 
         public MediaSearchService(IMediaSourceService mediaSourceService)
         {
-            _mediaSourceService = mediaSourceService;
+            _mediaSourceService = mediaSourceService;            
         }
 
-        public Task<List<SearchResult>> SearchAsync(SearchOptions searchOptions)
+        public Task<List<SearchResult>> SearchAsync(SearchOptions searchOptions, CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>
             {               
@@ -25,11 +25,14 @@ namespace CFMediaPlayer.Services
                         // Get media source to process this media location                
                         var mediaSource = _mediaSourceService.GetAll().First(ms => ms.MediaLocation.Name == mediaLocation.Name);
 
-                        var searchResultsML = mediaSource.Search(searchOptions);
+                        var searchResultsML = mediaSource.Search(searchOptions, cancellationToken);
                         searchResultsML.ForEach(sr => sr.MediaLocationName = mediaLocation.Name);   // Set media location
                         return searchResultsML;
                     });
                     tasks.Add(task);
+
+                    // Abort if cancelled
+                    if (cancellationToken.IsCancellationRequested) break;
                 }
 
                 // Wait for tasks to complete
@@ -60,7 +63,7 @@ namespace CFMediaPlayer.Services
                 // Sort alphabetical order
                 searchResults = searchResults.OrderBy(sr => sr.Name).ToList();
 
-                return searchResults;
+                return cancellationToken.IsCancellationRequested ? new() : searchResults;
             });
         }
     }

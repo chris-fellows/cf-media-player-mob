@@ -38,7 +38,7 @@ namespace CFMediaPlayer.Models
                     //{
                     //    return EntityCategory.Multiple;
                     //}
-                    else if (Name == LocalizationResources.Instance["AllText"].ToString())
+                    else if (Name == LocalizationResources.Instance["AllMediaItemCollectionsText"].ToString())
                     {
                         return EntityCategory.All;
                     }
@@ -51,6 +51,6 @@ namespace CFMediaPlayer.Models
 
         //public static MediaItemCollection InstanceMultiple => new MediaItemCollection() { Name = LocalizationResources.Instance["MultipleText"].ToString() };
 
-        public static MediaItemCollection InstanceAll => new MediaItemCollection() { Name = LocalizationResources.Instance["AllText"].ToString() };
+        public static MediaItemCollection InstanceAll => new MediaItemCollection() { Name = LocalizationResources.Instance["AllMediaItemCollectionsText"].ToString() };
     }
 }

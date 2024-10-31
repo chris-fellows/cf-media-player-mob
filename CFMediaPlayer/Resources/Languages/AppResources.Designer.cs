@@ -61,6 +61,42 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [All artists].
+        /// </summary>
+        internal static string AllArtistsText {
+            get {
+                return ResourceManager.GetString("AllArtistsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [All albums].
+        /// </summary>
+        internal static string AllMediaItemCollectionsText {
+            get {
+                return ResourceManager.GetString("AllMediaItemCollectionsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [All media items].
+        /// </summary>
+        internal static string AllMediaItemsText {
+            get {
+                return ResourceManager.GetString("AllMediaItemsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [All media locations].
+        /// </summary>
+        internal static string AllMediaLocationsText {
+            get {
+                return ResourceManager.GetString("AllMediaLocationsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [All].
         /// </summary>
         internal static string AllText {
@@ -295,11 +331,20 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Internal storage.
+        ///   Looks up a localized string similar to Storage.
         /// </summary>
         internal static string MediaSourceInternalStorageText {
             get {
                 return ResourceManager.GetString("MediaSourceInternalStorageText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Music.
+        /// </summary>
+        internal static string MediaSourceMusicText {
+            get {
+                return ResourceManager.GetString("MediaSourceMusicText", resourceCulture);
             }
         }
         
@@ -345,15 +390,6 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string MediaSourceRadioStreamsText {
             get {
                 return ResourceManager.GetString("MediaSourceRadioStreamsText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SD card.
-        /// </summary>
-        internal static string MediaSourceSDCardText {
-            get {
-                return ResourceManager.GetString("MediaSourceSDCardText", resourceCulture);
             }
         }
         
@@ -453,6 +489,15 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string SelectedAudioPreset {
             get {
                 return ResourceManager.GetString("SelectedAudioPreset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select language.
+        /// </summary>
+        internal static string SelectLanguageText {
+            get {
+                return ResourceManager.GetString("SelectLanguageText", resourceCulture);
             }
         }
         

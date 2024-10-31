@@ -67,7 +67,7 @@ namespace CFMediaPlayer.Sources
             
         }        
 
-        public List<SearchResult> Search(SearchOptions searchOptions)
+        public List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken)
         {
             var searchResults = new List<SearchResult>();                            
 

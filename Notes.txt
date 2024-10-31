@@ -1,0 +1,9 @@
+Tasks
+-----
+
+- Themes.
+- (Library Page) Context menu for each song.
+- (Library Page) Cancel search.
+- When one of the Selected[X] properties is set then we cascade to the lowest level and
+  set a default (E.g. First artist, first album, first song). We can optimise this and
+  make it possible to indicate how many levels to set the default for.

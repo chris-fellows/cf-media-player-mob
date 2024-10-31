@@ -92,7 +92,7 @@ namespace CFMediaPlayer.Sources
                                                     // We only need to find one folder because they will all be for the same artist.
                                                     if (rootMediaItemCollectionDetails == null)                                                        
                                                     {
-                                                        rootMediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artistFolder, false);                                                        
+                                                        rootMediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artistFolder, false, false);                                                        
                                                     }
 
                                                     // Check if media items in [Source]\[Artist]\[Album] folder                                                        
@@ -102,7 +102,7 @@ namespace CFMediaPlayer.Sources
                                                     {
                                                         foreach (var mediaItemCollectionFolder in Directory.GetDirectories(artistFolder))
                                                         {
-                                                            mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollectionFolder, false);
+                                                            mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollectionFolder, false, false);
                                                             if (mediaItemCollectionDetails != null)
                                                             {                                                                
                                                                 break;
@@ -137,13 +137,18 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
+            // Sort
+            artists = artists.OrderBy(a => a.Name).ToList();
+
             if (includeNonReal)
             {
-                // Add all artist option           
-                if (artists.Count > 1)
-                {
-                    artists.Insert(0, Artist.InstanceAll);
-                }
+                // Don't display [All artists] because we'll have to display all media items for all albums for all
+                // artists.
+                //// Add all artist option           
+                //if (artists.Count > 1)
+                //{
+                //    artists.Insert(0, Artist.InstanceAll);
+                //}
 
                 // Add None if no artists
                 if (!artists.Any())
@@ -152,20 +157,22 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
-            return artists.OrderBy(a => a.Name).ToList();
+            return artists;
         }
 
         public List<MediaItemCollection> GetMediaItemCollectionsForArtist(Artist artist, bool includeNonReal)
         {
             var mediaItemCollections = new List<MediaItemCollection>();
 
-            // If all artist then we just display [Multiple]
+            /* This has been disabled because GetArtists no longer includes [All artists]
+            // If all artist then we just display [All albums]
             if (includeNonReal && artist.EntityCategory == EntityCategory.All)
             {
                 mediaItemCollections.Insert(0, MediaItemCollection.InstanceAll);
 
                 return mediaItemCollections;
-            }          
+            } 
+            */
             
             if (IsAvailable &&
                 artist.EntityCategory == EntityCategory.Real)
@@ -180,7 +187,7 @@ namespace CFMediaPlayer.Sources
                     var mediaItemCollectionFolders = Directory.GetDirectories(artist.Path);
                     foreach (var mediaItemCollectionFolder in mediaItemCollectionFolders)
                     {
-                        var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollectionFolder, false);
+                        var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollectionFolder, false, false);
                         if (mediaItemCollectionDetails != null)   
                         {
                             mediaItemCollections.Add(new MediaItemCollection()
@@ -217,6 +224,9 @@ namespace CFMediaPlayer.Sources
                 }
                 */
             }
+            
+            // Sort
+            mediaItemCollections = mediaItemCollections.OrderBy(mic => mic.Name).ToList();
 
             if (includeNonReal)
             {
@@ -234,7 +244,7 @@ namespace CFMediaPlayer.Sources
                 }
             }
 
-            return mediaItemCollections.OrderBy(mic => mic.Name).ToList();
+            return mediaItemCollections;
         }        
       
         public List<MediaItem> GetMediaItemsForMediaItemCollection(Artist artist, MediaItemCollection mediaItemCollection, 
@@ -256,18 +266,20 @@ namespace CFMediaPlayer.Sources
                                           artistFolder =>
                                           {
                                               if (IsCheckArtistFolder(artistFolder))
-                                              {                                                  
+                                              {
                                                   // Check for media items in \[Artist]. E.g. Podcasts           
-                                                  var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artistFolder, true);
+                                                  // Set media item image to album image
+                                                  var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artistFolder, true, true);
                                                   if (mediaItemCollectionDetails != null)
                                                   {
                                                       mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
                                                   }
 
                                                   // Check for media items in \[Artist]\[Album]
+                                                  // Set media item image to album image
                                                   foreach (var albumFolder in Directory.GetDirectories(artistFolder))
                                                   {
-                                                      mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(albumFolder, true);
+                                                      mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(albumFolder, true, true);
                                                       if (mediaItemCollectionDetails != null)
                                                       {
                                                           mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
@@ -280,32 +292,37 @@ namespace CFMediaPlayer.Sources
                 else if (mediaItemCollection.EntityCategory == EntityCategory.All)  // All media items for artist
                 {                    
                     // Artist will be real artist
-                    // Check for media items in \[Artist]. E.g. Podcasts                    
-                    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artist.Path, true);
+                    // Check for media items in \[Artist]. E.g. Podcasts
+                    // Set media item image to album image
+                    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(artist.Path, true, true);
                     if (mediaItemCollectionDetails != null)
-                    {
+                    {                        
                         mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
                     }
 
                     // Check for media items in \[Artist]\[Album]
                     foreach (var albumFolder in Directory.GetDirectories(artist.Path))
                     {
-                        mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(albumFolder, true);
+                        // Set media item image to album image
+                        mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(albumFolder, true, true);
                         if (mediaItemCollectionDetails != null)
-                        {
+                        {                            
                             mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
                         }                        
                     }                    
                 }
                 else if (mediaItemCollection.EntityCategory == EntityCategory.Real)    // All media items for media item collection
                 {                   
-                    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollection.Path, true);
+                    var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(mediaItemCollection.Path, true, false);
                     if (mediaItemCollectionDetails != null)
                     {
                         mediaItems.AddRange(mediaItemCollectionDetails.MediaItems);
                     }
                 }
             }
+
+            // Sort
+            mediaItems = mediaItems.OrderBy(mi => mi.Name).ToList();
 
             if (includeNonReal)
             {
@@ -362,7 +379,7 @@ namespace CFMediaPlayer.Sources
             }           
         }
 
-        public List<SearchResult> Search(SearchOptions searchOptions)
+        public List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken)
         {
             var searchResults = new List<SearchResult>();
 
@@ -442,7 +459,7 @@ namespace CFMediaPlayer.Sources
             if (IsAvailable && mediaItem.EntityCategory == EntityCategory.Real)
             {
                 // Get MediaItemCollectionDetails
-                var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(Path.GetDirectoryName(mediaItem.FilePath), false);
+                var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForFolder(Path.GetDirectoryName(mediaItem.FilePath), false, false);
 
                 // Check that media item collection exists in this media source. We need to be careful that if we have
                 // internal and SD card storage instances then only the instance that contains the media item returns
@@ -513,8 +530,10 @@ namespace CFMediaPlayer.Sources
         /// </summary>
         /// <param name="folder">Folder to check</param>
         /// <param name="getMediaItems">Whether to return media item list</param>
+        /// <param name="setMediaItemImagePathFromMediaItemCollection">Sets MediaItem.ImagePath to collection image</param>
         /// <returns>MediaItemCollectionDetails is folder contains audio files else null</returns>
-        private MediaItemCollectionDetails? GetMediaItemCollectionDetailsForFolder(string folder, bool getMediaItems)
+        private MediaItemCollectionDetails? GetMediaItemCollectionDetailsForFolder(string folder, bool getMediaItems,
+                                            bool setMediaItemImagePathFromMediaItemCollection)
         {
             if (Directory.Exists(folder))
             {
@@ -567,11 +586,18 @@ namespace CFMediaPlayer.Sources
                         },
                         MediaItems = mediaItems
                     };
-                    
+
                     // If no media item collection image path then set default
                     if (String.IsNullOrEmpty(mediaItemCollectionDetails.MediaItemCollection.ImagePath))
                     {
                         mediaItemCollectionDetails.MediaItemCollection.ImagePath = GetImagePathByMediaItemTypes();
+                    }                
+
+                    // Set media item image from media item collection. This is typically done if user selected [All albums] and we
+                    // want to indicate which album.
+                    if (setMediaItemImagePathFromMediaItemCollection)
+                    {
+                        mediaItemCollectionDetails.MediaItems.ForEach(mi => mi.ImagePath = mediaItemCollectionDetails.MediaItemCollection.ImagePath);
                     }
 
                     return mediaItemCollectionDetails;

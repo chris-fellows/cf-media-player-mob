@@ -1,5 +1,4 @@
-﻿using CFMediaPlayer.Enums;
-using CFMediaPlayer.Exceptions;
+﻿using CFMediaPlayer.Models;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -8,6 +7,11 @@ namespace CFMediaPlayer.Interfaces
     /// </summary>
     public interface IMediaPlayer
     {
+        /// <summary>
+        /// Media player events
+        /// </summary>
+        public MediaPlayerEvents Events { get; }
+
         /// <summary>
         /// Plays media
         /// </summary>
@@ -25,36 +29,21 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         void Stop();
 
-        /// <summary>
-        /// Elapsed playing time
-        /// </summary>
-        /// <returns></returns>
-        TimeSpan GetElapsedPlayTime();
-
-        /// <summary>
-        /// Sets elapsed playing time (Jumps to time)
-        /// </summary>
-        /// <param name="elapsedPlayTime"></param>
-        void SetElapsedPlayTime(TimeSpan elapsedPlayTime);
-
-        TimeSpan GetTotalDuration();        
-
-        /// <summary>
-        /// Sets status action
-        /// </summary>
-        /// <param name="action"></param>
-        void SetStatusAction(Action<MediaPlayerStatuses, MediaPlayerException?> action);
-
-        /// <summary>
-        /// Sets debug action
-        /// </summary>
-        /// <param name="action"></param>
-        void SetDebugAction(Action<string> action);
+        ///// <summary>
+        ///// Sets debug action
+        ///// </summary>
+        ///// <param name="action"></param>
+        //void SetDebugAction(Action<string> action);
 
         /// <summary>
         /// Whether media is currently playing
         /// </summary>
         bool IsPlaying { get; }
+
+        /// <summary>
+        /// Whether media is starting
+        /// </summary>
+        bool IsStarting { get; }
 
         /// <summary>
         /// Whether media is current paused
@@ -66,11 +55,26 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         string CurrentFilePath { get; }
 
-        void ApplyEqualizerTest();
+        //void ApplyEqualizerTest();
         
         /// <summary>
         /// Audio equalizer
         /// </summary>
-        IAudioEqualizer AudioEqualizer { get; }
+        IAudioEqualizer AudioEqualizer { get; }       
+
+        /// <summary>
+        /// Remaining time for current media item
+        /// </summary>
+        TimeSpan RemainingTime { get; }
+
+        /// <summary>
+        /// Duration of current media item
+        /// </summary>
+        TimeSpan DurationTime { get; }
+
+        /// <summary>
+        /// Elapsed time for current media item. Setting will skip to the selected position.
+        /// </summary>
+        TimeSpan ElapsedTime { get; set; }
     }
 }

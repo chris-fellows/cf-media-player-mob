@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using Android.Media;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
@@ -17,6 +18,13 @@ using System.Windows.Input;
 
 namespace CFMediaPlayer.ViewModels
 {
+    /// <summary>
+    /// Notes:
+    /// - If media item isn't playable (E.g. No internet connection to play stream) then user can next/previous
+    ///   but won't be able to play.
+    /// - Busy indicator is displayed when changing media location because it can be slow.
+    /// - Busy indicator is displayed when starting media item.
+    /// </summary>
     public class CurrentPageModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -41,9 +49,8 @@ namespace CFMediaPlayer.ViewModels
         private readonly IUIThemeService _uiThemeService;
         private readonly IUserSettingsService _userSettingsService;
         
-        private List<MediaAction> _mediaActions = new List<MediaAction>();
-    
-        private bool _isSearchBusy = false;
+        private List<MediaAction> _mediaActions = new List<MediaAction>();        
+        private bool _isBusy;
 
         public CurrentPageModel(IAudioSettingsService audioSettingsService,
                                 ICurrentState currentState,
@@ -61,10 +68,7 @@ namespace CFMediaPlayer.ViewModels
             
             _currentState.MediaPlayer = mediaPlayer;
 
-            ConfigureEvents();
-
-            // Handle media play status changes
-            _mediaPlayer.SetStatusAction(OnMediaItemStatusChange);            
+            ConfigureEvents();       
 
             // Set timer for elapsed play time
             _elapsedTimer = new System.Timers.Timer();
@@ -84,7 +88,18 @@ namespace CFMediaPlayer.ViewModels
             AutoPlayNext = false;
 
             // Set equalizer preset
-            ApplyEqualizerDefaults();            
+            ApplyEqualizerSettings(_userSettingsService.GetByUsername(Environment.UserName));            
+        }
+
+        public bool IsBusy
+        {
+            get { return _isBusy; }
+            set
+            {
+                _isBusy = value;
+
+                OnPropertyChanged(nameof(IsBusy));
+            }
         }
 
         private void ConfigureEvents()
@@ -98,7 +113,10 @@ namespace CFMediaPlayer.ViewModels
             // Set event handler for user settings updated
             _currentState.Events.OnUserSettingsUpdated += (userSettings) =>
             {
-                ApplyEqualizerDefaults();
+                var userSettings2 = _userSettingsService.GetByUsername(Environment.UserName);
+
+                ApplyLanguageSettings(userSettings2);
+                ApplyEqualizerSettings(userSettings2);
             };
 
             // Set event handler for playlist updated. Only need to be concerned about updates that affect current media
@@ -132,16 +150,35 @@ namespace CFMediaPlayer.ViewModels
 
                 System.Diagnostics.Debug.WriteLine("[out] OnQueueUpdated in CurrentPageModel");
             };
+
+            // Set handler for media player events
+            _mediaPlayer.Events.OnStatusChange += delegate (MediaPlayerStatuses status, MediaPlayerException? mediaPlayerException)
+            {
+                HandleMediaPlayerStatus(status, mediaPlayerException);
+            };
+
+            // Set handler for media player debug events
+            _mediaPlayer.Events.OnDebug += delegate (string message)
+            {
+                if (OnDebugAction != null) OnDebugAction(message);
+            };
+        }
+
+        /// <summary>
+        /// Apply language change
+        /// </summary>
+        /// <param name="userSettings"></param>
+        private void ApplyLanguageSettings(UserSettings userSettings)
+        {
+            var cultureInfo = System.Globalization.CultureInfo.GetCultureInfo(userSettings.CultureName);
+            LocalizationResources.SetCulture(cultureInfo);
         }
 
         /// <summary>
         /// Applies equalizer defaults
         /// </summary>
-        private void ApplyEqualizerDefaults()
+        private void ApplyEqualizerSettings(UserSettings userSettings)
         {
-            // Get user settings
-            var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
-
             // Clear defaults
             _mediaPlayer.AudioEqualizer.DefaultPresetName = "";
             _mediaPlayer.AudioEqualizer.DefaultCustomBandLevels = new List<short>();
@@ -164,6 +201,21 @@ namespace CFMediaPlayer.ViewModels
 
         public bool IsDebugMode => false;
 
+        private string _errorMessage;
+        public bool IsErrorMessage => !String.IsNullOrEmpty(_errorMessage);
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            set
+            {
+                _errorMessage = value;
+
+                OnPropertyChanged(nameof(ErrorMessage));
+                OnPropertyChanged(nameof(IsErrorMessage));
+            }
+        }
+
         private Action<double> _elapsedAction;
         public void SetElapsedAction(Action<double> action)
         {
@@ -171,12 +223,6 @@ namespace CFMediaPlayer.ViewModels
         }
 
         public string? MediaItemName => _selectedMediaItem != null ? _selectedMediaItem.Name : null;
-
-        /// <summary>
-        /// Whether component is busy. This is typically used for the ActivityIndicator which is used for any
-        /// busy functions, not just search.
-        /// </summary>
-        public bool IsBusy => false;
 
         public List<MediaAction> MediaActions
         {
@@ -228,10 +274,10 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         public ICommand NextCommand { get; set; }
 
-        /// <summary>
-        /// Command to restart current media item
-        /// </summary>
-        public ICommand RestartCommand { get; set; }
+        ///// <summary>
+        ///// Command to restart current media item
+        ///// </summary>
+        //public ICommand RestartCommand { get; set; }
 
         /// <summary>
         /// Command to play or pause/stop current media item
@@ -249,8 +295,9 @@ namespace CFMediaPlayer.ViewModels
         /// Notifies property changes for media item play state.
         /// </summary>
         private void NotifyPropertiesChangedForPlayState()
-        {
+        {            
             OnPropertyChanged(nameof(IsCanSelectPosition));
+            OnPropertyChanged(nameof(IsStarting));  // Not typically bound
             OnPropertyChanged(nameof(IsPlaying));
             OnPropertyChanged(nameof(IsPaused));
             OnPropertyChanged(nameof(IsNextEnabled));
@@ -261,9 +308,9 @@ namespace CFMediaPlayer.ViewModels
             OnPropertyChanged(nameof(IsShufflePlayVisible));
             OnPropertyChanged(nameof(PlayButtonImageSource));
             OnPropertyChanged(nameof(DurationMS));
-            OnPropertyChanged(nameof(ElapsedTime));
+            OnPropertyChanged(nameof(ElapsedTimeString));
             OnPropertyChanged(nameof(ElapsedMS));
-            OnPropertyChanged(nameof(RemainingTime));
+            OnPropertyChanged(nameof(RemainingTimeString));
             OnPropertyChanged(nameof(RemainingMS));
         }
       
@@ -334,6 +381,7 @@ namespace CFMediaPlayer.ViewModels
                 // Notify properties on change of selected media item
                 OnPropertyChanged(nameof(SelectedMediaItem));
                 OnPropertyChanged(nameof(IsRealMediaItemSelected));
+                OnPropertyChanged(nameof(IsRealPlayableMediaItemSelected));
                 OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image
                 OnPropertyChanged(nameof(MediaItemName));
 
@@ -352,7 +400,7 @@ namespace CFMediaPlayer.ViewModels
                     // Respect previous play state. Only play if was playing. Don't play if was paused or stopped.
                     if (IsRealMediaItemSelected && isWasPlaying)
                     {
-                        PlayMediaItem(_selectedMediaItem);
+                        StartPlayMediaItem(_selectedMediaItem);
                     }
                 }
 
@@ -363,14 +411,33 @@ namespace CFMediaPlayer.ViewModels
 
         /// <summary>
         /// Main logo image to display   
+        /// 
+        /// Media item				        Image
+        /// ----------                      -----
+        /// Music item (Real album)			MediaItemCollection.ImagePath
+        /// Music item (All albums)			MediaItem.ImagePath
+        /// Podcast (Real album)			MediaItemCollection.ImagePath
+        /// Podcast (All albums)			MediaItem.ImagePath
+        /// Queue item				        MediaItemCollection.ImagePath
+        /// Radio stream				    MediaItem.ImagePath
         /// </summary>
         public string MainLogoImage
         {
             get
             {
+                // If [All abums] selected then show media item image which defaults to album image
+                if (_currentState.SelectedMediaLocation != null &&
+                    _currentState.SelectedMediaItemCollection != null &&
+                    _currentState.SelectedMediaItemCollection.EntityCategory == EntityCategory.All &&
+                    _selectedMediaItem != null)
+                {
+                    return _selectedMediaItem.ImagePath;
+                }
+
                 // Set media item level image. E.g. Radio stream, playlist item with image for album.
                 // If storage then do nothing because we want to display the album image.
-                if (_currentState.SelectedMediaLocation != null && _currentState.SelectedMediaLocation.MediaSourceType != MediaSourceTypes.Storage)
+                if (_currentState.SelectedMediaLocation != null && 
+                    _currentState.SelectedMediaLocation.MediaSourceType != MediaSourceTypes.Storage)
                 {
                     if (_selectedMediaItem != null && !String.IsNullOrEmpty(_selectedMediaItem.ImagePath))
                     {
@@ -379,7 +446,8 @@ namespace CFMediaPlayer.ViewModels
                 }
 
                 // Set media item collection level image. E.g. Album image
-                if (_currentState.SelectedMediaItemCollection != null && !String.IsNullOrEmpty(_currentState.SelectedMediaItemCollection.ImagePath))
+                if (_currentState.SelectedMediaItemCollection != null && 
+                    !String.IsNullOrEmpty(_currentState.SelectedMediaItemCollection.ImagePath))
                 {
                     return _currentState.SelectedMediaItemCollection.ImagePath;
                 }
@@ -405,7 +473,7 @@ namespace CFMediaPlayer.ViewModels
                 }
                 else   // Media item completed, play it again
                 {
-                    PlayMediaItem(SelectedMediaItem);
+                    StartPlayMediaItem(SelectedMediaItem);
                 }
             }
         }
@@ -427,7 +495,7 @@ namespace CFMediaPlayer.ViewModels
                     _currentState.SelectMediaItemAction(_currentState.MediaItems[index + 1]);
 
                     // Play media item                
-                    PlayMediaItem(SelectedMediaItem);
+                    StartPlayMediaItem(SelectedMediaItem);
                 }
             }
         }
@@ -445,7 +513,7 @@ namespace CFMediaPlayer.ViewModels
                 _currentState.SelectMediaItemAction(_currentState.MediaItems[index - 1]);
 
                 // Play media item                
-                PlayMediaItem(SelectedMediaItem);
+                StartPlayMediaItem(SelectedMediaItem);
             }
         }
 
@@ -465,7 +533,7 @@ namespace CFMediaPlayer.ViewModels
         /// <param name="parameter"></param>
         private void DoPlayOrNot(object parameter)
         {
-            if (IsPlaying)   // Pause or stop
+            if (IsStarting || IsPlaying)   // Pause or stop
             {               
                 if (_selectedMediaItem.IsStreamed)   // Play & stop
                 {
@@ -477,33 +545,59 @@ namespace CFMediaPlayer.ViewModels
                 }                
             }
             else    // Play
-            {                
-                PlayMediaItem(SelectedMediaItem!);                                
+            {             
+                /*
+                var task = Task.Factory.StartNew(() =>
+                {                    
+                    // Run in main thread.
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        StartPlayMediaItem(SelectedMediaItem!);                        
+                    });
+                });
+                */
+
+                StartPlayMediaItem(SelectedMediaItem!);
             }
         }
 
         /// <summary>
-        /// Plays or resumes media item
+        /// Starts playing media item.
+        /// 
+        /// Some media items (E.g. Streaming) may take many seconds to start. During this time then we show the
+        /// busy indicator and the pause/stop buttons.
         /// </summary>
         /// <param name="mediaItem"></param>
-        private void PlayMediaItem(MediaItem mediaItem)
+        private void StartPlayMediaItem(MediaItem mediaItem)
         {
+            // Set busy, may take time to start. IsBusy = false when Starting event is handled
+            IsBusy = true;
+
             // Stop current media item if different media item to current
-            if (IsPlaying || IsPaused)
+            if (IsStarting || IsPlaying || IsPaused)
             {
                 if (mediaItem.FilePath != _mediaPlayer.CurrentFilePath)
                 {
                     Stop();
                 }
-            }
+            }            
 
-            // Play or resume
-            _mediaPlayer.Play(mediaItem.FilePath, (exception) =>
-            {
-                // TODO: Send to UI
-                System.Diagnostics.Debug.WriteLine($"Error playing audio: {exception.Message}");
-                //StatusLabel.Text = exception.Message;
-            });
+            // If paused then assume playable (Saves un-necessary network check)
+            //if (IsPaused || mediaItem.IsPlayable)
+            //{
+                // Play or resume
+                _mediaPlayer.Play(mediaItem.FilePath, (exception) =>
+                {
+                    if (OnMediaPlayerError != null)
+                    {
+                        OnMediaPlayerError(new MediaPlayerException("Error playing media", exception));
+                    }                    
+                    System.Diagnostics.Debug.WriteLine($"Error playing audio: {exception.Message}");    
+                });
+            //}
+
+            // Notify IsBusy, IsStarting properties for the UI
+            //NotifyPropertiesChangedForPlayState();
         }
   
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
@@ -520,39 +614,45 @@ namespace CFMediaPlayer.ViewModels
 
             // Notify property changes to update UI. Only need to be concerned about updating UI with progress
             // for current media item.            
-            OnPropertyChanged(nameof(ElapsedTime));
+            OnPropertyChanged(nameof(ElapsedTimeString));
             OnPropertyChanged(nameof(ElapsedMS));
-            OnPropertyChanged(nameof(RemainingTime));
+            OnPropertyChanged(nameof(RemainingTimeString));
             OnPropertyChanged(nameof(RemainingMS));
         }        
   
         /// <summary>
         /// Elapsed time for media item (00:00:00)
         /// </summary>
-        public string ElapsedTime
+        public string ElapsedTimeString
         {
             get
             {
+                return GetDurationString(_mediaPlayer.ElapsedTime);                
+
+                /*
                 if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
                 {
                     return GetDurationString(_mediaPlayer.GetElapsedPlayTime());
                 }
                 return GetDurationString(TimeSpan.Zero);    // "00:00:00"
+                */
             }
         }
 
         /// <summary>
         /// Remaining time for media item (00:00:00)
         /// </summary>
-        public string RemainingTime
+        public string RemainingTimeString
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return GetDurationString(_mediaPlayer.GetTotalDuration() - _mediaPlayer.GetElapsedPlayTime());
-                }
-                return GetDurationString(TimeSpan.Zero);
+                return GetDurationString(_mediaPlayer.RemainingTime);
+
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{
+                //    return GetDurationString(_mediaPlayer.GetTotalDuration() - _mediaPlayer.GetElapsedPlayTime());
+                //}
+                //return GetDurationString(TimeSpan.Zero);
             }
         }
 
@@ -570,11 +670,13 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return (int)(_mediaPlayer.GetTotalDuration().TotalMilliseconds - _mediaPlayer.GetElapsedPlayTime().TotalMilliseconds);
-                }
-                return 0;
+                return _mediaPlayer.RemainingTime.TotalMilliseconds;
+
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+               // {
+               //     return (int)(_mediaPlayer.GetTotalDuration().TotalMilliseconds - _mediaPlayer.GetElapsedPlayTime().TotalMilliseconds);
+                //}
+                //return 0;
             }
         }
 
@@ -585,11 +687,15 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
+                return _mediaPlayer.DurationTime.TotalMilliseconds;
+
+                /*
                 if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
                 {
                     return (int)_mediaPlayer.GetTotalDuration().TotalMilliseconds;
                 }
                 return 1000;    // Any non-zero value
+                */
             }
         }
 
@@ -600,20 +706,36 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
+                return _mediaPlayer.ElapsedTime.TotalMilliseconds;
+
+                /*
                 if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
                 {
                     return (int)_mediaPlayer.GetElapsedPlayTime().TotalMilliseconds;
                 }
                 return 0;
+                */
             }
 
             set
             {
+                _mediaPlayer.ElapsedTime = TimeSpan.FromMilliseconds(value);
+
+                /*
                 if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
                 {
                     _mediaPlayer.SetElapsedPlayTime(TimeSpan.FromMilliseconds(value));
                 }
+                */
             }
+        }
+
+        /// <summary>
+        /// Whether media item is starting. May take many seconds (E.g. For streaming)
+        /// </summary>
+        public bool IsStarting
+        {
+            get { return _mediaPlayer.IsStarting; }
         }
 
         /// <summary>
@@ -645,9 +767,11 @@ namespace CFMediaPlayer.ViewModels
         /// Stops media item
         /// </summary>
         public void Stop()
-        {
+        {            
+            System.Diagnostics.Debug.WriteLine("Entered CurrentPageModel.Stop");
             _mediaPlayer.Stop();
-            _elapsedTimer.Enabled = false;            
+            _elapsedTimer.Enabled = false;
+            System.Diagnostics.Debug.WriteLine("Leaving CurrentPageModel.Stop");
         }
 
         /// <summary>
@@ -657,7 +781,7 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {                
-                if (IsPlaying)
+                if (IsStarting || IsPlaying)
                 {                   
                     if (_selectedMediaItem.IsStreamed)    // Streamed
                     {
@@ -676,58 +800,68 @@ namespace CFMediaPlayer.ViewModels
         /// Handles media player status change
         /// </summary>
         /// <param name="status"></param>
-        private void OnMediaItemStatusChange(MediaPlayerStatuses status, MediaPlayerException? exception)
+        private void HandleMediaPlayerStatus(MediaPlayerStatuses status, MediaPlayerException? exception)
         {
-            System.Diagnostics.Debug.WriteLine($"OnMediaItemStatusChange: {status}");
+            System.Diagnostics.Debug.WriteLine($"HandleMediaPlayerStatus: {status}");
 
-            switch (status)
-            {
-                case MediaPlayerStatuses.Completed:
-                    NotifyPropertiesChangedForPlayState();
+            if (_selectedMediaItem != null)     // Sanity check
+            {                
+                // Reset IsBusy status. When user presses Play then busy indicator is displayed. Normally will subsequently                
+                // receive Started status. For items slow to play (E.g. Streaming) then user can press Stop.
+                if (IsBusy &&
+                    (status == MediaPlayerStatuses.Started ||                    
+                    status == MediaPlayerStatuses.Stopped ||
+                    status == MediaPlayerStatuses.PlayError))
+                {
+                    IsBusy = false;
+                }
 
-                    _elapsedTimer.Enabled = false;
+                NotifyPropertiesChangedForPlayState();
+                
+                switch (status)
+                {
+                    case MediaPlayerStatuses.Completed:                        
+                        _elapsedTimer.Enabled = false;
 
-                    _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
+                        _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
 
-                    // Play next if configured, otherwise just leave selected media item
-                    if (_currentState.AutoPlayNext &&
-                        SelectedMediaItem != _currentState.MediaItems.Last())
-                    {                        
-                        NextCommand.Execute(null);
-                    }                  
-                    break;
-                case MediaPlayerStatuses.Paused:
-                    NotifyPropertiesChangedForPlayState();
+                        // Play next if configured, otherwise just leave selected media item
+                        if (_currentState.AutoPlayNext &&
+                            SelectedMediaItem != _currentState.MediaItems.Last())
+                        {
+                            NextCommand.Execute(null);
+                        }
+                        break;
+                    case MediaPlayerStatuses.Paused:                        
+                        _elapsedTimer.Enabled = false;
 
-                    _elapsedTimer.Enabled = false;
+                        _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
+                        break;
+                    case MediaPlayerStatuses.Playing:                        
+                        _elapsedTimer.Enabled = true;
 
-                    _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
-                    break;
-                case MediaPlayerStatuses.Playing:
-                    NotifyPropertiesChangedForPlayState();
+                        _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
+                        break;
+                    case MediaPlayerStatuses.Started:                        
+                        _elapsedTimer.Enabled = true;
 
-                    _elapsedTimer.Enabled = true;
+                        _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
+                        break;
+                    case MediaPlayerStatuses.Stopped:                        
+                        _elapsedTimer.Enabled = false;
 
-                    _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
-                    break;
-                case MediaPlayerStatuses.Stopped:
-                    NotifyPropertiesChangedForPlayState();
-
-                    _elapsedTimer.Enabled = false;
-
-                    _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
-                    break;
-                case MediaPlayerStatuses.PlayError:
-                    NotifyPropertiesChangedForPlayState();
-
-                    _elapsedTimer.Enabled = false;
-
-                    // Notify error
-                    if (OnMediaPlayerError != null && exception != null)
-                    {
-                        OnMediaPlayerError(exception);
-                    }
-                    break;
+                        _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
+                        break;
+                    case MediaPlayerStatuses.PlayError:                        
+                        _elapsedTimer.Enabled = false;
+                        
+                        // Notify error
+                        if (OnMediaPlayerError != null && exception != null)
+                        {
+                            OnMediaPlayerError(exception);
+                        }
+                        break;
+                }
             }
 
             if (OnDebugAction != null) OnDebugAction($"Status={status}");
@@ -784,7 +918,7 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;  // _selectedMediaItem.IsAllowNext;
+                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;
                 return true;
             }
         }
@@ -796,7 +930,7 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;  //  _ selectedMediaItem.IsCanSelectPosition;
+                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;
                 return true;
             }
         }
@@ -810,6 +944,17 @@ namespace CFMediaPlayer.ViewModels
             {
                 return SelectedMediaItem != null &&
                     SelectedMediaItem.EntityCategory == EntityCategory.Real;
+            }
+        }
+
+        /// <summary>
+        /// Whether a real and playable media item is selected rather than [None], [Multiple], [Shuffle] etc
+        /// </summary>
+        public bool IsRealPlayableMediaItemSelected
+        {
+            get
+            {
+                return IsRealMediaItemSelected && SelectedMediaItem!.IsPlayable;
             }
         }
 

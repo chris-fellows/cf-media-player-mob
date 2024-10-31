@@ -23,21 +23,22 @@ namespace CFMediaPlayer.Services
         /// <returns></returns>
         public List<MediaLocation> GetAll()
         {
-            // Set media locations
-            var mediaLocations = new List<MediaLocation>()
-            {
-                new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString() + " (Test)",
-                                MediaSourceType = MediaSourceTypes.Storage,
-                                Sources = new() { "/storage/emulated/0/Download" },
-                                MediaItemTypes = new() { MediaItemTypes.Music }
-                                },      // TODO: Remove this                                                                         
-            };
-            
+            //// Set media locations
+            //var mediaLocations = new List<MediaLocation>()
+            //{
+            //    new MediaLocation() { Name = LocalizationResources.Instance["MediaSourceInternalStorageText"].ToString() + " (Test)",
+            //                    MediaSourceType = MediaSourceTypes.Storage,
+            //                    Sources = new() { "/storage/emulated/0/Download" },
+            //                    MediaItemTypes = new() { MediaItemTypes.Music }
+            //                    },      // TODO: Remove this                                                                         
+            //};          
+
             // Set local sources to check
             // Values: [Storage type resource key] [Resource key for internal/external], MediaSourceTypes, MediaItemTypes[], folders[]
+            // MediaSourceInternalStorageText
             var sourceInfos = new List<Tuple<string, string, MediaSourceTypes, List<MediaItemTypes>, List<string>>>()
                         {
-                            new Tuple<string, string, MediaSourceTypes, List<MediaItemTypes>, List<string>>("MediaSourceInternalStorageText", "StorageLocationInternal",
+                            new Tuple<string, string, MediaSourceTypes, List<MediaItemTypes>, List<string>>("MediaSourceMusicText", "StorageLocationInternal",
                                             MediaSourceTypes.Storage,
                                             new() { MediaItemTypes.Music },
                                             new() {
@@ -86,7 +87,7 @@ namespace CFMediaPlayer.Services
                 var musicFolder = Path.Combine(drive, Android.OS.Environment.DirectoryMusic);
                 if (Directory.Exists(musicFolder))
                 {
-                    sourceInfos.Add(new Tuple<string, string, MediaSourceTypes, List<MediaItemTypes>, List<string>>("MediaSourceInternalStorageText", "StorageLocationExternal",
+                    sourceInfos.Add(new Tuple<string, string, MediaSourceTypes, List<MediaItemTypes>, List<string>>("MediaSourceMusicText", "StorageLocationExternal",
                                     MediaSourceTypes.Storage,
                                     new() { MediaItemTypes.Music },
                                     new() {
@@ -124,6 +125,7 @@ namespace CFMediaPlayer.Services
             }
 
             // Add all sources where one of the folders exists. Don't really care if there are any files in the folder.
+            var mediaLocations = new List<MediaLocation>();
             foreach (var sourceInfo in sourceInfos)
             {                
                 var existingFolders = new List<string>();
@@ -145,7 +147,9 @@ namespace CFMediaPlayer.Services
                 {
                     mediaLocations.Add(new MediaLocation()
                     {
-                        Name = $"{LocalizationResources.Instance[sourceInfo.Item1].ToString()} ({LocalizationResources.Instance[sourceInfo.Item2].ToString()})",
+                        Name = String.IsNullOrEmpty(sourceInfo.Item2) ?
+                                    $"{LocalizationResources.Instance[sourceInfo.Item1].ToString()}" :
+                                    $"{LocalizationResources.Instance[sourceInfo.Item1].ToString()} ({LocalizationResources.Instance[sourceInfo.Item2].ToString()})",
                         MediaSourceType = sourceInfo.Item3,
                         MediaItemTypes = sourceInfo.Item4,
                         Sources = existingFolders

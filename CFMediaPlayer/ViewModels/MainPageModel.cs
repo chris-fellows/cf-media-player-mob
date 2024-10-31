@@ -85,9 +85,9 @@ namespace CFMediaPlayer.ViewModels
             _mediaSourceService = mediaSourceService;            
 
             // Handle status change
-            _mediaPlayer.SetStatusAction(OnMediaItemStatusChange);
+            //_mediaPlayer.SetStatusAction(OnMediaItemStatusChange);
 
-            _mediaPlayer.SetDebugAction((action) => { });            
+            //_mediaPlayer.SetDebugAction((action) => { });            
 
             // Set timer for elapsed play time
             _elapsedTimer = new System.Timers.Timer();
@@ -830,10 +830,10 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return GetDurationString(_mediaPlayer.GetElapsedPlayTime());                    
-                }
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{
+                //    return GetDurationString(_mediaPlayer.GetElapsedPlayTime());                    
+                //}
                 return GetDurationString(TimeSpan.Zero);    // "00:00:00"
             }
         }
@@ -842,10 +842,10 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return GetDurationString(_mediaPlayer.GetTotalDuration() - _mediaPlayer.GetElapsedPlayTime());
-                }
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{
+                //    return GetDurationString(_mediaPlayer.GetTotalDuration() - _mediaPlayer.GetElapsedPlayTime());
+                //}
                 return GetDurationString(TimeSpan.Zero);                
             }
         }
@@ -861,10 +861,10 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {                  
-                    return (int)(_mediaPlayer.GetTotalDuration().TotalMilliseconds - _mediaPlayer.GetElapsedPlayTime().TotalMilliseconds);
-                }
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{                  
+                //    return (int)(_mediaPlayer.GetTotalDuration().TotalMilliseconds - _mediaPlayer.GetElapsedPlayTime().TotalMilliseconds);
+                //}
                 return 0;
             }
         }
@@ -876,10 +876,10 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {                
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {                  
-                    return (int)_mediaPlayer.GetTotalDuration().TotalMilliseconds;
-                }
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{                  
+                //    return (int)_mediaPlayer.GetTotalDuration().TotalMilliseconds;
+                //}
                 return 1000;    // Any non-zero value
             }
         }      
@@ -891,19 +891,19 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {                     
-                    return (int)_mediaPlayer.GetElapsedPlayTime().TotalMilliseconds;
-                }
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{                     
+                //    return (int)_mediaPlayer.GetElapsedPlayTime().TotalMilliseconds;
+                //}
                 return 0;
             }
 
             set
             {
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {                    
-                    _mediaPlayer.SetElapsedPlayTime(TimeSpan.FromMilliseconds(value));
-                }             
+                //if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
+                //{                    
+                //    _mediaPlayer.SetElapsedPlayTime(TimeSpan.FromMilliseconds(value));
+                //}             
             }
         }
 
@@ -1209,10 +1209,11 @@ namespace CFMediaPlayer.ViewModels
                 SearchResults = new List<SearchResult>();
 
                 //Thread.Sleep(5000); // Simulate delay
+                var cancellationTokenSource = new CancellationTokenSource();
 
                 // Get results
                 var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
-                var results = _mediaSearchService.SearchAsync(searchOptions).Result;
+                var results = _mediaSearchService.SearchAsync(searchOptions, cancellationTokenSource.Token).Result;
                 
                 //if (!results.Any())
                 //{

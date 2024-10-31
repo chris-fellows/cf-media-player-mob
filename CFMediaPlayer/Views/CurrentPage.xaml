@@ -8,6 +8,12 @@
         <VerticalStackLayout
         Padding="10,0"
         Spacing="2">
+
+            <ActivityIndicator 
+                IsRunning="{Binding IsBusy, Mode=OneWay}"                                        
+                WidthRequest="25"
+                Color="Orange"/>
+
             <Image
   Source="{Binding MainLogoImage}"
   HeightRequest="140"
@@ -34,7 +40,7 @@
            Source="{Binding PlayButtonImageSource}"
            SemanticProperties.Hint="Plays or stops or pauses media"
            Command="{Binding PlayOrNotCommand}"
-           IsEnabled="{Binding Mode=OneWay, Path=IsRealMediaItemSelected}"
+           IsEnabled="{Binding Mode=OneWay, Path=IsRealPlayableMediaItemSelected}"
            HorizontalOptions="Fill" />
 
                     <ImageButton
@@ -65,14 +71,14 @@
              x:Name="ElapsedLabel"               
              Grid.Row="0" Grid.Column="0"
              HorizontalTextAlignment="Start"                         
-             Text="{Binding Mode=OneWay, Path=ElapsedTime}"                       
+             Text="{Binding Mode=OneWay, Path=ElapsedTimeString}"                       
              SemanticProperties.HeadingLevel="Level1" />
 
                     <Label
              x:Name="RemainingLabel"                                     
              Grid.Row="0" Grid.Column="2"
              HorizontalTextAlignment="End"                         
-             Text="{Binding Mode=OneWay, Path=RemainingTime}"
+             Text="{Binding Mode=OneWay, Path=RemainingTimeString}"
             IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
              SemanticProperties.HeadingLevel="Level1" />
 
@@ -120,6 +126,12 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+
+            <Label
+          x:Name="ErrorLabel"
+            IsVisible="{Binding IsErrorMessage, Mode=OneWay}"
+            Text="{Binding ErrorMessage, Mode=OneWay}"                    
+            SemanticProperties.HeadingLevel="Level1" />
 
             <Label
           x:Name="DebugLabel"

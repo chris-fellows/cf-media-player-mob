@@ -193,7 +193,7 @@ namespace CFMediaPlayer.Sources
             _currentState.Events.RaiseOnQueueUpdated(mediaItem);            
         }
        
-        public List<SearchResult> Search(SearchOptions searchOptions)
+        public List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken)
         {
             var searchResults = new List<SearchResult>();         
             

@@ -4,11 +4,12 @@
     /// Media player statuses
     /// </summary>
     public enum MediaPlayerStatuses
-    {
+    {        
         Completed,
         Paused,
         Playing,
         PlayError,
+        Started,
         Stopped
     }
 }

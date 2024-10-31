@@ -12,6 +12,13 @@
            Title="{Binding LocalizationResources[SelectThemeText], Mode=OneWay}">
         </Picker>
 
+        <Picker x:Name="LangugeList" 
+     ItemsSource="{Binding Languages}"
+    ItemDisplayBinding="{Binding Name}"
+    SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+    Title="{Binding LocalizationResources[SelectLanguageText], Mode=OneWay}">
+        </Picker>
+
         <Label Text="{Binding LocalizationResources[SelectedAudioPreset], Mode=OneWay}" />
         <Picker x:Name="AudioSettingsListPicker" 
       ItemsSource="{Binding AudioSettingsList}"

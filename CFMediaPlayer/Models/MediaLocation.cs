@@ -30,6 +30,8 @@ namespace CFMediaPlayer.Models
 
         public static MediaLocation InstanceNone => new MediaLocation() { Name = LocalizationResources.Instance["NoneText"].ToString() };
 
+        public static MediaLocation InstanceAll => new MediaLocation() { Name = LocalizationResources.Instance["AllMediaLocationsText"].ToString() };
+
         [XmlIgnore]
         public EntityCategory EntityCategory
         {
@@ -40,12 +42,8 @@ namespace CFMediaPlayer.Models
                     if (Name == LocalizationResources.Instance["NoneText"].ToString())
                     {
                         return EntityCategory.None;
-                    }
-                    //else if (Name == LocalizationResources.Instance["MultipleText"].ToString())
-                    //{
-                    //    return EntityCategory.Multiple;
-                    //}
-                    else if (Name == LocalizationResources.Instance["AllText"].ToString())
+                    }                   
+                    else if (Name == LocalizationResources.Instance["AllMediaLocationsText"].ToString())
                     {
                         return EntityCategory.All;
                     }

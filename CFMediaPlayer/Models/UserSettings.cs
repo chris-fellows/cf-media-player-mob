@@ -18,6 +18,11 @@ namespace CFMediaPlayer.Models
         public string Username { get; set; } = String.Empty;
 
         /// <summary>
+        /// Culture for translations
+        /// </summary>
+        public string CultureName { get; set; } = String.Empty;
+
+        /// <summary>
         /// UI Theme Id
         /// </summary>
         public string UIThemeId { get; set; } = String.Empty;
@@ -26,9 +31,7 @@ namespace CFMediaPlayer.Models
         /// Audio settings. Refers to either AudioSettings.Id (Preset) or CustomAudioSettings
         /// </summary>
         public string AudioSettingsId { get; set; } = String.Empty;
-
-        //public string AudioPresetName { get; set; } = String.Empty;
-
+       
         /// <summary>
         /// Custom audio settings
         /// </summary>

@@ -83,7 +83,7 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        List<SearchResult> Search(SearchOptions searchOptions);
+        List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets ancestors (Album, MediaItemCollection) for media item. For playlists then a media item can be 

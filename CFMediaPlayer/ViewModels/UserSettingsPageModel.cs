@@ -59,6 +59,31 @@ namespace CFMediaPlayer.ViewModels
             LoadAllSettings();
         }
 
+        private List<NameValuePair<string>> _languages = new List<NameValuePair<string>>();
+
+        public List<NameValuePair<string>> Languages
+        {
+            get { return _languages; }
+            set
+            {
+                _languages = value;
+
+                OnPropertyChanged(nameof(Languages));
+            }
+        }
+
+        private NameValuePair<string> _selectedLanguage;
+        public NameValuePair<string> SelectedLanguage
+        {
+            get { return _selectedLanguage; }
+            set
+            {
+                _selectedLanguage = value;
+
+                OnPropertyChanged(nameof(SelectedLanguage));
+            }
+        }
+
         //public bool IsDirty
         //{
         //    get
@@ -74,6 +99,17 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         private void LoadAllSettings()
         {
+            // Load languages
+            var languages = new List<NameValuePair<string>>()
+            {
+                new NameValuePair<string>() { Name = "English", Value = "en" },
+                new NameValuePair<string>() { Name = "French", Value = "fr" }                
+            };
+            Languages = languages;
+
+            // Set current language
+            SelectedLanguage = Languages.First(l => l.Value == "en");
+
             // Get current user settings
             _userSettings = _userSettingsService.GetByUsername(Environment.UserName)!;
 
@@ -308,7 +344,7 @@ namespace CFMediaPlayer.ViewModels
             _userSettingsService.Update(_userSettings);
 
             // Notify user settings changed
-            _currentState.Events.RaiseOnUserSettingsUpdated(_userSettings);            
+            _currentState.Events.RaiseOnUserSettingsUpdated(_userSettings);
         }      
 
         private void Cancel(object parameter)

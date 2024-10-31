@@ -12,6 +12,6 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        Task<List<SearchResult>> SearchAsync(SearchOptions searchOptions);
+        Task<List<SearchResult>> SearchAsync(SearchOptions searchOptions, CancellationToken cancellationToken);
     }
 }

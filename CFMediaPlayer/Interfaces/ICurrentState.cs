@@ -87,12 +87,14 @@ namespace CFMediaPlayer.Interfaces
         /// <summary>
         /// Events to raise
         /// </summary>
-        public CurrentStateEvents Events { get; }
+        public CurrentStateEvents Events { get; }        
 
         ///// <summary>
         ///// Register method to be notified when SelectedMediaItem changes
         ///// </summary>
         ///// <param name="action"></param>
         //void RegisterSelectedMediaItemChanged(Action action);
+
+        //public Action<bool>? SetIsBusyAction { get; set; }
     }
 }

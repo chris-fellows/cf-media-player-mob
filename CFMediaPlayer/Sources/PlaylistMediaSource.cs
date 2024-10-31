@@ -2,6 +2,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using System.Threading;
 using static Android.Provider.MediaStore.Audio;
 
 namespace CFMediaPlayer.Sources
@@ -385,7 +386,7 @@ namespace CFMediaPlayer.Sources
             }
         }      
 
-        public List<SearchResult> Search(SearchOptions searchOptions)
+        public List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken)
         {
             var searchResults = new List<SearchResult>();
 

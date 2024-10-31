@@ -81,6 +81,7 @@ namespace CFMediaPlayer
                     {
                         Id = Guid.NewGuid().ToString(),
                         Username = Environment.UserName,
+                        CultureName = "en",
                         AudioSettingsId = systemSettings.DefaultAudioSettingsId,               
                         UIThemeId = systemSettings.DefaultUIThemeId,
                         CloudCredentialList = new List<CloudCredentials>(),
@@ -178,7 +179,7 @@ namespace CFMediaPlayer
 
 #if DEBUG
             builder.Logging.AddDebug();
-#endif
+#endif            
 
             return builder.Build();
         }
