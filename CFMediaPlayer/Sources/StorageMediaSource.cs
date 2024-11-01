@@ -371,9 +371,8 @@ namespace CFMediaPlayer.Sources
                     // Get Artist & MediaItemCollection
                     var ancestors = GetAncestorsForMediaItem(mediaItem).FirstOrDefault();
 
-                    // Select MediaItemCollection
-                    // TODO: Consider selecting media item
-                    _currentState.SelectMediaItemCollectionAction!(_mediaLocation, ancestors.Item1, ancestors.Item2);
+                    // Select MediaItemCollection                    
+                    _currentState.SelectMediaItemCollectionAction!(_mediaLocation, ancestors.Item1, ancestors.Item2, mediaItem);
 
                     break;
             }           

@@ -16,6 +16,9 @@ namespace CFMediaPlayer.Sources
     /// - Media items can be in any of these folder structures:    
     ///      1) \[Source]\[Artist]          : Default for playlists.
     ///      2) \[Source]\[Artist]\[Album]  : Less common but we support it.
+    /// - Need to be careful using IPlaylistManager instances. We may start using it in a top level method and then call
+    ///   a second method that tries to use it. At the end of a single use then we set IPlaylistManager.File = "" which
+    ///   can cause errors if the top level method tries to save changes.
     /// </summary>
     public class PlaylistMediaSource : MediaSourceBase, IMediaSource
     {        
@@ -342,10 +345,7 @@ namespace CFMediaPlayer.Sources
             {
                 var playlistManager = _playlistManagers.FirstOrDefault(pl => pl.SupportsFile(mediaAction.PlaylistFile));
                 if (playlistManager != null)
-                {                               
-                    playlistManager.FilePath = mediaAction.PlaylistFile;
-                    var mediaItems = playlistManager.GetAll();
-
+                {                                                   
                     // Load media item
                     MediaItem? mediaItem = String.IsNullOrEmpty(mediaAction.MediaItemFile) ? null :
                                             GetMediaItemByFileFromOriginalSource(mediaAction.MediaItemFile);
@@ -353,24 +353,33 @@ namespace CFMediaPlayer.Sources
                     // Get MediaItemCollectionDetails so that we can notify playlist updated
                     var mediaItemCollectionDetails = GetMediaItemCollectionDetailsForPlaylist(mediaAction.PlaylistFile, false);
 
+                    // Set playlist                    
+                    playlistManager.FilePath = mediaAction.PlaylistFile;
+                    var mediaItems = playlistManager.GetAll();
+
                     // Add or remove playlist item
                     var isSavePlaylist = true;
+                    SystemEventTypes systemEventType = SystemEventTypes.Unknown;
                     switch (mediaAction.ActionType)
                     {
-                        case MediaActionTypes.AddToPlaylist:                            
+                        case MediaActionTypes.AddToPlaylist:
+                            systemEventType = SystemEventTypes.PlaylistItemAdded;
                             if (!mediaItems.Any(mi => mi.FilePath == mediaItem.FilePath))  // Not in playlist already
                             {
                                 mediaItems.Add(mediaItem);
                             }                            
                             break;
                         case MediaActionTypes.ClearPlaylist:
+                            systemEventType = SystemEventTypes.PlaylistCleared;
                             mediaItems.Clear();
                             break;
-                        case MediaActionTypes.DeletePlaylist:                            
+                        case MediaActionTypes.DeletePlaylist:
+                            systemEventType = SystemEventTypes.PlaylistDeleted;
                             File.Delete(mediaAction.PlaylistFile);
                             isSavePlaylist = false;
                             break;
                         case MediaActionTypes.RemoveFromPlaylist:
+                            systemEventType = SystemEventTypes.PlaylistItemAdded;
                             mediaItems.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);                            
                             break;
                     }                   
@@ -381,7 +390,7 @@ namespace CFMediaPlayer.Sources
                     playlistManager.FilePath = "";  // Clean up
 
                     // Notify playlist updated
-                    _currentState.Events.RaiseOnPlaylistUpdated(mediaItemCollectionDetails.MediaItemCollection, mediaItem);
+                    _currentState.Events.RaiseOnPlaylistUpdated(systemEventType, mediaItemCollectionDetails.MediaItemCollection, mediaItem);
                 }
             }
         }      

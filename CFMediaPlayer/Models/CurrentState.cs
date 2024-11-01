@@ -1,10 +1,5 @@
-﻿using CFMediaPlayer.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Interfaces;
 
 namespace CFMediaPlayer.Models
 {
@@ -32,41 +27,34 @@ namespace CFMediaPlayer.Models
             {
                 _selectedMediaItem = value;
 
-                Events.RaiseOnSelectedMediaItemChanged(_selectedMediaItem);
+                //Events.RaiseOnSelectedMediaItemChanged(_selectedMediaItem);              
+            }
+        }
 
-                /*
-                if (SelectedMediaItemChangedAction != null)
-                {
-                    SelectedMediaItemChangedAction(_selectedMediaItem);
-                }
-                */                
+        private MediaItem? _currentMediaItem;
+        public MediaItem? CurrentMediaItem
+        {
+            get { return _currentMediaItem; }
+            set
+            {
+                _currentMediaItem = value;
             }
         }
 
         public List<MediaItem> MediaItems { get; set; } = new List<MediaItem>();
 
         public IMediaPlayer MediaPlayer { get; set; }
+     
+        //public Action<MediaItem>? SelectMediaItemAction { get; set; }
 
-        //private Action _selectedMediaItemChangedAction;
+        public Action<MediaLocation, Artist, MediaItemCollection, MediaItem?>? SelectMediaItemCollectionAction { get; set; }
 
-        //public void RegisterSelectedMediaItemChanged(Action action)
-        //{
-        //    _selectedMediaItemChangedAction = action;
-        //}
+        public Func<MediaItem, MediaPlayerStatuses?>? GetMediaItemPlayStatusFunction { get; set; }
 
-        public Action<MediaItem>? SelectMediaItemAction { get; set; }
-
-        public Action<MediaLocation, Artist, MediaItemCollection>? SelectMediaItemCollectionAction { get; set; }
-
-        //public Action? QueueUpdatedAction { get; set; }
-
-        //public Action? UserSettingsUpdatedAction { get; set; }
-
-        //public Action<MediaItem>? SelectedMediaItemChangedAction { get; set; }
-
-        //public Action<MediaItemCollection, MediaItem?>? PlaylistUpdatedAction { get; set; }
+        public Action? SetNoMediaLocationAction { get; set; }
 
         private CurrentStateEvents _events = new CurrentStateEvents();
         public CurrentStateEvents Events => _events;
+
     }
 }

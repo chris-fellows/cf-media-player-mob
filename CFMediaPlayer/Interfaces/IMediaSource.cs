@@ -27,12 +27,7 @@ namespace CFMediaPlayer.Interfaces
 
         bool IsShufflePlayAllowed { get; }
 
-        bool IsAutoPlayNextAllowed { get; }
-
-        ///// <summary>
-        ///// Whether there are media items available
-        ///// </summary>
-        //bool HasMediaItems { get; }
+        bool IsAutoPlayNextAllowed { get; }      
 
         /// <summary>
         /// Gets all artists

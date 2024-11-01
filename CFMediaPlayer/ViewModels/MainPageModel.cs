@@ -1,6 +1,7 @@
 ﻿using Android.Media;
 using Android.Telephony;
 using Android.Views;
+using CFMediaPlayer.Constants;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
@@ -613,14 +614,14 @@ namespace CFMediaPlayer.ViewModels
         {
             if (IsPlaying)   // Pause or stop
             {
-                if (_selectedMediaItem.IsStreamed)
+                if (_selectedMediaItem.IsPausable)
                 {
-                    Stop();
+                    Pause();
                 }
                 else
                 {
-                    Pause();
-                }                
+                    Stop();
+                }                                
             }
             else    // Play
             {
@@ -950,16 +951,10 @@ namespace CFMediaPlayer.ViewModels
             {          
                 if (IsPlaying)
                 {
-                    if (_selectedMediaItem.IsStreamed)
-                    {
-                        return "audio_media_media_player_music_stop_icon.png";
-                    }
-                    else
-                    {
-                        return "audio_media_media_player_music_pause_icon.png";
-                    }                    
+                    return _selectedMediaItem.IsPausable ? ImageConstants.PauseMediaItemImage :
+                                                ImageConstants.StopMediaItemImage;
                 }
-                return "audio_media_media_player_music_play_icon.png";
+                return ImageConstants.PlayMediaItemImage;
             }
         }
      

@@ -2,6 +2,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Utilities;
+using System.Diagnostics;
 
 namespace CFMediaPlayer.Sources
 {
@@ -11,7 +12,8 @@ namespace CFMediaPlayer.Sources
     /// The queue starts off empty and the user can add media items to it or clear it.
     /// </summary>
     public class QueueMediaSource : MediaSourceBase, IMediaSource
-    {        
+    {
+        private const int _maxItems = 100;
         private readonly List<MediaItem> _mediaItemQueue = new List<MediaItem>();
 
         public QueueMediaSource(ICurrentState currentState,
@@ -29,6 +31,19 @@ namespace CFMediaPlayer.Sources
         public bool IsShufflePlayAllowed => false;    // Play in queue order
 
         public bool IsAutoPlayNextAllowed => true;
+
+        /// <summary>
+        /// Adds media item to queue, removes if too many
+        /// </summary>
+        /// <param name="mediaItem"></param>
+        private void AddMediaItem(MediaItem mediaItem)
+        {
+            while (_mediaItemQueue.Count >= _maxItems)
+            {
+                _mediaItemQueue.RemoveAt(0);
+            }
+            _mediaItemQueue.Add(mediaItem);
+        }
 
         public List<Artist> GetArtists(bool includeNonReal)
         {
@@ -123,15 +138,15 @@ namespace CFMediaPlayer.Sources
                     };
                     mediaActions.Add(item1);
 
-                    var item2 = new MediaAction()
-                    {
-                        MediaLocationName = _mediaLocation.Name,
-                        Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueNext)].ToString(),
-                        MediaItemFile = mediaItem.FilePath,
-                        ActionType = MediaActionTypes.AddToQueueNext,
-                        ImagePath = "plus.png"
-                    };
-                    mediaActions.Add(item2);
+                    //var item2 = new MediaAction()
+                    //{
+                    //    MediaLocationName = _mediaLocation.Name,
+                    //    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueNext)].ToString(),
+                    //    MediaItemFile = mediaItem.FilePath,
+                    //    ActionType = MediaActionTypes.AddToQueueNext,
+                    //    ImagePath = "plus.png"
+                    //};
+                    //mediaActions.Add(item2);
                 }            
             }
 
@@ -155,42 +170,131 @@ namespace CFMediaPlayer.Sources
                 mediaActions.Add(mediaAction);
             }
 
+            // Add action to add random items
+            var mediaAction2 = new MediaAction()
+            {
+                ActionType = MediaActionTypes.AddRandomItemsToQueue,
+                MediaLocationName = mediaLocation.Name,
+                ImagePath = "plus.png",
+                Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddRandomItemsToQueue)].ToString()
+            };
+            mediaActions.Add(mediaAction2);
+
             return mediaActions;
+        }
+
+        /// <summary>
+        /// Adds N random music items to queue
+        /// </summary>
+        private void AddRandomItemsToQueue(int itemsToAdd)
+        {
+            // Add N media items            
+            var random = new Random();
+            var queueMediaItems = new List<MediaItem>();
+            var artistsByMediaSource = new Dictionary<string, List<Artist>>();  // Key=MediaLocation.Name
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            do
+            {
+                foreach (var mediaSource in _allMediaSources.Where(ms => ms.MediaLocation.MediaSourceType == MediaSourceTypes.Storage &&
+                                                       ms.MediaLocation.MediaItemTypes.Contains(MediaItemTypes.Music) &&
+                                                       ms.IsAvailable))
+                {                    
+                    // Check if artists cached for media source
+                    var artists = artistsByMediaSource.ContainsKey(mediaSource.MediaLocation.Name) ?
+                                    artistsByMediaSource[mediaSource.MediaLocation.Name] : null;
+
+                    if (artists == null)   // Not cached, cache artists for media location
+                    {
+                        artists = mediaSource.GetArtists(false);
+                        artistsByMediaSource.Add(mediaSource.MediaLocation.Name, artists);
+                    }
+                    if (artists.Any())
+                    {
+                        // Select random artist
+                        var artist = artists[random.Next(0, artists.Count - 1)];
+
+                        // Get media item collections for artist
+                        var mediaItemCollections = mediaSource.GetMediaItemCollectionsForArtist(artist, false);
+                        if (mediaItemCollections.Any())
+                        {
+                            // Select random media item collection
+                            var mediaItemCollection = mediaItemCollections[random.Next(0, mediaItemCollections.Count - 1)];
+
+                            // Get media items for media item collection
+                            var mediaItems = mediaSource.GetMediaItemsForMediaItemCollection(artist, mediaItemCollection, false);
+                            if (mediaItems.Any())
+                            {
+                                // Get random media item
+                                var mediaItemX = mediaItems[random.Next(0, mediaItems.Count - 1)];
+
+                                // Add to list for queue
+                                if (!queueMediaItems.Any(mi => mi.FilePath == mediaItemX.FilePath) &&   // Not in list to add to queue
+                                    !_mediaItemQueue.Any(mi => mi.FilePath == mediaItemX.FilePath))     // Not in queue
+                                {
+                                    // Set image to be album image
+                                    mediaItemX.ImagePath = mediaItemCollection.ImagePath;
+
+                                    queueMediaItems.Add(mediaItemX);
+                                }
+                            }
+                        }
+                    }
+                }
+                System.Threading.Thread.Sleep(5);
+            } while (queueMediaItems.Count < itemsToAdd &&
+                    stopwatch.Elapsed < TimeSpan.FromSeconds(10));   // Avoid infinite loop if insufficient media items (TODO: Do it a different way)
+            artistsByMediaSource.Clear();
+
+            // Add to queue
+            queueMediaItems.ForEach(mi => AddMediaItem(mi));            
         }
 
         public void ExecuteMediaAction(MediaAction mediaAction)
         {
-            // Load media item
-            MediaItem? mediaItem = String.IsNullOrEmpty(mediaAction.MediaItemFile) ? null : GetMediaItemByFileFromOriginalSource(mediaAction.MediaItemFile);
+            // Load media item if any
+            MediaItem? mediaItem = String.IsNullOrEmpty(mediaAction.MediaItemFile) ? null :
+                                    GetMediaItemByFileFromOriginalSource(mediaAction.MediaItemFile);
 
+            SystemEventTypes systemEventType = SystemEventTypes.Unknown;
             switch (mediaAction.ActionType)
             {
+                case MediaActionTypes.AddRandomItemsToQueue:
+                    {
+                        AddRandomItemsToQueue(50);
+                        systemEventType = SystemEventTypes.QueueItemsAdded;
+                    }
+                    break;
                 case MediaActionTypes.AddToQueueEnd:
                     {
                         // Clone media item, set album image for display
                         var mediaItemCopy = (MediaItem)mediaItem.Clone();
                         mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                        _mediaItemQueue.Add(mediaItemCopy);
+                        AddMediaItem(mediaItemCopy);                       
+                        systemEventType = SystemEventTypes.QueueItemAdded;
                     }
                     break;
-                case MediaActionTypes.AddToQueueNext:
-                    {
-                        // Clone media item, set album image for display
-                        var mediaItemCopy = (MediaItem)mediaItem.Clone();
-                        mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                        _mediaItemQueue.Insert(0, mediaItemCopy);
-                    }
-                    break;
+                //case MediaActionTypes.AddToQueueNext:
+                //    {
+                //        // Clone media item, set album image for display
+                //        var mediaItemCopy = (MediaItem)mediaItem.Clone();
+                //        mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
+                //        _mediaItemQueue.Insert(0, mediaItemCopy);
+                //    }
+                //    break;
                 case MediaActionTypes.ClearQueue:
                     _mediaItemQueue.Clear();
+                    systemEventType = SystemEventTypes.QueueCleared;
                     break;
                 case MediaActionTypes.RemoveFromQueue:
                     _mediaItemQueue.RemoveAll(mi => mi.FilePath == mediaItem.FilePath);
+                    systemEventType = SystemEventTypes.QueueItemRemoved;
                     break;
             }
 
             // Notify queue updated
-            _currentState.Events.RaiseOnQueueUpdated(mediaItem);            
+            _currentState.Events.RaiseOnQueueUpdated(systemEventType, mediaItem);            
         }
        
         public List<SearchResult> Search(SearchOptions searchOptions, CancellationToken cancellationToken)

@@ -15,7 +15,8 @@ namespace CFMediaPlayer
             _testPageModel = testPageModel;
 
             //MainPage = new AppShell();            
-            MainPage = new TestPage();
+            MainPage = new TestPage();            
+            //MainPage = new MyFlyoutPage();
         }
 
         //public App(MainPageModel mainPageModel)

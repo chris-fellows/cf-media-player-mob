@@ -19,9 +19,10 @@ namespace CFMediaPlayer
         private MediaPlayerEvents _events = new MediaPlayerEvents();
         private Android.Media.MediaPlayer _mediaPlayer = null;        
         private int _currentPosition = 0;
-        private string? _currentFilePath;
-        //private bool _isPrepared;        
+        private string? _currentFilePath;               
         private bool _isStarting;
+        //private bool _isStarted;
+        private bool _isCompleted;
         private readonly IAudioEqualizer _audioEqualizer;
         private bool _isMediaPlayerSet = false;
 
@@ -57,12 +58,13 @@ namespace CFMediaPlayer
             if (_events.OnDebug != null) _events.OnDebug("Playing");
             _mediaPlayer.Start();
             _isStarting = false;
+            //_isStarted = true;
             if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Started, null);
         }
 
         private void OnCompletion(object? sender, EventArgs args)
-        {            
-            _currentFilePath = "";
+        {
+            _isCompleted = true;            
             if (_events.OnDebug != null) _events.OnDebug($"Completed");
             if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Completed, null);
         }
@@ -76,24 +78,26 @@ namespace CFMediaPlayer
                 Stop();
             }
 
-            // Set IsStarting. Must set AFTER calling Stop because in Stop we notify a Stopped event and the UI then hides the busy
-            // indicator. When starting then we want the busy indicator to appear until media item has started.
-            _isStarting = true;
-
-            if (_mediaPlayer != null && !_mediaPlayer.IsPlaying)        // Paused, resume it
-            {
+            //if (_mediaPlayer != null && !_mediaPlayer.IsPlaying)        // Paused, resume it                                        
+            if (_mediaPlayer != null && !_mediaPlayer.IsPlaying)
+            {                
                 if (_events.OnDebug != null) _events.OnDebug($"Starting from {_currentPosition}");
                 _mediaPlayer.SeekTo(_currentPosition);
                 _currentPosition = 0;
                 _mediaPlayer.Start();
+                _isCompleted = false;       // Reset if media item completed and user moved back                
                 if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Playing, null);
             }
             else if (_mediaPlayer == null || !_mediaPlayer.IsPlaying)   // Not started
             {
                 try
                 {
-                    _currentPosition = 0;
-                    //_isPrepared = false;
+                    // Set IsStarting. Must set AFTER calling Stop because in Stop we notify a Stopped event and the UI then hides the busy
+                    // indicator. When starting then we want the busy indicator to appear until media item has started.
+                    _isStarting = true;
+                    _isCompleted = false;
+
+                    _currentPosition = 0;                    
                     _mediaPlayer = new Android.Media.MediaPlayer();
                     _isMediaPlayerSet = true;
                     if (_events.OnDebug != null) _events.OnDebug("Setting media: " + filePath);
@@ -182,7 +186,8 @@ namespace CFMediaPlayer
             // Record whether media is starting.            
             if (_mediaPlayer != null)
             {                
-                _isStarting = false;                
+                _isStarting = false;
+                //_isStarted = false;
                 _mediaPlayer.Error -= OnError;  // Remove error handler
                 _mediaPlayer.Prepared -= OnPrepared;
                 _mediaPlayer.Completion -= OnCompletion;               
@@ -197,7 +202,8 @@ namespace CFMediaPlayer
                 _isMediaPlayerSet = false;
                 _audioEqualizer.Equalizer = null;         
                 _currentPosition = 0;
-                _currentFilePath = "";              
+                _currentFilePath = "";
+                _isCompleted = false;
             }
 
             if (isStatusEvent)
@@ -206,27 +212,11 @@ namespace CFMediaPlayer
                 if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Stopped, null);
             }
         }
-
-        //private TimeSpan GetElapsedPlayTime()
-        //{
-        //    return _mediaPlayer == null ? TimeSpan.Zero :
-        //                TimeSpan.FromMilliseconds(_mediaPlayer.CurrentPosition);
-        //}
-
-        //private void SetElapsedPlayTime(TimeSpan elapsedPlayTime)
-        //{
-        //    if (_mediaPlayer != null)
-        //    {
-        //        _mediaPlayer.SeekTo((int)elapsedPlayTime.TotalMilliseconds);
-        //        _currentPosition = _mediaPlayer.CurrentPosition;
-        //    }
-        //}
-
-        //private TimeSpan GetTotalDuration()
-        //{
-        //    return _mediaPlayer == null ? TimeSpan.Zero :
-        //                TimeSpan.FromMilliseconds(_mediaPlayer.Duration);
-        //}
+      
+        public bool IsCompleted
+        {
+            get { return _isCompleted; }
+        }
 
         public bool IsStarting
         {
@@ -244,46 +234,10 @@ namespace CFMediaPlayer
             {
                 return _mediaPlayer != null &&
                     !_mediaPlayer.IsPlaying &&
-                    _mediaPlayer.CurrentPosition > 0;
+                    _mediaPlayer.CurrentPosition > 0 &&
+                    _mediaPlayer.CurrentPosition < _mediaPlayer.Duration;
             }
         }
-
-        //private static string GetDurationString(TimeSpan duration)
-        //{
-        //    return string.Format("{0:00}", duration.Hours) + ":" +
-        //                  string.Format("{0:00}", duration.Minutes) + ":" +
-        //                  string.Format("{0:00}", duration.Seconds);
-        //}
-
-        ///// <summary>
-        ///// Elapsed time for media item (00:00:00)
-        ///// </summary>
-        //public string ElapsedTimeString
-        //{
-        //    get
-        //    {
-        //        if (IsPlaying || IsPaused)
-        //        {
-        //            return GetDurationString(GetElapsedPlayTime());
-        //        }
-        //        return GetDurationString(TimeSpan.Zero);    // "00:00:00"
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Remaining time for media item (00:00:00)
-        ///// </summary>
-        //public string RemainingTimeString
-        //{
-        //    get
-        //    {
-        //        if (IsPlaying || IsPaused)
-        //        {
-        //            return GetDurationString(GetTotalDuration() - GetElapsedPlayTime());
-        //        }
-        //        return GetDurationString(TimeSpan.Zero);
-        //    }
-        //}
 
         /// <summary>
         /// Duration of current media item
@@ -292,10 +246,9 @@ namespace CFMediaPlayer
         {
             get
             {
-                if (IsPlaying || IsPaused)
+                if (IsPlaying || IsPaused || IsCompleted)
                 {
-                    return TimeSpan.FromMilliseconds(_mediaPlayer.Duration);
-                    //return GetTotalDuration();
+                    return TimeSpan.FromMilliseconds(_mediaPlayer.Duration);                    
                 }
                 return TimeSpan.FromMilliseconds(1000);    // Any non-zero value
             }
@@ -308,17 +261,16 @@ namespace CFMediaPlayer
         {
             get
             {
-                if (IsPlaying || IsPaused)
+                if (IsPlaying || IsPaused || IsCompleted)
                 {
-                    return TimeSpan.FromMilliseconds(_mediaPlayer.CurrentPosition);
-                    //return GetElapsedPlayTime();
+                    return TimeSpan.FromMilliseconds(_mediaPlayer.CurrentPosition);                    
                 }
                 return TimeSpan.Zero;
             }
 
             set
             {
-                if (IsPlaying || IsPaused)
+                if (IsPlaying || IsPaused || IsCompleted)
                 {                    
                     _mediaPlayer.SeekTo((int)value.TotalMilliseconds);
                     _currentPosition = _mediaPlayer.CurrentPosition;                    
@@ -333,7 +285,7 @@ namespace CFMediaPlayer
         {
             get
             {                
-                if (IsPlaying || IsPaused)
+                if (IsPlaying || IsPaused || IsCompleted)
                 {                    
                     return DurationTime - ElapsedTime;
                 }

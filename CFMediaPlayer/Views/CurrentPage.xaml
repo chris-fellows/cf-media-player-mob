@@ -39,8 +39,9 @@
            HeightRequest="50"
            Source="{Binding PlayButtonImageSource}"
            SemanticProperties.Hint="Plays or stops or pauses media"
-           Command="{Binding PlayOrNotCommand}"
-           IsEnabled="{Binding Mode=OneWay, Path=IsRealPlayableMediaItemSelected}"
+           Command="{Binding PlayToggleCommand}"
+           IsEnabled="{Binding Mode=OneWay, Path=IsPlayToggleEnabled}"
+           IsVisible="{Binding Mode=OneWay, Path=IsPlayToggleVisible}"
            HorizontalOptions="Fill" />
 
                     <ImageButton
@@ -107,7 +108,8 @@
                     <Slider x:Name="ElapsedSlider"                    
                  Grid.Row="1" Grid.ColumnSpan="3"    
                  DragCompleted="ElapsedSlider_DragCompleted"
-                 IsVisible="{Binding Path=IsCanSelectPosition, Mode=OneWay}"
+                 IsEnabled="{Binding Path=IsSelectPositionEnabled, Mode=OneWay}"                          
+                 IsVisible="{Binding Path=IsSelectPositionVisible, Mode=OneWay}"
                  Minimum="0"                             
                  Maximum="{Binding Path=DurationMS, Mode=OneWay}" />
                 </Grid>

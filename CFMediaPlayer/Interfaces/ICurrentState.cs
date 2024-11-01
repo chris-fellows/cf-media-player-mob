@@ -1,4 +1,5 @@
-﻿using CFMediaPlayer.Models;
+﻿using CFMediaPlayer.Enums;
+using CFMediaPlayer.Models;
 
 namespace CFMediaPlayer.Interfaces
 {
@@ -43,9 +44,14 @@ namespace CFMediaPlayer.Interfaces
         MediaItemCollection? SelectedMediaItemCollection { get; set; }
 
         /// <summary>
-        /// Selected media item
+        /// Selected media item. This is not necessarily the currently playing
         /// </summary>
         MediaItem? SelectedMediaItem { get; set; }
+
+        /// <summary>
+        /// Current media item (CurrentPage)
+        /// </summary>
+        MediaItem? CurrentMediaItem { get; set; }
 
         /// <summary>
         /// Media items
@@ -57,15 +63,15 @@ namespace CFMediaPlayer.Interfaces
         /// </summary>
         public IMediaPlayer? MediaPlayer { get; set; }
 
-        /// <summary>
-        /// Action to select media item. Assumed within same current media item collection.
-        /// </summary>
-        public Action<MediaItem>? SelectMediaItemAction { get; set; }
+        ///// <summary>
+        ///// Action to select media item. Assumed within same current media item collection.
+        ///// </summary>
+        //public Action<MediaItem>? SelectMediaItemAction { get; set; }
 
         /// <summary>
         /// Action to select media item collection. E.g. User selects "Open album X" media action.
         /// </summary>
-        public Action<MediaLocation, Artist, MediaItemCollection>? SelectMediaItemCollectionAction { get; set; }
+        public Action<MediaLocation, Artist, MediaItemCollection, MediaItem?>? SelectMediaItemCollectionAction { get; set; }
 
         ///// <summary>
         ///// Action when queue updated
@@ -96,5 +102,13 @@ namespace CFMediaPlayer.Interfaces
         //void RegisterSelectedMediaItemChanged(Action action);
 
         //public Action<bool>? SetIsBusyAction { get; set; }
+
+        /// <summary>
+        /// Function to query the status media player status for the media item. Returns null if the media item isn't
+        /// the current one that the player has.
+        /// </summary>
+        Func<MediaItem, MediaPlayerStatuses?>? GetMediaItemPlayStatusFunction { get; set; }
+
+        public Action? SetNoMediaLocationAction { get; set; }
     }
 }

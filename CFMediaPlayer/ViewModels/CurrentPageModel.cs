@@ -1,11 +1,13 @@
 ﻿using Android.Content;
 using Android.Media;
+using CFMediaPlayer.Constants;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Services;
 using CFMediaPlayer.Utilities;
+using Kotlin.Reflect;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -68,6 +70,19 @@ namespace CFMediaPlayer.ViewModels
             
             _currentState.MediaPlayer = mediaPlayer;
 
+            // Set function to return media item player status for media item
+            _currentState.GetMediaItemPlayStatusFunction = (mediaItem) =>
+            {                
+                if (SelectedMediaItem != null && 
+                    SelectedMediaItem.FilePath == mediaItem.FilePath)   // Current media item is requested media item
+                {                                        
+                    if (IsPaused) return MediaPlayerStatuses.Paused;
+                    if (IsPlaying || IsStarting) return MediaPlayerStatuses.Playing;
+                    if (IsCompleted) return MediaPlayerStatuses.Completed;
+                }
+                return null;
+            };
+
             ConfigureEvents();       
 
             // Set timer for elapsed play time
@@ -79,7 +94,7 @@ namespace CFMediaPlayer.ViewModels
             // Set commands
             NextCommand = new Command(DoNext);
             PrevCommand = new Command(DoPrev);
-            PlayOrNotCommand = new Command(DoPlayOrNot);
+            PlayToggleCommand = new Command(DoPlayToggle);
             //RestartCommand = new Command(DoRestart);
             StopCommand = new Command(DoStop);
 
@@ -101,14 +116,28 @@ namespace CFMediaPlayer.ViewModels
                 OnPropertyChanged(nameof(IsBusy));
             }
         }
-
+       
         private void ConfigureEvents()
         {
+            // Set event handler to play media item
+            _currentState.Events.OnPlayMediaItem += (mediaItem) =>
+            {
+                SelectAndPlayMediaItem(mediaItem);                
+            };
+
+            // Set event handler to toggle play state 
+            _currentState.Events.OnTogglePlayMediaItem += (mediaItem) =>
+            {
+                PlayToggleCommand.Execute(null);
+            };
+
+            /*
             // Set event handler for selected media item changed         .
             _currentState.Events.OnSelectedMediaItemChanged += (mediaItem) =>
             {
                 SelectedMediaItem = mediaItem;
             };
+            */
 
             // Set event handler for user settings updated
             _currentState.Events.OnUserSettingsUpdated += (userSettings) =>
@@ -122,31 +151,60 @@ namespace CFMediaPlayer.ViewModels
             // Set event handler for playlist updated. Only need to be concerned about updates that affect current media
             // item (E.g. Add to playlist X, remove from playlist Y etc). If playlist is cleared then it will be handled
             // by LibraryPage.
-            _currentState.Events.OnPlaylistUpdated += (mediaItemCollection, mediaItem) =>
+            _currentState.Events.OnPlaylistUpdated += (systemEventType, mediaItemCollection, mediaItem) =>
             {
-                System.Diagnostics.Debug.WriteLine("OnPlaylistUpdated in CurrentPageModel");
+                System.Diagnostics.Debug.WriteLine($"OnPlaylistUpdated in CurrentPageModel {systemEventType}");
 
-                // If playlist update relates to specific media item (E.g. Add/remove from playlist) or playlist deleted then
-                // refresh media actions.
-                var isPlaylistDeleted = !File.Exists(mediaItemCollection.Path);
-                if ((mediaItem != null &&
-                    mediaItem.FilePath == SelectedMediaItem.FilePath) || isPlaylistDeleted)
+                if (SelectedMediaItem != null)
                 {
-                    LoadMediaActionsForMediaItem(SelectedMediaItem);
+
+                    // If playlist update relates to specific media item (E.g. Add/remove from playlist) or playlist deleted then
+                    // refresh media actions.                
+                    switch (systemEventType)
+                    {
+                        case SystemEventTypes.PlaylistItemAdded:
+                        case SystemEventTypes.PlaylistItemRemoved:
+                            if (mediaItem != null &&
+                                mediaItem.FilePath == SelectedMediaItem.FilePath)
+                            {
+                                LoadMediaActionsForMediaItem(SelectedMediaItem);
+                            }
+                            break;
+                        case SystemEventTypes.PlaylistDeleted:
+                            LoadMediaActionsForMediaItem(SelectedMediaItem);
+                            break;
+                    }
                 }
             };
 
             // Set event handler for queue updated. Only needs to be concerned about updates that affect current media item.
             // If queue is cleared then it will be handled by LibraryPage.
-            _currentState.Events.OnQueueUpdated += (mediaItem) =>
+            _currentState.Events.OnQueueUpdated += (systemEventType, mediaItem) =>
             {
-                System.Diagnostics.Debug.WriteLine("[in] OnQueueUpdated in CurrentPageModel");
+                System.Diagnostics.Debug.WriteLine($"[in] OnQueueUpdated in CurrentPageModel {systemEventType}");
 
+                if (SelectedMediaItem != null)
+                {
+                    switch (systemEventType)
+                    {
+                        case SystemEventTypes.QueueItemAdded:
+                        case SystemEventTypes.QueueItemRemoved:
+                            if (mediaItem != null &&
+                                mediaItem.FilePath == SelectedMediaItem.FilePath)
+                            {
+                                LoadMediaActionsForMediaItem(SelectedMediaItem);
+                            }
+                            break;
+                    }
+                }
+
+                /*
                 if (mediaItem != null &&
                     mediaItem.FilePath == SelectedMediaItem.FilePath)
                 {
                     LoadMediaActionsForMediaItem(SelectedMediaItem);
                 }
+                */
 
                 System.Diagnostics.Debug.WriteLine("[out] OnQueueUpdated in CurrentPageModel");
             };
@@ -162,6 +220,22 @@ namespace CFMediaPlayer.ViewModels
             {
                 if (OnDebugAction != null) OnDebugAction(message);
             };
+        }
+
+        /// <summary>
+        /// Select and play media item from start
+        /// </summary>
+        /// <param name="mediaItem"></param>
+        private void SelectAndPlayMediaItem(MediaItem mediaItem)
+        {   
+            // Stop any current media item
+            Stop();
+
+            // Set selected media item
+            SelectedMediaItem = mediaItem;
+            
+            // Play
+            PlayToggleCommand.Execute(null);
         }
 
         /// <summary>
@@ -282,7 +356,7 @@ namespace CFMediaPlayer.ViewModels
         /// <summary>
         /// Command to play or pause/stop current media item
         /// </summary>
-        public ICommand PlayOrNotCommand { get; set; }
+        public ICommand PlayToggleCommand { get; set; }
 
         /// <summary>
         /// Command to stop playing or pausing current media item
@@ -295,8 +369,11 @@ namespace CFMediaPlayer.ViewModels
         /// Notifies property changes for media item play state.
         /// </summary>
         private void NotifyPropertiesChangedForPlayState()
-        {            
-            OnPropertyChanged(nameof(IsCanSelectPosition));
+        {
+            OnPropertyChanged(nameof(IsPlayToggleEnabled));
+            OnPropertyChanged(nameof(IsPlayToggleVisible));
+            OnPropertyChanged(nameof(IsSelectPositionEnabled));
+            OnPropertyChanged(nameof(IsSelectPositionVisible));
             OnPropertyChanged(nameof(IsStarting));  // Not typically bound
             OnPropertyChanged(nameof(IsPlaying));
             OnPropertyChanged(nameof(IsPaused));
@@ -377,6 +454,7 @@ namespace CFMediaPlayer.ViewModels
             set
             {
                 _selectedMediaItem = value;
+                _currentState.CurrentMediaItem = value;
 
                 // Notify properties on change of selected media item
                 OnPropertyChanged(nameof(SelectedMediaItem));
@@ -385,23 +463,23 @@ namespace CFMediaPlayer.ViewModels
                 OnPropertyChanged(nameof(MainLogoImage));   // If media item specific image
                 OnPropertyChanged(nameof(MediaItemName));
 
-                // Stop current media
-                var isWasPlaying = IsPlaying;
-                if (isWasPlaying || IsPaused)
-                {
-                    Stop();
-                }
+                //// Stop current media
+                //var isWasPlaying = IsPlaying;
+                //if (isWasPlaying || IsPaused)
+                //{
+                //    Stop();
+                //}
 
                 if (_selectedMediaItem != null)
                 {
                     // Set actions for media item (Add to playlist X etc)
                     LoadMediaActionsForMediaItem(_selectedMediaItem);
 
-                    // Respect previous play state. Only play if was playing. Don't play if was paused or stopped.
-                    if (IsRealMediaItemSelected && isWasPlaying)
-                    {
-                        StartPlayMediaItem(_selectedMediaItem);
-                    }
+                    //// Respect previous play state. Only play if was playing. Don't play if was paused or stopped.
+                    //if (IsRealMediaItemSelected && isWasPlaying)
+                    //{
+                    //    StartPlayMediaItem(_selectedMediaItem);
+                    //}
                 }
 
                 // Notify play state changed. Can now play media item
@@ -459,23 +537,65 @@ namespace CFMediaPlayer.ViewModels
             }
         }
 
+        ///// <summary>
+        ///// Restarts media item
+        ///// </summary>
+        ///// <param name="parameter"></param>
+        //private void DoRestart(object parameter)
+        //{
+        //    if (_currentState.SelectMediaItemAction != null)
+        //    {
+        //        if (IsPlaying || IsPaused)    // Just move to start
+        //        {
+        //            ElapsedMS = 0;
+        //        }
+        //        else   // Media item completed, play it again
+        //        {
+        //            StartPlayMediaItem(SelectedMediaItem);
+        //        }
+        //    }
+        //}
+
         /// <summary>
-        /// Restarts media item
+        /// Determines next media item (if any) to play. Returns null if user has selected a media item collection
+        /// that doesn't contain current media item.
         /// </summary>
-        /// <param name="parameter"></param>
-        private void DoRestart(object parameter)
+        /// <returns></returns>
+        private MediaItem? GetNextMediaItem()
         {
-            if (_currentState.SelectMediaItemAction != null)
+            // Get index of selected media item
+            var index = _currentState.MediaItems.IndexOf(SelectedMediaItem!);
+
+            if (index != -1) // User still has current media item collection selected
             {
-                if (IsPlaying || IsPaused)    // Just move to start
+                if (index < _currentState.MediaItems.Count - 1)
                 {
-                    ElapsedMS = 0;
-                }
-                else   // Media item completed, play it again
-                {
-                    StartPlayMediaItem(SelectedMediaItem);
+                    return _currentState.MediaItems[index + 1];
                 }
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Determines previous media item (if any) to play.  Returns null if user has selected a media item collection
+        /// that doesn't contain current media item.
+        /// </summary>
+        /// <returns></returns>
+        private MediaItem? GetPrevMediaItem()
+        {
+            // Get index of selected media item
+            var index = _currentState.MediaItems.IndexOf(SelectedMediaItem!);
+
+            if (index != -1) // User still has current media item collection selected
+            {
+                if (index > 0)
+                {
+                    return _currentState.MediaItems[index - 1];
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -483,37 +603,24 @@ namespace CFMediaPlayer.ViewModels
         /// </summary>
         /// <param name="parameter"></param>
         private void DoNext(object parameter)
-        {                        
-            if (_currentState.SelectMediaItemAction != null)
+        {
+            var mediaItem = GetNextMediaItem();
+            if (mediaItem != null)
             {
-                // Select next media item
-                var index = _currentState.MediaItems.IndexOf(SelectedMediaItem!);
-
-                if (_currentState.MediaItems.Count > 1)
-                {                                        
-                    // Select media item
-                    _currentState.SelectMediaItemAction(_currentState.MediaItems[index + 1]);
-
-                    // Play media item                
-                    StartPlayMediaItem(SelectedMediaItem);
-                }
+                SelectAndPlayMediaItem(mediaItem);
             }
         }
 
         /// <summary>
-        /// Plays previous media item
+        /// Plays previous media item. If shuffle play then media items already sorted randomly
         /// </summary>
         /// <param name="parameter"></param>
         private void DoPrev(object parameter)
         {            
-            if (_currentState.SelectMediaItemAction != null)
+            var mediaItem = GetPrevMediaItem();
+            if (mediaItem != null)
             {
-                // Select prev media item
-                var index = _currentState.MediaItems.IndexOf(SelectedMediaItem!);
-                _currentState.SelectMediaItemAction(_currentState.MediaItems[index - 1]);
-
-                // Play media item                
-                StartPlayMediaItem(SelectedMediaItem);
+                SelectAndPlayMediaItem(mediaItem);
             }
         }
 
@@ -531,18 +638,18 @@ namespace CFMediaPlayer.ViewModels
         /// play/pause.
         /// </summary>
         /// <param name="parameter"></param>
-        private void DoPlayOrNot(object parameter)
+        private void DoPlayToggle(object parameter)
         {
             if (IsStarting || IsPlaying)   // Pause or stop
-            {               
-                if (_selectedMediaItem.IsStreamed)   // Play & stop
-                {
-                    Stop();
-                }
-                else    // Play & pause
+            {
+                if (_selectedMediaItem.IsPausable)
                 {
                     Pause();
-                }                
+                }
+                else
+                {
+                    Stop();
+                }                     
             }
             else    // Play
             {             
@@ -558,6 +665,9 @@ namespace CFMediaPlayer.ViewModels
                 */
 
                 StartPlayMediaItem(SelectedMediaItem!);
+
+                // Refresh play toggle button while media item is started
+                OnPropertyChanged(nameof(PlayButtonImageSource));
             }
         }
 
@@ -580,24 +690,17 @@ namespace CFMediaPlayer.ViewModels
                 {
                     Stop();
                 }
-            }            
+            }
 
-            // If paused then assume playable (Saves un-necessary network check)
-            //if (IsPaused || mediaItem.IsPlayable)
-            //{
-                // Play or resume
-                _mediaPlayer.Play(mediaItem.FilePath, (exception) =>
+            // Play or resume
+            _mediaPlayer.Play(mediaItem.FilePath, (exception) =>
+            {
+                if (OnMediaPlayerError != null)
                 {
-                    if (OnMediaPlayerError != null)
-                    {
-                        OnMediaPlayerError(new MediaPlayerException("Error playing media", exception));
-                    }                    
-                    System.Diagnostics.Debug.WriteLine($"Error playing audio: {exception.Message}");    
-                });
-            //}
-
-            // Notify IsBusy, IsStarting properties for the UI
-            //NotifyPropertiesChangedForPlayState();
+                    OnMediaPlayerError(new MediaPlayerException("Error playing media", exception));
+                }
+                System.Diagnostics.Debug.WriteLine($"Error playing audio: {exception.Message}");
+            });            
         }
   
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
@@ -688,14 +791,6 @@ namespace CFMediaPlayer.ViewModels
             get
             {
                 return _mediaPlayer.DurationTime.TotalMilliseconds;
-
-                /*
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return (int)_mediaPlayer.GetTotalDuration().TotalMilliseconds;
-                }
-                return 1000;    // Any non-zero value
-                */
             }
         }
 
@@ -707,27 +802,21 @@ namespace CFMediaPlayer.ViewModels
             get
             {
                 return _mediaPlayer.ElapsedTime.TotalMilliseconds;
-
-                /*
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    return (int)_mediaPlayer.GetElapsedPlayTime().TotalMilliseconds;
-                }
-                return 0;
-                */
             }
 
             set
             {
                 _mediaPlayer.ElapsedTime = TimeSpan.FromMilliseconds(value);
-
-                /*
-                if (_mediaPlayer.IsPlaying || _mediaPlayer.IsPaused)
-                {
-                    _mediaPlayer.SetElapsedPlayTime(TimeSpan.FromMilliseconds(value));
-                }
-                */
             }
+        }
+        
+        public void SetElapsedMS(double value)
+        {
+            ElapsedMS = value;
+
+            // Update UI. If completed media item then play toggle was previously disabled and so we need to enable
+            // it so that user can press play.
+            NotifyPropertiesChangedForPlayState();
         }
 
         /// <summary>
@@ -736,6 +825,14 @@ namespace CFMediaPlayer.ViewModels
         public bool IsStarting
         {
             get { return _mediaPlayer.IsStarting; }
+        }
+
+        /// <summary>
+        /// Whether media item is completed
+        /// </summary>
+        public bool IsCompleted
+        {
+            get { return _mediaPlayer.IsCompleted; }
         }
 
         /// <summary>
@@ -783,16 +880,16 @@ namespace CFMediaPlayer.ViewModels
             {                
                 if (IsStarting || IsPlaying)
                 {                   
-                    if (_selectedMediaItem.IsStreamed)    // Streamed
+                    if (_selectedMediaItem.IsPausable)
                     {
-                        return "audio_media_media_player_music_stop_icon.png";
+                        return ImageConstants.PauseMediaItemImage;
                     }
-                    else    // Pause
+                    else
                     {
-                        return "audio_media_media_player_music_pause_icon.png";
+                        return ImageConstants.StopMediaItemImage;
                     }                    
                 }
-                return "audio_media_media_player_music_play_icon.png";
+                return ImageConstants.PlayMediaItemImage;
             }
         }
 
@@ -809,7 +906,8 @@ namespace CFMediaPlayer.ViewModels
                 // Reset IsBusy status. When user presses Play then busy indicator is displayed. Normally will subsequently                
                 // receive Started status. For items slow to play (E.g. Streaming) then user can press Stop.
                 if (IsBusy &&
-                    (status == MediaPlayerStatuses.Started ||                    
+                    (status == MediaPlayerStatuses.Playing ||      
+                    status == MediaPlayerStatuses.Started ||                    
                     status == MediaPlayerStatuses.Stopped ||
                     status == MediaPlayerStatuses.PlayError))
                 {
@@ -822,6 +920,13 @@ namespace CFMediaPlayer.ViewModels
                 {
                     case MediaPlayerStatuses.Completed:                        
                         _elapsedTimer.Enabled = false;
+
+                        //var isPlayEnabled = this.IsPlayToggleEnabled;
+                        //var isPlayVisible = this.IsPlayToggleVisible;
+                        //var elapsed = _mediaPlayer.ElapsedTime;
+                        //var duration = _mediaPlayer.DurationTime;
+                        //var diff = duration - elapsed;
+                        //var diffMS = diff.TotalMilliseconds;
 
                         _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
 
@@ -868,6 +973,41 @@ namespace CFMediaPlayer.ViewModels
         }    
 
         /// <summary>
+        /// Whether option to play/pause/stop is visible        
+        /// </summary>
+        public bool IsPlayToggleEnabled
+        {
+            get
+            {                
+                if (IsRealMediaItemSelected)
+                {                    
+                    // If end of media item then user shouldn't be able to press play/pause/stop
+                    // Elapsed & duration seem to be may be 30 ms different at the end
+                    if (_mediaPlayer.ElapsedTime > TimeSpan.Zero &&
+                         Math.Abs(_mediaPlayer.ElapsedTime.TotalMilliseconds - _mediaPlayer.DurationTime.TotalMilliseconds) <= 200)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether option to play/pause/stop is visible
+        /// </summary>
+        public bool IsPlayToggleVisible
+        {
+            get
+            {
+                return IsRealMediaItemSelected;
+            }
+        }
+
+        /// <summary>
         /// Whether "Previous media item" is enabled
         /// </summary>
         public bool IsPrevEnabled
@@ -876,8 +1016,9 @@ namespace CFMediaPlayer.ViewModels
             {
                 if (IsRealMediaItemSelected)
                 {
-                    var index = _currentState.MediaItems.IndexOf(SelectedMediaItem);
-                    return index > 0;
+                    return GetPrevMediaItem() != null;
+                    //var index = _currentState.MediaItems.IndexOf(SelectedMediaItem);
+                    //return index > 0;
                 }
                 return false;
             }
@@ -890,7 +1031,7 @@ namespace CFMediaPlayer.ViewModels
         {
             get
             {
-                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;  //   _selectedMediaItem.IsAllowPrev;
+                if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;
                 return true;
             }
         }
@@ -904,8 +1045,7 @@ namespace CFMediaPlayer.ViewModels
             {
                 if (IsRealMediaItemSelected)
                 {
-                    var index = _currentState.MediaItems.IndexOf(SelectedMediaItem);
-                    return index < _currentState.MediaItems.Count - 1;
+                    return GetNextMediaItem() != null;
                 }
                 return false;
             }
@@ -924,14 +1064,31 @@ namespace CFMediaPlayer.ViewModels
         }
 
         /// <summary>
-        /// Whether user can select position in media item
+        /// Whether select position control is visible
         /// </summary>
-        public bool IsCanSelectPosition
+        public bool IsSelectPositionVisible
         {
             get
             {
                 if (_selectedMediaItem != null) return !_selectedMediaItem.IsStreamed;
-                return true;
+             
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether user can select position
+        /// </summary>
+        public bool IsSelectPositionEnabled
+        {
+            get
+            {
+                if (_selectedMediaItem != null)
+                {
+                    return IsSelectPositionVisible &&
+                        (IsPlaying || IsPaused || IsCompleted);
+                }
+                return false;
             }
         }
 

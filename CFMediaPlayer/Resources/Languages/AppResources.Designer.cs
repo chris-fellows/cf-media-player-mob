@@ -259,6 +259,15 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add 50 random music items.
+        /// </summary>
+        internal static string MediaItemActionsAddRandomItemsToQueue {
+            get {
+                return ResourceManager.GetString("MediaItemActionsAddRandomItemsToQueue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to {0}.
         /// </summary>
         internal static string MediaItemActionsAddToPlaylist {
@@ -273,15 +282,6 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string MediaItemActionsAddToQueueEnd {
             get {
                 return ResourceManager.GetString("MediaItemActionsAddToQueueEnd", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add to queue (Next).
-        /// </summary>
-        internal static string MediaItemActionsAddToQueueNext {
-            get {
-                return ResourceManager.GetString("MediaItemActionsAddToQueueNext", resourceCulture);
             }
         }
         

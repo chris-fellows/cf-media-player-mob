@@ -16,6 +16,11 @@ public partial class LibraryPage : ContentPage
         _model = model;
         this.BindingContext = _model;
 
+        //_model.CurrentState.SetNoMediaLocationAction = () =>
+        //{
+        //    this.MediaLocationPicker.SelectedIndex = -1;
+        //};
+
         //_model.SetBusyAction((isBusy) =>
         //{
         //    BusyIndicator.IsRunning = isBusy;
@@ -34,7 +39,9 @@ public partial class LibraryPage : ContentPage
         if (_model.SelectedMediaLocation == null)
         {
             _model.SelectedMediaLocation = _model.MediaLocations.First();
-        }
+        }      
+
+        //this.MediaLocationPicker.SelectedIndex = _model.MediaLocations.IndexOf(_model.SelectedMediaLocation);
     }
 
     private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)
@@ -66,7 +73,34 @@ public partial class LibraryPage : ContentPage
     private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
     {
         int xxx = 1000;
-    }  
+    }
+
+    private void PlayToggleImageButton_Clicked(object sender, EventArgs e)
+    {
+        ImageButton imageButton = (ImageButton)sender;
+
+       
+        int xxx = 1000;
+    }
+
+    //private void MediaLocation_SelectedIndexChanged(object sender, EventArgs e)
+    //{
+    //    Picker picker = (Picker)sender;
+    //    var index = picker.SelectedIndex;
+    //    if (index == -1)
+    //    {
+    //        int xxxxx = 1000;
+    //        var item = picker.SelectedItem;
+    //        _model.SelectedMediaLocation = null;
+    //    }
+    //    else
+    //    {
+    //        var mediaLocation = (MediaLocation)picker.SelectedItem;
+    //        _model.SelectedMediaLocationAsync = mediaLocation;
+    //        int xxxx = 1000;
+    //    }        
+    //    var xxx = 1000;
+    //}
 
     //private void ImageButton_Clicked(object sender, EventArgs e)
     //{

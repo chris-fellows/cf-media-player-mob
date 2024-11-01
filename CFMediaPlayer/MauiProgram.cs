@@ -166,6 +166,7 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<LibraryPageModel>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
+            //builder.Services.AddSingleton<TestFlyoutPage>();
 
             // Register other pages & models
             builder.Services.AddSingleton<ManagePlaylistsPageModel>();

@@ -29,12 +29,20 @@ namespace CFMediaPlayer.Models
         /// <summary>
         /// Status image. E.g. None, playing, paused etc.
         /// </summary>
+        [XmlIgnore]
         public string StatusImage { get; set; } = String.Empty;
 
         /// <summary>
         /// Whether the status image (.gif) should be animating
         /// </summary>
+        [XmlIgnore]
         public bool IsStatusImageAnimating { get; set; }
+
+        /// <summary>
+        /// Image for play/pause/stop toggle
+        /// </summary>
+        [XmlIgnore]
+        public string PlayToggleImage { get; set; } = String.Empty;
 
         //public event PropertyChangedEventHandler? PropertyChanged;
         
@@ -83,6 +91,12 @@ namespace CFMediaPlayer.Models
         /// </summary>
         [XmlIgnore]
         public bool IsStreamed => FilePath.StartsWith("http", StringComparison.InvariantCultureIgnoreCase);
+
+        /// <summary>
+        /// Whether media item can be paused. If not then can only be stopped.
+        /// </summary>
+        [XmlIgnore]
+        public bool IsPausable => !IsStreamed;
 
         /// <summary>
         /// Whether media can be played

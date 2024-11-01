@@ -180,9 +180,6 @@
   <data name="MediaItemActionsAddToQueueEnd" xml:space="preserve">
     <value>Add to queue (End)</value>
   </data>
-  <data name="MediaItemActionsAddToQueueNext" xml:space="preserve">
-    <value>Add to queue (Next)</value>
-  </data>
   <data name="MediaItemActionsClearQueue" xml:space="preserve">
     <value>Clear queue</value>
   </data>
@@ -278,5 +275,8 @@
   </data>
   <data name="MediaSourceMusicText" xml:space="preserve">
     <value>Music</value>
+  </data>
+  <data name="MediaItemActionsAddRandomItemsToQueue" xml:space="preserve">
+    <value>Add 50 random music items</value>
   </data>
 </root>

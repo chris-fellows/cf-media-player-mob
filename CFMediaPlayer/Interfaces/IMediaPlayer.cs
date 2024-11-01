@@ -51,6 +51,11 @@ namespace CFMediaPlayer.Interfaces
         bool IsPaused { get; }
 
         /// <summary>
+        /// Whether media item is completed
+        /// </summary>
+        bool IsCompleted { get; }
+
+        /// <summary>
         /// Current file being played (if any)
         /// </summary>
         string CurrentFilePath { get; }

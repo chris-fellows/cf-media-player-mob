@@ -45,7 +45,7 @@ namespace CFMediaPlayer.ViewModels
         private void ConfigureEvents()
         {
             // Set action to handle change of queue updated
-            _currentState.Events.OnQueueUpdated += (mediaItem) =>
+            _currentState.Events.OnQueueUpdated += (systemEventType, mediaItem) =>
             {
                 LoadMediaItems();
             };

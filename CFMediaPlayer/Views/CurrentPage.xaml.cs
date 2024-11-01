@@ -46,7 +46,8 @@ public partial class CurrentPage : ContentPage
 
         // Advance to particular time player media item. We can't set the slider value to be TwoWay because 
         // that causes ElapsedMS to be set whenever the elapsed time is updated and that causes jumpy playback.
-        _model.ElapsedMS = (int)ElapsedSlider.Value;
+        //_model.ElapsedMS = (int)ElapsedSlider.Value;        
+        _model.SetElapsedMS(ElapsedSlider.Value);
     }
   
     private void MediaActionsView_SelectionChanged(object sender, SelectionChangedEventArgs e)

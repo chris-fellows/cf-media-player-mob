@@ -8,6 +8,12 @@ namespace CFMediaPlayer.Enums
     public enum MediaActionTypes
     {
         /// <summary>
+        /// Add random media items to queue
+        /// </summary>
+        [Display(Description = "MediaItemActionsAddRandomItemsToQueue")]            
+        AddRandomItemsToQueue,
+
+        /// <summary>
         /// Add media item to playlist X
         /// </summary>
         [Display(Description = "MediaItemActionsAddToPlaylist")]
@@ -19,11 +25,11 @@ namespace CFMediaPlayer.Enums
         [Display(Description = "MediaItemActionsAddToQueueEnd")]
         AddToQueueEnd,          // Level=MediaItem
 
-        /// <summary>
-        /// Add media item to start of queue
-        /// </summary>
-        [Display(Description = "MediaItemActionsAddToQueueNext")]
-        AddToQueueNext,         // Level=MediaItem
+        ///// <summary>
+        ///// Add media item to start of queue
+        ///// </summary>
+        //[Display(Description = "MediaItemActionsAddToQueueNext")]
+        //AddToQueueNext,         // Level=MediaItem
 
         /// <summary>
         /// Clear playlist X
