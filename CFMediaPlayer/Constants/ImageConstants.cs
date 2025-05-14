@@ -5,7 +5,10 @@
     /// </summary>
     internal static class ImageConstants
     {
-        public const string EqualizerImage = "equalizer.gif";
+        /// <summary>
+        /// Animated equalizer image
+        /// </summary>
+        public const string AnimatedEqualizerImage = "equalizer.gif";
 
         public const string PlayMediaItemImage = "audio_media_media_player_music_play_icon.png";
 

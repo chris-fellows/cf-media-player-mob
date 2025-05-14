@@ -1,4 +1,5 @@
 using CFMediaPlayer.Interfaces;
+using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
 
 namespace CFMediaPlayer;
@@ -7,7 +8,9 @@ public partial class TestPage : TabbedPage
 {	
 	public TestPage()
 	{
-		InitializeComponent();        
+        InternalUtilities.Log("Entered TestPage constructor");
+
+        InitializeComponent();        
 
         // Register page routes
         Routing.RegisterRoute(nameof(CurrentPage), typeof(CurrentPage));
@@ -35,5 +38,7 @@ public partial class TestPage : TabbedPage
         {
             this.CurrentPage = this.Children.First(c => c.Title.Equals(title));
         };
+
+        InternalUtilities.Log("Leaving TestPage constructor");
     }
 }

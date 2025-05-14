@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace CFMediaPlayer.ViewModels
 {
+    /// <summary>
+    /// View model for Test page.
+    /// </summary>
     public class TestPageModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;

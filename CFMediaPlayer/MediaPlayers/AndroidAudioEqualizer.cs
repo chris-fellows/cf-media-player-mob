@@ -6,8 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CFMediaPlayer
+namespace CFMediaPlayer.MediaPlayers
 {
+    /// <summary>
+    /// Android audio equalizer
+    /// </summary>
     public class AndroidAudioEqualizer : IAudioEqualizer
     {
         private Equalizer? _equalizer = null;
@@ -16,7 +19,7 @@ namespace CFMediaPlayer
 
         public AndroidAudioEqualizer()
         {
-            
+
         }
 
         public Equalizer? Equalizer
@@ -67,14 +70,14 @@ namespace CFMediaPlayer
         public short[]? GetEqualizerBandLevelRange()
         {
             var mediaPlayer = new Android.Media.MediaPlayer();
-            var equalizer = new Equalizer(0, mediaPlayer.AudioSessionId);                       
+            var equalizer = new Equalizer(0, mediaPlayer.AudioSessionId);
 
             var range = equalizer.GetBandLevelRange();
-          
+
             equalizer.Release();
             mediaPlayer.Release();
             return range;
-         
+
             //if (_equalizer != null)
             //{
             //    return _equalizer.GetBandLevelRange();
@@ -93,9 +96,9 @@ namespace CFMediaPlayer
             {
                 ranges.Add(equalizer.GetBandFreqRange(band));
             }
-            
+
             equalizer.Release();
-            mediaPlayer.Release();            
+            mediaPlayer.Release();
 
             return ranges;
         }
@@ -139,8 +142,8 @@ namespace CFMediaPlayer
         /// Applies equalizer preset
         /// </summary>        
         public void ApplyDefault()
-        {          
-            if (!String.IsNullOrEmpty(_equalizerPresetName) && _equalizer != null)
+        {
+            if (!string.IsNullOrEmpty(_equalizerPresetName) && _equalizer != null)
             {
                 if (_equalizerPresetName.Equals("Custom"))
                 {
@@ -173,7 +176,7 @@ namespace CFMediaPlayer
             var equalizer = new Equalizer(0, mediaPlayer.AudioSessionId);
 
             var bandLevels = new List<short>();
-            for(short preset = 0; preset < _equalizer.NumberOfPresets; preset++)
+            for (short preset = 0; preset < _equalizer.NumberOfPresets; preset++)
             {
                 var currentPresetName = equalizer.GetPresetName(preset);
                 if (presetName == currentPresetName)
@@ -185,7 +188,7 @@ namespace CFMediaPlayer
                     }
                     break;
                 }
-            }            
+            }
             equalizer.Release();
             mediaPlayer.Release();
 

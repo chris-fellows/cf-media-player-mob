@@ -259,7 +259,7 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add 50 random music items.
+        ///   Looks up a localized string similar to Add {0} random music items.
         /// </summary>
         internal static string MediaItemActionsAddRandomItemsToQueue {
             get {
@@ -390,15 +390,6 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string MediaSourceRadioStreamsText {
             get {
                 return ResourceManager.GetString("MediaSourceRadioStreamsText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Multiple].
-        /// </summary>
-        internal static string MultipleText {
-            get {
-                return ResourceManager.GetString("MultipleText", resourceCulture);
             }
         }
         
@@ -543,6 +534,42 @@ namespace CFMediaPlayer.Resources.Languages {
         internal static string StorageLocationInternal {
             get {
                 return ResourceManager.GetString("StorageLocationInternal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current.
+        /// </summary>
+        internal static string TabCurrentText {
+            get {
+                return ResourceManager.GetString("TabCurrentText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Library.
+        /// </summary>
+        internal static string TabLibraryText {
+            get {
+                return ResourceManager.GetString("TabLibraryText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage Playlists.
+        /// </summary>
+        internal static string TabManagePlaylistsText {
+            get {
+                return ResourceManager.GetString("TabManagePlaylistsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        internal static string TabSettingsText {
+            get {
+                return ResourceManager.GetString("TabSettingsText", resourceCulture);
             }
         }
     }

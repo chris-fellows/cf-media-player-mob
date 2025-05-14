@@ -20,11 +20,6 @@
             Route="ManagePlaylistsPage" />
 
         <ShellContent
-            Title="Manage queue"
-            ContentTemplate="{DataTemplate local:ManageQueuePage}"
-            Route="ManageQueuePage" />
-
-        <ShellContent
             Title="Settings"
             ContentTemplate="{DataTemplate local:UserSettingsPage}"
             Route="UserSettingsPage" />

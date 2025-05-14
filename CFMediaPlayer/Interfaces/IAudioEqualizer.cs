@@ -1,7 +1,7 @@
 ﻿namespace CFMediaPlayer.Interfaces
 {
     public interface IAudioEqualizer
-    {
+    {        
         public Android.Media.Audiofx.Equalizer? Equalizer { get; set; }
 
         List<string> PresetNames { get; }

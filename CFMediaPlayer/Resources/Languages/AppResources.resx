@@ -189,9 +189,6 @@
   <data name="MediaItemActionRemoveFromQueue" xml:space="preserve">
     <value>Remove from queue</value>
   </data>
-  <data name="MultipleText" xml:space="preserve">
-    <value>[Multiple]</value>
-  </data>
   <data name="ShuffleText" xml:space="preserve">
     <value>[Shuffle]</value>
   </data>
@@ -277,6 +274,18 @@
     <value>Music</value>
   </data>
   <data name="MediaItemActionsAddRandomItemsToQueue" xml:space="preserve">
-    <value>Add 50 random music items</value>
+    <value>Add {0} random music items</value>
+  </data>
+  <data name="TabLibraryText" xml:space="preserve">
+    <value>Library</value>
+  </data>
+  <data name="TabCurrentText" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="TabSettingsText" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="TabManagePlaylistsText" xml:space="preserve">
+    <value>Manage Playlists</value>
   </data>
 </root>

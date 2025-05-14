@@ -1,15 +1,22 @@
+using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
 
 namespace CFMediaPlayer;
 
+/// <summary>
+/// Current page. Currently media item for media player.
+/// </summary>
 public partial class CurrentPage : ContentPage
 {
 	private CurrentPageModel _model;
 
 	public CurrentPage(CurrentPageModel model)
 	{
-		InitializeComponent();
+        InternalUtilities.Log("Entered CurrentPage constructor");
+
+        InitializeComponent();
 
 		_model = model;
         this.BindingContext = _model;
@@ -17,7 +24,15 @@ public partial class CurrentPage : ContentPage
         // Set event handler for debug action
         _model.OnDebugAction += (debug) =>
         {
+            System.Diagnostics.Debug.WriteLine(debug);
             DebugLabel.Text = debug;
+        };
+
+        // Set general error handler
+        _model.OnGeneralError += (exception) =>
+        {
+            var alertResult = DisplayAlert(LocalizationResources.Instance["Error"].ToString(), exception.Message,
+                LocalizationResources.Instance["Close"].ToString());
         };
 
         // Set event handler for media start error
@@ -33,6 +48,8 @@ public partial class CurrentPage : ContentPage
         {
             ElapsedSlider.Value = elapsed;
         });
+
+        InternalUtilities.Log("Leaving CurrentPage constructor");
     }
 
     private void OnDebugInfoClicked(object sender, EventArgs e)

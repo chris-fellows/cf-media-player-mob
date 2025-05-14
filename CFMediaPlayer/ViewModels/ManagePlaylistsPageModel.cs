@@ -12,8 +12,12 @@ using System.Windows.Input;
 
 namespace CFMediaPlayer.ViewModels
 {
-    public class ManagePlaylistsPageModel : INotifyPropertyChanged
-    {        
+    /// <summary>
+    /// View model for Manage Playlists page.
+    /// </summary>
+    public class ManagePlaylistsPageModel : PageModelBase, INotifyPropertyChanged
+    {
+        private readonly ILogWriter _logWriter;
         private readonly IMediaSourceService _mediaSourceService;        
         private IMediaSource _mediaSource;        
         private readonly List<IPlaylistManager> _playlistManagers;    
@@ -21,19 +25,21 @@ namespace CFMediaPlayer.ViewModels
 
         private List<MediaLocation> _mediaLocations = new List<MediaLocation>();
 
-        public delegate void Error(Exception exception);
-        public event Error? OnError;
+        //public delegate void Error(Exception exception);
+        //public event Error? OnError;
 
-        public LocalizationResources LocalizationResources => LocalizationResources.Instance;
+        //public LocalizationResources LocalizationResources => LocalizationResources.Instance;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        //public event PropertyChangedEventHandler? PropertyChanged;
 
-        public void OnPropertyChanged([CallerMemberName] string name = "") =>
-                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        //public void OnPropertyChanged([CallerMemberName] string name = "") =>
+        //             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public ManagePlaylistsPageModel(IMediaSourceService mediaSourceService,
+        public ManagePlaylistsPageModel(ILogWriter logWriter,
+                                        IMediaSourceService mediaSourceService,
                                        IEnumerable<IPlaylistManager> playlistManagers)
-        {
+        {            
+            _logWriter = logWriter;
             _mediaSourceService = mediaSourceService;            
             _playlistManagers = playlistManagers.ToList();            
 
@@ -58,7 +64,7 @@ namespace CFMediaPlayer.ViewModels
             MediaLocations = mediaLocations;
             
             // Default to first media location
-            SelectedMediaLocation = MediaLocations.First();           
+            SelectedMediaLocation = MediaLocations.First();            
         }
 
         private MediaLocation _selectedMediaLocation;

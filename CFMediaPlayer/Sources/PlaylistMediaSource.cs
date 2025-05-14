@@ -8,7 +8,8 @@ using static Android.Provider.MediaStore.Audio;
 namespace CFMediaPlayer.Sources
 {
     /// <summary>
-    /// Media source from playlists    
+    /// Media source from playlists. Only currently support playlist files stored on local storage, not on HTTP. We do
+    /// support playlist items streamed via HTTP.
     /// 
     /// Notes:
     /// - Currently we always display only "All" in the artist list because playlists are expected to be in the route of 
@@ -18,7 +19,7 @@ namespace CFMediaPlayer.Sources
     ///      2) \[Source]\[Artist]\[Album]  : Less common but we support it.
     /// - Need to be careful using IPlaylistManager instances. We may start using it in a top level method and then call
     ///   a second method that tries to use it. At the end of a single use then we set IPlaylistManager.File = "" which
-    ///   can cause errors if the top level method tries to save changes.
+    ///   can cause errors if the top level method tries to save changes.    
     /// </summary>
     public class PlaylistMediaSource : MediaSourceBase, IMediaSource
     {        

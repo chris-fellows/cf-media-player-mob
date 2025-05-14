@@ -9,7 +9,7 @@ namespace CFMediaPlayer.Utilities
     /// <summary>
     /// List utilities
     /// </summary>
-    public static class ListUtilities
+    internal static class ListUtilities
     {
        /// <summary>
        /// Sorts list randomly

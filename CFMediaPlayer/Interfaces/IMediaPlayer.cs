@@ -58,7 +58,7 @@ namespace CFMediaPlayer.Interfaces
         /// <summary>
         /// Current file being played (if any)
         /// </summary>
-        string CurrentFilePath { get; }
+        string? CurrentFilePath { get; }
 
         //void ApplyEqualizerTest();
         

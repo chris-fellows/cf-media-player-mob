@@ -4,6 +4,7 @@ using Android.Text;
 using CFMediaPlayer.Constants;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -11,20 +12,21 @@ using System.Windows.Input;
 namespace CFMediaPlayer.ViewModels
 {
     /// <summary>
-    /// View model for user settings
+    /// View model for User Settings page.
     /// </summary>
-    public class UserSettingsPageModel : INotifyPropertyChanged
+    public class UserSettingsPageModel : PageModelBase, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
+        //public event PropertyChangedEventHandler? PropertyChanged;
 
-        public LocalizationResources LocalizationResources => LocalizationResources.Instance;
+        //public LocalizationResources LocalizationResources => LocalizationResources.Instance;
 
-        public void OnPropertyChanged([CallerMemberName] string name = "") =>
-                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        //public void OnPropertyChanged([CallerMemberName] string name = "") =>
+        //             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         private readonly IAudioEqualizer _audioEqualizer;
         private readonly IAudioSettingsService _audioSettingsService;
         private readonly ICurrentState _currentState;
+        private readonly ILogWriter _logWriter;
         private readonly IUIThemeService _uiThemeService;
         private readonly ISystemSettingsService _systemSettingsService;
         private readonly IUserSettingsService _userSettingsService;
@@ -37,13 +39,17 @@ namespace CFMediaPlayer.ViewModels
         public UserSettingsPageModel(IAudioEqualizer audioEqualizer,
                                 IAudioSettingsService audioSettingsService,                
                                 ICurrentState currentState,
+                                ILogWriter logWriter,
                                 ISystemSettingsService systemSettingsService,
                                 IUIThemeService uiThemeService,
                                 IUserSettingsService userSettingsService)
         {
+            InternalUtilities.Log("Entered UserSettingsPageModel constructor");
+
             _audioEqualizer = audioEqualizer;
             _audioSettingsService = audioSettingsService;
             _currentState = currentState;
+            _logWriter = logWriter;
             _systemSettingsService = systemSettingsService;
             _uiThemeService = uiThemeService;
             _userSettingsService = userSettingsService;            
@@ -54,9 +60,11 @@ namespace CFMediaPlayer.ViewModels
             CopyPresetToCustomCommand = new Command(CopyPresetToCustom);
             //RefreshCommand = new Command(Refresh);
             //ResetAudioDefaultsCommand = new Command(ResetAudioDefaults);
-            //TestAudioSettingsCommand = new Command(TestAudioSettings);
+            //TestAudioSettingsCommand = new Command(TestAudioSettings);           
 
             LoadAllSettings();
+
+            InternalUtilities.Log("Leaving UserSettingsPageModel constructor");
         }
 
         private List<NameValuePair<string>> _languages = new List<NameValuePair<string>>();

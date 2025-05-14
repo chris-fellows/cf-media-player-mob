@@ -43,59 +43,59 @@ namespace CFMediaPlayer.Utilities
                         mediaItemAction.Name == LocalizationResources.Instance["NoneText"].ToString();
         }           
 
-        /// <summary>
-        /// Removes duplicates artist for not real items
-        /// </summary>
-        /// <param name="artists"></param>
-        public static void RemoveDuplicatesNotReal(List<Artist> artists)
-        {
-            foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
-            {
-                var items = artists.Where(a => a.EntityCategory == entityCategory).ToList();
-                while (items.Count > 1)
-                {
-                    var item = items.Last();
-                    artists.Remove(item);
-                    items.Remove(item);
-                }
-            }
-        }
+        ///// <summary>
+        ///// Removes duplicates artist for not real items
+        ///// </summary>
+        ///// <param name="artists"></param>
+        //public static void RemoveDuplicatesNotReal(List<Artist> artists)
+        //{
+        //    foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
+        //    {
+        //        var items = artists.Where(a => a.EntityCategory == entityCategory).ToList();
+        //        while (items.Count > 1)
+        //        {
+        //            var item = items.Last();
+        //            artists.Remove(item);
+        //            items.Remove(item);
+        //        }
+        //    }
+        //}
 
-        /// <summary>
-        /// Removes duplicate media item collections for not real items
-        /// </summary>
-        /// <param name="mediaItemCollections"></param>
-        public static void RemoveDuplicatesNotReal(List<MediaItemCollection> mediaItemCollections)
-        {
-            foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
-            {
-                var items = mediaItemCollections.Where(a => a.EntityCategory == entityCategory).ToList();
-                while (items.Count > 1)
-                {
-                    var item = items.Last();
-                    mediaItemCollections.Remove(item);
-                    items.Remove(item);
-                }
-            }
-        }
+        ///// <summary>
+        ///// Removes duplicate media item collections for not real items
+        ///// </summary>
+        ///// <param name="mediaItemCollections"></param>
+        //public static void RemoveDuplicatesNotReal(List<MediaItemCollection> mediaItemCollections)
+        //{
+        //    foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
+        //    {
+        //        var items = mediaItemCollections.Where(a => a.EntityCategory == entityCategory).ToList();
+        //        while (items.Count > 1)
+        //        {
+        //            var item = items.Last();
+        //            mediaItemCollections.Remove(item);
+        //            items.Remove(item);
+        //        }
+        //    }
+        //}
 
-        /// <summary>
-        /// Removes duplicate media items for not real items
-        /// </summary>
-        /// <param name="mediaItems"></param>
-        public static void RemoveDuplicatesNotReal(List<MediaItem> mediaItems)
-        {
-            foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
-            {
-                var items = mediaItems.Where(a => a.EntityCategory == EntityCategory.None).ToList();
-                while (items.Count > 1)
-                {
-                    var item = items.Last();
-                    mediaItems.Remove(item);
-                    items.Remove(item);
-                }
-            }           
-        }
+        ///// <summary>
+        ///// Removes duplicate media items for not real items
+        ///// </summary>
+        ///// <param name="mediaItems"></param>
+        //public static void RemoveDuplicatesNotReal(List<MediaItem> mediaItems)
+        //{
+        //    foreach (EntityCategory entityCategory in new[] { EntityCategory.None, EntityCategory.All })
+        //    {
+        //        var items = mediaItems.Where(a => a.EntityCategory == EntityCategory.None).ToList();
+        //        while (items.Count > 1)
+        //        {
+        //            var item = items.Last();
+        //            mediaItems.Remove(item);
+        //            items.Remove(item);
+        //        }
+        //    }           
+        //}
 
         /// <summary>
         /// Gets media item name from media item path

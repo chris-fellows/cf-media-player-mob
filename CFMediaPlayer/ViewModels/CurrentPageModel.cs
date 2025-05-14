@@ -5,11 +5,7 @@ using CFMediaPlayer.Enums;
 using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using CFMediaPlayer.Services;
 using CFMediaPlayer.Utilities;
-using Kotlin.Reflect;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,31 +17,39 @@ using System.Windows.Input;
 namespace CFMediaPlayer.ViewModels
 {
     /// <summary>
+    /// View model for Current page.
+    /// 
     /// Notes:
     /// - If media item isn't playable (E.g. No internet connection to play stream) then user can next/previous
     ///   but won't be able to play.
     /// - Busy indicator is displayed when changing media location because it can be slow.
     /// - Busy indicator is displayed when starting media item.
+    /// - We respect auto-play while the current media item is in the list of media items selected on the Library
+    ///   page. If it isn't then we stop playing.
     /// </summary>
-    public class CurrentPageModel : INotifyPropertyChanged
+    public class CurrentPageModel : PageModelBase, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
+        //public event PropertyChangedEventHandler? PropertyChanged;
 
-        public LocalizationResources LocalizationResources => LocalizationResources.Instance;
+        //public LocalizationResources LocalizationResources => LocalizationResources.Instance;
 
-        public void OnPropertyChanged([CallerMemberName] string name = "") =>
-                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        //public void OnPropertyChanged([CallerMemberName] string name = "") =>
+        //             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public delegate void MediaPlayerError(MediaPlayerException mediaPlayerException);
         public event MediaPlayerError? OnMediaPlayerError;
 
-        public delegate void DebugAction(string debug);
-        public event DebugAction? OnDebugAction;
+        //public delegate void GeneralError(Exception exception);
+        //public event GeneralError? OnGeneralError;
+
+        //public delegate void DebugAction(string debug);
+        //public event DebugAction? OnDebugAction;
 
         private System.Timers.Timer _elapsedTimer;
 
         private readonly IAudioSettingsService _audioSettingsService;
-        private ICurrentState _currentState;
+        private readonly ICurrentState _currentState;
+        private readonly ILogWriter _logWriter;
         private IMediaPlayer _mediaPlayer;
         private readonly IMediaSourceService _mediaSourceService;
         private readonly IUIThemeService _uiThemeService;
@@ -56,6 +60,7 @@ namespace CFMediaPlayer.ViewModels
 
         public CurrentPageModel(IAudioSettingsService audioSettingsService,
                                 ICurrentState currentState,
+                                ILogWriter logWriter,
                                 IMediaPlayer mediaPlayer,
                                 IMediaSourceService mediaSourceService,
                                 IUIThemeService uiThemeService,
@@ -63,12 +68,13 @@ namespace CFMediaPlayer.ViewModels
         {
             _audioSettingsService = audioSettingsService;
             _currentState = currentState;
+            _logWriter = logWriter;
             _mediaPlayer = mediaPlayer;
             _mediaSourceService = mediaSourceService;
             _uiThemeService = uiThemeService;
             _userSettingsService = userSettingsService;
             
-            _currentState.MediaPlayer = mediaPlayer;
+            //_currentState.MediaPlayer = mediaPlayer;
 
             // Set function to return media item player status for media item
             _currentState.GetMediaItemPlayStatusFunction = (mediaItem) =>
@@ -81,7 +87,7 @@ namespace CFMediaPlayer.ViewModels
                     if (IsCompleted) return MediaPlayerStatuses.Completed;
                 }
                 return null;
-            };
+            };            
 
             ConfigureEvents();       
 
@@ -100,8 +106,9 @@ namespace CFMediaPlayer.ViewModels
 
             // Set defaults
             ShufflePlay = false;
-            AutoPlayNext = false;
-
+            AutoPlayNext = (_currentState.SelectedMediaSource != null) ?
+                        _currentState.SelectedMediaSource.IsAutoPlayNextAllowed : false;            
+            
             // Set equalizer preset
             ApplyEqualizerSettings(_userSettingsService.GetByUsername(Environment.UserName));            
         }
@@ -117,6 +124,9 @@ namespace CFMediaPlayer.ViewModels
             }
         }
        
+        /// <summary>
+        /// Configure event handlers
+        /// </summary>
         private void ConfigureEvents()
         {
             // Set event handler to play media item
@@ -131,14 +141,6 @@ namespace CFMediaPlayer.ViewModels
                 PlayToggleCommand.Execute(null);
             };
 
-            /*
-            // Set event handler for selected media item changed         .
-            _currentState.Events.OnSelectedMediaItemChanged += (mediaItem) =>
-            {
-                SelectedMediaItem = mediaItem;
-            };
-            */
-
             // Set event handler for user settings updated
             _currentState.Events.OnUserSettingsUpdated += (userSettings) =>
             {
@@ -152,9 +154,7 @@ namespace CFMediaPlayer.ViewModels
             // item (E.g. Add to playlist X, remove from playlist Y etc). If playlist is cleared then it will be handled
             // by LibraryPage.
             _currentState.Events.OnPlaylistUpdated += (systemEventType, mediaItemCollection, mediaItem) =>
-            {
-                System.Diagnostics.Debug.WriteLine($"OnPlaylistUpdated in CurrentPageModel {systemEventType}");
-
+            {                
                 if (SelectedMediaItem != null)
                 {
 
@@ -218,7 +218,7 @@ namespace CFMediaPlayer.ViewModels
             // Set handler for media player debug events
             _mediaPlayer.Events.OnDebug += delegate (string message)
             {
-                if (OnDebugAction != null) OnDebugAction(message);
+                RaiseOnDebugAction(message);                
             };
         }
 
@@ -919,14 +919,7 @@ namespace CFMediaPlayer.ViewModels
                 switch (status)
                 {
                     case MediaPlayerStatuses.Completed:                        
-                        _elapsedTimer.Enabled = false;
-
-                        //var isPlayEnabled = this.IsPlayToggleEnabled;
-                        //var isPlayVisible = this.IsPlayToggleVisible;
-                        //var elapsed = _mediaPlayer.ElapsedTime;
-                        //var duration = _mediaPlayer.DurationTime;
-                        //var diff = duration - elapsed;
-                        //var diffMS = diff.TotalMilliseconds;
+                        _elapsedTimer.Enabled = false;                    
 
                         _currentState.Events.RaiseOnCurrentMediaItemStatusChanged(_selectedMediaItem, IsPlaying, IsPaused);
 
@@ -969,7 +962,7 @@ namespace CFMediaPlayer.ViewModels
                 }
             }
 
-            if (OnDebugAction != null) OnDebugAction($"Status={status}");
+            RaiseOnDebugAction($"Status={status}");
         }    
 
         /// <summary>

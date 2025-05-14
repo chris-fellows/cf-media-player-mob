@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Android.Net.Wifi;
+using Android.Provider;
+using CFMediaPlayer.Services;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace CFMediaPlayer.Utilities
 {
-    public static class InternalUtilities
+    internal static class InternalUtilities
     {
-        public static string DefaultImagePath = "cassette_player_audio_speaker_sound_icon.png";
+       // public static string DefaultImagePath = "cassette_player_audio_speaker_sound_icon.png";
 
         /// <summary>
         /// Gets resource key for enum. Enum value must have Display attribute with Description property set
@@ -24,5 +27,10 @@ namespace CFMediaPlayer.Utilities
 
             throw new ArgumentException($"Enum {item} does not have resource key indicated");
         }
+
+        //public static void Log(string message)
+        //{
+        //    new DebugLogWriter().Log(message);
+        //}
     }
 }

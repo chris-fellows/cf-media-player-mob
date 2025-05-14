@@ -5,7 +5,7 @@ namespace CFMediaPlayer.Utilities
     /// <summary>
     /// Search utilities
     /// </summary>
-    public static class SearchUtilities
+    internal static class SearchUtilities
     {
         public static bool IsValidSearchResult(Artist artist, SearchOptions searchOptions)
         {

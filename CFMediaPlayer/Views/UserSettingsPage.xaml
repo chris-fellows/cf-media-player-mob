@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:lang="clr-namespace:CFMediaPlayer.Resources.Languages"
              x:Class="CFMediaPlayer.UserSettingsPage"
-             Title="Settings">
+             Title="{Binding LocalizationResources[TabSettingsText], Mode=OneWay}">
     <VerticalStackLayout>
         <Picker x:Name="UITheme" 
             ItemsSource="{Binding UIThemes}"

@@ -1,47 +1,53 @@
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
 
 namespace CFMediaPlayer;
 
+/// <summary>
+/// Library page. Allows user to navigate and search music library. User can start playing a media item
+/// which becomes current media item (Current page)
+/// </summary>
 public partial class LibraryPage : ContentPage
 {
     private LibraryPageModel _model;
     
     public LibraryPage(LibraryPageModel model)
     {
+        InternalUtilities.Log("Entered LibraryPage constructor");
+
         InitializeComponent();
         
         _model = model;
         this.BindingContext = _model;
 
-        //_model.CurrentState.SetNoMediaLocationAction = () =>
-        //{
-        //    this.MediaLocationPicker.SelectedIndex = -1;
-        //};
+        // Set event handler for debug action
+        _model.OnDebugAction += (debug) =>
+        {
+            System.Diagnostics.Debug.WriteLine(debug);
+            DebugLabel.Text = debug;
+        };
 
-        //_model.SetBusyAction((isBusy) =>
-        //{
-        //    BusyIndicator.IsRunning = isBusy;
-        //});
+        // Set general error handler
+        _model.OnGeneralError += (exception) =>
+        {
+            var alertResult = DisplayAlert(LocalizationResources.Instance["Error"].ToString(), exception.Message,
+                LocalizationResources.Instance["Close"].ToString());
+        };
 
-        //var tapGesture = new TapGestureRecognizer();
-        //tapGesture.Tapped += (s, e) =>
-        //{
-        //    this._customContextMenu.Hide();            
-        //};
-        //this.TestImage.GestureRecognizers.Add(tapGesture);
-      
         // Set default media location
         _model.SelectedMediaLocation = _model.MediaLocations.FirstOrDefault(ml => ml.MediaSourceType == MediaSourceTypes.Storage &&
                                                     ml.MediaItemTypes.Contains(MediaItemTypes.Music));
         if (_model.SelectedMediaLocation == null)
         {
             _model.SelectedMediaLocation = _model.MediaLocations.First();
-        }      
+        }
 
-        //this.MediaLocationPicker.SelectedIndex = _model.MediaLocations.IndexOf(_model.SelectedMediaLocation);
+        //this.MediaLocationPicker.SelectedIndex = _model.MediaLocations.IndexOf(_model.SelectedMediaLocation);        
+
+        InternalUtilities.Log("Leaving LibraryPage constructor");
     }
 
     private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)

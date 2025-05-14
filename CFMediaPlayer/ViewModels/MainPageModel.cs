@@ -39,8 +39,8 @@ namespace CFMediaPlayer.ViewModels
         public delegate void MediaPlayerError(MediaPlayerException mediaPlayerException);
         public event MediaPlayerError? OnMediaPlayerError;
 
-        public delegate void DebugAction(string debug);
-        public event DebugAction? OnDebugAction;
+        //public delegate void DebugAction(string debug);
+        //public event DebugAction? OnDebugAction;
 
         private readonly IAudioSettingsService _audioSettingsService;
         private readonly IMediaLocationService _mediaLocationService;
@@ -76,6 +76,8 @@ namespace CFMediaPlayer.ViewModels
                          IUIThemeService uiThemeService,
                         IUserSettingsService userSettingsService)
         {
+            InternalUtilities.Log("Entered MainPageModel constructor");
+
             _audioSettingsService = audioSettingsService;
             _mediaLocationService = mediaLocationService;
             _mediaSearchService = mediaSearchService;
@@ -129,6 +131,8 @@ namespace CFMediaPlayer.ViewModels
 
             // Set equalizer preset
             //_mediaPlayer.AudioEqualizer.DefaultPresetName = _audioSettings.PresetName;
+
+            InternalUtilities.Log("Leaving MainPageModel constructor");
         }        
 
         public bool IsDebugMode => false;
@@ -1008,7 +1012,7 @@ namespace CFMediaPlayer.ViewModels
                     break;
             }
            
-            if (OnDebugAction != null) OnDebugAction($"Status={status}");
+            //if (OnDebugAction != null) OnDebugAction($"Status={status}");
         }
 
         public bool IsMediaItemActionsEnabled

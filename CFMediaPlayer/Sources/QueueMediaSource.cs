@@ -7,13 +7,15 @@ using System.Diagnostics;
 namespace CFMediaPlayer.Sources
 {
     /// <summary>
-    /// Media source from queue.
+    /// Media source from local queue.
     /// 
-    /// The queue starts off empty and the user can add media items to it or clear it.
+    /// The queue starts off empty and the user can add media items to it or clear it. We should consider persisting
+    /// the queue to a playlist.
     /// </summary>
     public class QueueMediaSource : MediaSourceBase, IMediaSource
     {
         private const int _maxItems = 100;
+        private const int _itemsToAddRandomly = 50;     // Number of media items to add randomly
         private readonly List<MediaItem> _mediaItemQueue = new List<MediaItem>();
 
         public QueueMediaSource(ICurrentState currentState,
@@ -26,7 +28,7 @@ namespace CFMediaPlayer.Sources
 
         public bool IsAvailable => true;        // Always
 
-        public bool IsDisplayInUI => true;
+        public bool IsDisplayInUI => true;      // Always
 
         public bool IsShufflePlayAllowed => false;    // Play in queue order
 
@@ -138,15 +140,23 @@ namespace CFMediaPlayer.Sources
                     };
                     mediaActions.Add(item1);
 
-                    //var item2 = new MediaAction()
+                    //// Add "Add to queue (Next)" if we're playing item from queue
+                    //if (_currentState.CurrentMediaItem != null)   // Current item selected
                     //{
-                    //    MediaLocationName = _mediaLocation.Name,
-                    //    Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueNext)].ToString(),
-                    //    MediaItemFile = mediaItem.FilePath,
-                    //    ActionType = MediaActionTypes.AddToQueueNext,
-                    //    ImagePath = "plus.png"
-                    //};
-                    //mediaActions.Add(item2);
+                    //    var queueMediaItem = _mediaItemQueue.FirstOrDefault(mi => mi.FilePath == _currentState.CurrentMediaItem.FilePath);
+                    //    if (queueMediaItem != null)  // Current item in queue
+                    //    {
+                    //        var item2 = new MediaAction()
+                    //        {
+                    //            MediaLocationName = _mediaLocation.Name,
+                    //            Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddToQueueNext)].ToString(),
+                    //            MediaItemFile = mediaItem.FilePath,
+                    //            ActionType = MediaActionTypes.AddToQueueNext,
+                    //            ImagePath = "plus.png"
+                    //        };
+                    //        mediaActions.Add(item2);
+                    //    }                        
+                    //}
                 }            
             }
 
@@ -176,7 +186,7 @@ namespace CFMediaPlayer.Sources
                 ActionType = MediaActionTypes.AddRandomItemsToQueue,
                 MediaLocationName = mediaLocation.Name,
                 ImagePath = "plus.png",
-                Name = LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddRandomItemsToQueue)].ToString()
+                Name = String.Format(LocalizationResources.Instance[InternalUtilities.GetEnumResourceKey(MediaActionTypes.AddRandomItemsToQueue)].ToString(), _itemsToAddRandomly)
             };
             mediaActions.Add(mediaAction2);
 
@@ -262,7 +272,7 @@ namespace CFMediaPlayer.Sources
             {
                 case MediaActionTypes.AddRandomItemsToQueue:
                     {
-                        AddRandomItemsToQueue(50);
+                        AddRandomItemsToQueue(_itemsToAddRandomly);
                         systemEventType = SystemEventTypes.QueueItemsAdded;
                     }
                     break;
@@ -280,7 +290,16 @@ namespace CFMediaPlayer.Sources
                 //        // Clone media item, set album image for display
                 //        var mediaItemCopy = (MediaItem)mediaItem.Clone();
                 //        mediaItemCopy.ImagePath = GetMediaItemCollectionImagePath(mediaItem);
-                //        _mediaItemQueue.Insert(0, mediaItemCopy);
+                        
+                //        // Add media item after current queue item being played
+                //        if (_currentState.CurrentMediaItem != null)
+                //        {
+                //            var queueMediaItem = _mediaItemQueue.FirstOrDefault(mi => mi.FilePath == _currentState.CurrentMediaItem.FilePath);
+                //            if (queueMediaItem != null)
+                //            {
+                //                _mediaItemQueue.Insert(_mediaItemQueue.IndexOf(queueMediaItem) + 1, mediaItemCopy);
+                //            }
+                //        }                        
                 //    }
                 //    break;
                 case MediaActionTypes.ClearQueue:

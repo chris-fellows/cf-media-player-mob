@@ -5,7 +5,9 @@ using System.Globalization;
 namespace CFMediaPlayer
 {
     /// <summary>
-    /// Localization resources    
+    /// Localization resources. 
+    /// 
+    /// Class should be 
     /// </summary>
     public class LocalizationResources : INotifyPropertyChanged
     {
@@ -16,11 +18,20 @@ namespace CFMediaPlayer
 
         public static LocalizationResources Instance { get; } = new();
 
+        /// <summary>
+        /// Returns resource string for resource key. E.g. LocationResources["MyKeyX"]
+        /// </summary>
+        /// <param name="resourceKey"></param>
+        /// <returns></returns>
         public object this[string resourceKey]
             => AppResources.ResourceManager.GetObject(resourceKey, AppResources.Culture) ?? Array.Empty<byte>();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        /// <summary>
+        /// Sets culture
+        /// </summary>
+        /// <param name="culture"></param>
         public void SetCulture(CultureInfo culture)
         {
             AppResources.Culture = culture;

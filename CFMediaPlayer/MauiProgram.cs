@@ -1,9 +1,11 @@
 ﻿using CFMediaPlayer.Constants;
 using CFMediaPlayer.Enums;
 using CFMediaPlayer.Interfaces;
+using CFMediaPlayer.MediaPlayers;
 using CFMediaPlayer.Models;
 using CFMediaPlayer.Services;
 using CFMediaPlayer.Sources;
+using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -13,7 +15,7 @@ namespace CFMediaPlayer
     public static class MauiProgram
     {
         public static MauiApp CreateMauiApp()
-        {           
+        {            
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -42,7 +44,7 @@ namespace CFMediaPlayer
                 Directory.CreateDirectory(Path.Combine(musicFolder, GeneralConstants.PlaylistsFolderName));
                 Directory.CreateDirectory(Path.Combine(musicFolder, GeneralConstants.RadioStreamsFolderName));
             }
-
+            
             // Config services            
             builder.Services.AddSingleton<IMediaLocationService, MediaLocationService>();
             builder.Services.AddSingleton<ICloudProviderService, CloudProviderService>();
@@ -53,7 +55,7 @@ namespace CFMediaPlayer
 
             // Set IAudioSettingsService, create if not present
             builder.Services.AddScoped<IAudioSettingsService>((scope) =>
-            {                                
+            {                
                 var audioSettingsService = new AudioSettingsService(scope.GetRequiredService<IAudioEqualizer>(), FileSystem.AppDataDirectory);
 
                 // Create audio settings                
@@ -61,10 +63,10 @@ namespace CFMediaPlayer
                 if (!audioSettings.Any())
                 {
                     audioSettingsService.AddDefaults();
-                }
+                }                
                 return audioSettingsService;
             });
-
+           
             // Set IUserSettingsService, create user settings if not present for user
             builder.Services.AddScoped<IUserSettingsService>((scope) =>
             {                
@@ -96,13 +98,13 @@ namespace CFMediaPlayer
                         }).ToList()
                     };
                     userSettingsService.Update(userSettings);
-                }
+                }                
                 return userSettingsService;
             });
-
+            
             // Set ISystemSettingsService, create system settings if not present
             builder.Services.AddScoped<ISystemSettingsService>((scope) =>
-            {
+            {                
                 var systemSettingsService = new SystemSettingsService(FileSystem.AppDataDirectory);
 
                 // Create system settings if not exists
@@ -120,15 +122,15 @@ namespace CFMediaPlayer
                         DefaultAudioSettingsId = defaultAudioSettings.Id                      
                     };
                     systemSettingsService.Update(systemSettings);
-                }
+                }                
                 return systemSettingsService;
             });
-
+            
             builder.Services.AddSingleton<IUIThemeService, UIThemeService>();
 
             // Register IMediaSources to provide one IMediaSource per MediaLocation
             builder.Services.AddSingleton<IMediaSourceService>((scope) =>
-            {                          
+            {                
                 List <IMediaSource> mediaSources = new List<IMediaSource>();
                 var currentState = scope.GetRequiredService<ICurrentState>();
                 var mediaLocationService = scope.GetRequiredService<IMediaLocationService>();                
@@ -140,23 +142,22 @@ namespace CFMediaPlayer
                             mediaSources.Add(new CloudMediaSource(currentState,mediaLocation));
                             break;
                         case MediaSourceTypes.Playlist:
+                        case MediaSourceTypes.RadioStreams:
                             mediaSources.Add(new PlaylistMediaSource(currentState,mediaLocation, scope.GetServices<IPlaylistManager>()));
                             break;
                         case MediaSourceTypes.Queue:
-                            mediaSources.Add(new QueueMediaSource(currentState, mediaLocation));
-                            break;
-                        case MediaSourceTypes.RadioStreams:                          
-                            mediaSources.Add(new PlaylistMediaSource(currentState,mediaLocation, scope.GetServices<IPlaylistManager>()));
+                            mediaSources.Add(new QueueMediaSource(currentState, mediaLocation));                                                    
                             break;
                         case MediaSourceTypes.Storage:
                             mediaSources.Add(new StorageMediaSource(currentState, mediaLocation));
                             break;
                     }
                 }
-                mediaSources.ForEach(mediaSource => mediaSource.SetAllMediaSources(mediaSources));
+                mediaSources.ForEach(mediaSource => mediaSource.SetAllMediaSources(mediaSources));                
                 return new MediaSourceService(mediaSources);
-            });            
+            });
             
+            builder.Services.AddSingleton<ILogWriter, DebugLogWriter>();
             builder.Services.AddSingleton<IMediaSearchService, MediaSearchService>();            
 
             // Register main page & model
@@ -170,9 +171,7 @@ namespace CFMediaPlayer
 
             // Register other pages & models
             builder.Services.AddSingleton<ManagePlaylistsPageModel>();
-            builder.Services.AddSingleton<ManagePlaylistsPage>();
-            builder.Services.AddSingleton<ManageQueuePageModel>();
-            builder.Services.AddSingleton<ManageQueuePage>();
+            builder.Services.AddSingleton<ManagePlaylistsPage>();         
             builder.Services.AddSingleton<TestPage>();
             builder.Services.AddSingleton<TestPageModel>();
             builder.Services.AddSingleton<UserSettingsPageModel>();
@@ -180,8 +179,7 @@ namespace CFMediaPlayer
 
 #if DEBUG
             builder.Logging.AddDebug();
-#endif            
-
+#endif                        
             return builder.Build();
         }
 

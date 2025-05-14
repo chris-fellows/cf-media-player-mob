@@ -9,7 +9,7 @@ using static Android.Provider.MediaStore.Audio;
 namespace CFMediaPlayer.Sources
 {
     /// <summary>
-    /// Media source from storage (Internal/SD card)
+    /// Media source from storage (Internal/SD card). Only media item files (.mp3 etc) not playlists.
     /// 
     /// Notes:
     /// - Media items can be in any of these folder structures:

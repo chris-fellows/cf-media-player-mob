@@ -4,24 +4,19 @@ using CFMediaPlayer.Enums;
 using CFMediaPlayer.Exceptions;
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Models;
-using Java.Security;
 
-namespace CFMediaPlayer
+namespace CFMediaPlayer.MediaPlayers
 {
     /// <summary>
-    /// Android media player
-    /// 
-    /// Notes:
-    /// - Starting some media items can take time (E.g. Streaming)
+    /// Android media player   
     /// </summary>
     internal class AndroidMediaPlayer : IMediaPlayer, IDisposable
     {
         private MediaPlayerEvents _events = new MediaPlayerEvents();
-        private Android.Media.MediaPlayer _mediaPlayer = null;        
+        private Android.Media.MediaPlayer _mediaPlayer = null;
         private int _currentPosition = 0;
-        private string? _currentFilePath;               
-        private bool _isStarting;
-        //private bool _isStarted;
+        private string? _currentFilePath;
+        private bool _isStarting;        
         private bool _isCompleted;
         private readonly IAudioEqualizer _audioEqualizer;
         private bool _isMediaPlayerSet = false;
@@ -38,15 +33,15 @@ namespace CFMediaPlayer
             Stop();
         }
 
-        public string CurrentFilePath => _currentFilePath;   
-        
+        public string? CurrentFilePath => _currentFilePath;
+
         private void OnError(object? sender, MediaPlayer.ErrorEventArgs e)
         {
             if (IsStarting)
             {
                 return;
             }
-            
+
             _isStarting = false;
             var mediaPlayerException = new MediaPlayerException("Error playing media") { MediaError = e.What };
             //errorAction(mediaPlayerException);
@@ -54,7 +49,7 @@ namespace CFMediaPlayer
         }
 
         private void OnPrepared(object? sender, EventArgs args)
-        {            
+        {
             if (_events.OnDebug != null) _events.OnDebug("Playing");
             _mediaPlayer.Start();
             _isStarting = false;
@@ -64,13 +59,13 @@ namespace CFMediaPlayer
 
         private void OnCompletion(object? sender, EventArgs args)
         {
-            _isCompleted = true;            
+            _isCompleted = true;
             if (_events.OnDebug != null) _events.OnDebug($"Completed");
             if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Completed, null);
         }
 
         public void Play(string filePath,
-                         Action<System.Exception> errorAction)
+                         Action<Exception> errorAction)
         {
             // Clean up if playing different file
             if (filePath != _currentFilePath)
@@ -80,7 +75,7 @@ namespace CFMediaPlayer
 
             //if (_mediaPlayer != null && !_mediaPlayer.IsPlaying)        // Paused, resume it                                        
             if (_mediaPlayer != null && !_mediaPlayer.IsPlaying)
-            {                
+            {
                 if (_events.OnDebug != null) _events.OnDebug($"Starting from {_currentPosition}");
                 _mediaPlayer.SeekTo(_currentPosition);
                 _currentPosition = 0;
@@ -97,7 +92,7 @@ namespace CFMediaPlayer
                     _isStarting = true;
                     _isCompleted = false;
 
-                    _currentPosition = 0;                    
+                    _currentPosition = 0;
                     _mediaPlayer = new Android.Media.MediaPlayer();
                     _isMediaPlayerSet = true;
                     if (_events.OnDebug != null) _events.OnDebug("Setting media: " + filePath);
@@ -154,12 +149,12 @@ namespace CFMediaPlayer
 
             // Apply equalizer
             _audioEqualizer.Equalizer = new Equalizer(0, _mediaPlayer.AudioSessionId);
-            if (!String.IsNullOrEmpty(_audioEqualizer.DefaultPresetName) ||
+            if (!string.IsNullOrEmpty(_audioEqualizer.DefaultPresetName) ||
                 _audioEqualizer.DefaultCustomBandLevels.Any())
             {
                 _audioEqualizer.ApplyDefault();
             }
-        }       
+        }
 
         public void Pause()
         {
@@ -185,22 +180,22 @@ namespace CFMediaPlayer
 
             // Record whether media is starting.            
             if (_mediaPlayer != null)
-            {                
+            {
                 _isStarting = false;
                 //_isStarted = false;
                 _mediaPlayer.Error -= OnError;  // Remove error handler
                 _mediaPlayer.Prepared -= OnPrepared;
-                _mediaPlayer.Completion -= OnCompletion;               
+                _mediaPlayer.Completion -= OnCompletion;
                 if (_mediaPlayer.IsPlaying)
-                {                    
-                    _mediaPlayer.Stop();                    
-                }                
-                _mediaPlayer.Release();                                
-                _audioEqualizer.Equalizer.Release();                 
+                {
+                    _mediaPlayer.Stop();
+                }
+                _mediaPlayer.Release();
+                _audioEqualizer.Equalizer.Release();
                 _mediaPlayer.Dispose();
                 _mediaPlayer = null;
                 _isMediaPlayerSet = false;
-                _audioEqualizer.Equalizer = null;         
+                _audioEqualizer.Equalizer = null;
                 _currentPosition = 0;
                 _currentFilePath = "";
                 _isCompleted = false;
@@ -212,7 +207,7 @@ namespace CFMediaPlayer
                 if (_events.OnStatusChange != null) _events.OnStatusChange(MediaPlayerStatuses.Stopped, null);
             }
         }
-      
+
         public bool IsCompleted
         {
             get { return _isCompleted; }
@@ -248,7 +243,7 @@ namespace CFMediaPlayer
             {
                 if (IsPlaying || IsPaused || IsCompleted)
                 {
-                    return TimeSpan.FromMilliseconds(_mediaPlayer.Duration);                    
+                    return TimeSpan.FromMilliseconds(_mediaPlayer.Duration);
                 }
                 return TimeSpan.FromMilliseconds(1000);    // Any non-zero value
             }
@@ -263,7 +258,7 @@ namespace CFMediaPlayer
             {
                 if (IsPlaying || IsPaused || IsCompleted)
                 {
-                    return TimeSpan.FromMilliseconds(_mediaPlayer.CurrentPosition);                    
+                    return TimeSpan.FromMilliseconds(_mediaPlayer.CurrentPosition);
                 }
                 return TimeSpan.Zero;
             }
@@ -271,9 +266,9 @@ namespace CFMediaPlayer
             set
             {
                 if (IsPlaying || IsPaused || IsCompleted)
-                {                    
+                {
                     _mediaPlayer.SeekTo((int)value.TotalMilliseconds);
-                    _currentPosition = _mediaPlayer.CurrentPosition;                    
+                    _currentPosition = _mediaPlayer.CurrentPosition;
                 }
             }
         }
@@ -284,9 +279,9 @@ namespace CFMediaPlayer
         public TimeSpan RemainingTime
         {
             get
-            {                
+            {
                 if (IsPlaying || IsPaused || IsCompleted)
-                {                    
+                {
                     return DurationTime - ElapsedTime;
                 }
                 return TimeSpan.Zero;

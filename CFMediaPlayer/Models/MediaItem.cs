@@ -43,7 +43,7 @@ namespace CFMediaPlayer.Models
         /// </summary>
         [XmlIgnore]
         public string PlayToggleImage { get; set; } = String.Empty;
-
+       
         //public event PropertyChangedEventHandler? PropertyChanged;
         
         //public void OnPropertyChanged([CallerMemberName] string name = "") =>
@@ -106,13 +106,18 @@ namespace CFMediaPlayer.Models
         {
             get
             {
-                if (IsStreamed)    // Assume that all streamed media needs internet
+                if (EntityCategory == EntityCategory.Real)
                 {
-                    NetworkAccess accessType = Connectivity.Current.NetworkAccess;
-                    return Array.IndexOf(new[] { NetworkAccess.Internet, NetworkAccess.ConstrainedInternet }, accessType) != -1;                                        
+                    if (IsStreamed)    // Assume that all streamed media needs internet
+                    {
+                        NetworkAccess accessType = Connectivity.Current.NetworkAccess;
+                        return Array.IndexOf(new[] { NetworkAccess.Internet, NetworkAccess.ConstrainedInternet }, accessType) != -1;
+                    }
+
+                    return !String.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
                 }
 
-                return !String.IsNullOrEmpty(FilePath) && File.Exists(FilePath);
+                return false;
             }
         }
     }

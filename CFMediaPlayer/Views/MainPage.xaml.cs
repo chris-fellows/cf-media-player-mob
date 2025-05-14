@@ -4,6 +4,7 @@ using System;
 using Java.Lang;
 using Microsoft.Maui.Controls;
 using CFMediaPlayer.Models;
+using CFMediaPlayer.Utilities;
 
 namespace CFMediaPlayer
 {
@@ -19,16 +20,18 @@ namespace CFMediaPlayer
 
         public MainPage(MainPageModel model)
         {
+            InternalUtilities.Log("Entered MainPage constructor");
+
             InitializeComponent();
 
             _model = model;
             this.BindingContext = _model;            
 
-            // Set event handler for debug action
-            _model.OnDebugAction += (debug) =>
-            {
-                DebugLabel.Text = debug;
-            };
+            //// Set event handler for debug action
+            //_model.OnDebugAction += (debug) =>
+            //{
+            //    DebugLabel.Text = debug;
+            //};
 
             // Set event handler for media start error
             _model.OnMediaPlayerError += (mediaPlayerException) =>
@@ -44,6 +47,8 @@ namespace CFMediaPlayer
             {
                 _model.SelectedMediaLocation = _model.MediaLocations.First();
             }
+
+            InternalUtilities.Log("Leaving MainPage constructor");
         }        
 
         ///// <summary>

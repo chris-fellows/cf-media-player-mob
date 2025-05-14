@@ -3,15 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:localViewModels="clr-namespace:CFMediaPlayer.ViewModels"
              x:Class="CFMediaPlayer.LibraryPage"
-             Title="Library">
+             Title="{Binding LocalizationResources[TabLibraryText], Mode=OneWay}">
 
     <ScrollView>
         <VerticalStackLayout
         Padding="10,0"
         Spacing="2">
-
-            <StackLayout x:Name="ContextMenuStackLayout"/>
-
             <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
                 <StackLayout Orientation="Horizontal">
                     <Picker x:Name="MediaLocationPicker" 
@@ -95,7 +92,8 @@
                                      VerticalOptions="Center"                                  
                                      WidthRequest="30" />
                             <ImageButton Source="{Binding PlayToggleImage}"                                         
-                                         WidthRequest="30" 
+                                         WidthRequest="30"
+                                         IsEnabled="{Binding IsPlayable, Mode=OneWay}"
                                          Command="{Binding PlayToggleCommand, Source={RelativeSource AncestorType={x:Type localViewModels:LibraryPageModel}}}"
                                          CommandParameter="{Binding Name}" />
                         </StackLayout>
