@@ -50,16 +50,16 @@ public partial class LibraryPage : ContentPage
         InternalUtilities.Log("Leaving LibraryPage constructor");
     }
 
-    private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (e.NewTextValue.Length == 0) _model.ClearSearchResults();
-    }
+    //private void MediaSearchBar_TextChanged(object sender, TextChangedEventArgs e)
+    //{
+    //    if (e.NewTextValue.Length == 0) _model.ClearSearchResults();
+    //}
 
-    private void SearchResultsList_ItemTapped(object sender, ItemTappedEventArgs e)
-    {
-        _model.SelectSearchResult((SearchResult)e.Item);
-        MediaSearchBar.Text = "";    
-    }
+    //private void SearchResultsList_ItemTapped(object sender, ItemTappedEventArgs e)
+    //{
+    //    _model.SelectSearchResult((SearchResult)e.Item);
+    //    MediaSearchBar.Text = "";    
+    //}
 
     private void MediaActionsView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

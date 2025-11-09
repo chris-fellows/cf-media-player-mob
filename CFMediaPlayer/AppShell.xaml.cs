@@ -1,4 +1,6 @@
-﻿namespace CFMediaPlayer
+﻿using CFMediaPlayer.Views;
+
+namespace CFMediaPlayer
 {
     public partial class AppShell : Shell
     {
@@ -11,6 +13,7 @@
             Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
             Routing.RegisterRoute(nameof(ManagePlaylistsPage), typeof(ManagePlaylistsPage));            
             Routing.RegisterRoute(nameof(UserSettingsPage), typeof(UserSettingsPage));
+            Routing.RegisterRoute(nameof(SearchPage), typeof(SearchPage));
         }        
     }
 }

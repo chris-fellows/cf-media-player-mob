@@ -7,6 +7,7 @@ using CFMediaPlayer.Services;
 using CFMediaPlayer.Sources;
 using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
+using CFMediaPlayer.Views;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
@@ -168,6 +169,8 @@ namespace CFMediaPlayer
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
             //builder.Services.AddSingleton<TestFlyoutPage>();
+            builder.Services.AddSingleton<SearchPage>();
+            builder.Services.AddSingleton<SearchPageModel>();
 
             // Register other pages & models
             builder.Services.AddSingleton<ManagePlaylistsPageModel>();

@@ -33,5 +33,6 @@ namespace CFMediaPlayer.Models
 
         private CurrentStateEvents _events = new CurrentStateEvents();
         public CurrentStateEvents Events => _events;
+        public Action<SearchResult>? SelectSearchResultAction { get; set; }
     }
 }

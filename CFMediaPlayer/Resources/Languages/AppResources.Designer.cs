@@ -556,11 +556,20 @@ namespace CFMediaPlayer.Resources.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Manage Playlists.
+        ///   Looks up a localized string similar to Playlists.
         /// </summary>
         internal static string TabManagePlaylistsText {
             get {
                 return ResourceManager.GetString("TabManagePlaylistsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        internal static string TabSearchText {
+            get {
+                return ResourceManager.GetString("TabSearchText", resourceCulture);
             }
         }
         

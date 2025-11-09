@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CFMediaPlayer.Views.SearchPage"
+             Title="{Binding LocalizationResources[TabSearchText], Mode=OneWay}">
+    <VerticalStackLayout>
+        <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
+            <StackLayout Orientation="Horizontal">
+                <Picker x:Name="MediaLocationPicker" 
+         ItemsSource="{Binding MediaLocations}"
+        ItemDisplayBinding="{Binding Name}"         
+        SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+        Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+                </Picker>
+
+                <ActivityIndicator 
+                       IsRunning="{Binding IsBusy, Mode=OneWay}"                                        
+                       WidthRequest="25"
+                       Color="Orange"/>
+
+                <SearchBar x:Name="MediaSearchBar"                                                                       
+               IsReadOnly="{Binding IsSearchBusy, Mode=OneWay}"                               
+               Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
+               IsSpellCheckEnabled="false"
+               IsTextPredictionEnabled="false"
+               TextChanged="MediaSearchBar_TextChanged"                     
+               SearchCommand="{Binding StartSearchCommand}"
+               SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
+            </StackLayout>
+
+            <Border StrokeThickness="1" 
+          IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                <ListView x:Name="SearchResultsList"                      
+        ItemsSource="{Binding SearchResults, Mode=OneWay}"                            
+        ItemTapped="SearchResultsList_ItemTapped"                            
+        IsVisible="{Binding IsSearchResults, Mode=OneWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Image Source="{Binding ImagePath}" HeightRequest="20" />
+                                    <Label Text="{Binding Name}" VerticalOptions="Center" FontSize="Small" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+        </StackLayout>
+    </VerticalStackLayout>
+</ContentPage>

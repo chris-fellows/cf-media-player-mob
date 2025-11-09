@@ -41,5 +41,20 @@ namespace CFMediaPlayer.Models
         /// Cloud credentials
         /// </summary>
         public List<CloudCredentials> CloudCredentialList { get; set; } = new();
+
+        /// <summary>
+        /// Last selected media location (Restore at app startup)
+        /// </summary>
+        public string SelectedMediaLocation { get; set; } = String.Empty;
+
+        /// <summary>
+        /// Last selected artist (Restore at app startup)
+        /// </summary>
+        public string? SelectedArtist { get; set; }
+
+        /// <summary>
+        /// Last selected media item location (Restore at app startup)
+        /// </summary>
+        public string? SelectedMediaItemCollection { get; set; }
     }
 }

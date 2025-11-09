@@ -80,5 +80,10 @@ namespace CFMediaPlayer.Interfaces
         /// the current one that the player has.
         /// </summary>
         Func<MediaItem, MediaPlayerStatuses?>? GetMediaItemPlayStatusFunction { get; set; }
+
+        /// <summary>
+        /// Action to select search result
+        /// </summary>
+        public Action<SearchResult>? SelectSearchResultAction { get; set; }
     }
 }

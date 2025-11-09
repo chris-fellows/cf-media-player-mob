@@ -1,6 +1,7 @@
 using CFMediaPlayer.Interfaces;
 using CFMediaPlayer.Utilities;
 using CFMediaPlayer.ViewModels;
+using CFMediaPlayer.Views;
 
 namespace CFMediaPlayer;
 
@@ -20,7 +21,8 @@ public partial class TestPage : TabbedPage
         Routing.RegisterRoute(nameof(ManagePlaylistsPage), typeof(ManagePlaylistsPage));
         //Routing.RegisterRoute(nameof(ManageQueuePage), typeof(ManageQueuePage));
         //Routing.RegisterRoute(nameof(TestFlyoutPage), typeof(TestFlyoutPage));
-        Routing.RegisterRoute(nameof(UserSettingsPage), typeof(UserSettingsPage));        
+        Routing.RegisterRoute(nameof(UserSettingsPage), typeof(UserSettingsPage));
+        Routing.RegisterRoute(nameof(SearchPage), typeof(SearchPage));
 
         // Set child pages
         // Need to this to use DI for page models
@@ -28,7 +30,8 @@ public partial class TestPage : TabbedPage
         //this.Children.Add(services.GetService<TestFlyoutPage>());
 
         this.Children.Add(services.GetService<LibraryPage>());
-        this.Children.Add(services.GetService<CurrentPage>());        
+        this.Children.Add(services.GetService<CurrentPage>());
+        this.Children.Add(services.GetService<SearchPage>());
         this.Children.Add(services.GetService<ManagePlaylistsPage>());
         this.Children.Add(services.GetService<UserSettingsPage>());
         

@@ -9,50 +9,6 @@
         <VerticalStackLayout
         Padding="10,0"
         Spacing="2">
-            <StackLayout Spacing="0" Orientation="Vertical" HorizontalOptions="Start">
-                <StackLayout Orientation="Horizontal">
-                    <Picker x:Name="MediaLocationPicker" 
-                   ItemsSource="{Binding MediaLocations}"
-                  ItemDisplayBinding="{Binding Name}"         
-                  SelectedItem="{Binding SelectedMediaLocationAsync, Mode=TwoWay}"
-                  Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
-                    </Picker>
-
-                    <ActivityIndicator 
-                                 IsRunning="{Binding IsBusy, Mode=OneWay}"                                        
-                                 WidthRequest="25"
-                                 Color="Orange"/>
-
-                    <SearchBar x:Name="MediaSearchBar"                                                                       
-                         IsReadOnly="{Binding IsSearchBusy, Mode=OneWay}"                               
-                         Placeholder="{Binding SearchBarPlaceholderText, Mode=OneWay}" 
-                         IsSpellCheckEnabled="false"
-                         IsTextPredictionEnabled="false"
-                         TextChanged="MediaSearchBar_TextChanged"                     
-                         SearchCommand="{Binding StartSearchCommand}"
-                         SearchCommandParameter="{Binding Text, Source={x:Reference MediaSearchBar}}" />
-                </StackLayout>
-
-                <Border StrokeThickness="1" 
-                    IsVisible="{Binding IsSearchResults, Mode=OneWay}">
-                    <ListView x:Name="SearchResultsList"                      
-                  ItemsSource="{Binding SearchResults, Mode=OneWay}"                            
-                  ItemTapped="SearchResultsList_ItemTapped"                            
-                  IsVisible="{Binding IsSearchResults, Mode=OneWay}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
-                                    <StackLayout Orientation="Horizontal">
-                                        <Image Source="{Binding ImagePath}" HeightRequest="20" />
-                                        <Label Text="{Binding Name}" VerticalOptions="Center" FontSize="Small" />
-                                    </StackLayout>
-                                </ViewCell>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Border>
-            </StackLayout>
-
             <Image
   Source="{Binding MainLogoImage}"
   HeightRequest="140"

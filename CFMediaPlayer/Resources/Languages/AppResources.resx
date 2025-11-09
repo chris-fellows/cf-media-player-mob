@@ -286,6 +286,9 @@
     <value>Settings</value>
   </data>
   <data name="TabManagePlaylistsText" xml:space="preserve">
-    <value>Manage Playlists</value>
+    <value>Playlists</value>
+  </data>
+  <data name="TabSearchText" xml:space="preserve">
+    <value>Search</value>
   </data>
 </root>

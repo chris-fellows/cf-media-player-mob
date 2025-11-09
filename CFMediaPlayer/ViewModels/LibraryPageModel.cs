@@ -103,6 +103,15 @@ namespace CFMediaPlayer.ViewModels
                 _currentState.SelectTabByTitleAction(LocalizationResources["TabLibraryText"].ToString());                
             };
 
+            // Set action to handle request to select search result
+            _currentState.SelectSearchResultAction = (searchResult) =>
+            {
+                SelectFromSearchResult(searchResult);
+
+                // Select Library tab
+                _currentState.SelectTabByTitleAction(LocalizationResources["TabLibraryText"].ToString());
+            };
+
             ConfigureEvents();
             
             // Display media locations
@@ -123,16 +132,72 @@ namespace CFMediaPlayer.ViewModels
             //    }
             //}
 
+            // Use previously selected media location
+            var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
+            var mediaLocation = String.IsNullOrEmpty(userSettings.SelectedMediaLocation) ? null :
+                            MediaLocations.FirstOrDefault((ml => ml.Name == userSettings.SelectedMediaLocation));
+
             // Set default media location
-            var mediaLocation = MediaLocations.FirstOrDefault(ml => ml.MediaSourceType == MediaSourceTypes.Storage &&
+            if (mediaLocation == null)
+            {
+                mediaLocation = MediaLocations.FirstOrDefault(ml => ml.MediaSourceType == MediaSourceTypes.Storage &&
                                                     ml.MediaItemTypes.Contains(MediaItemTypes.Music));
+            }
 
             if (mediaLocation == null)
             {
                 mediaLocation = MediaLocations.First();
             }
             
-            SelectedMediaLocation = mediaLocation;            
+            SelectedMediaLocation = mediaLocation;
+
+            // Set selected artist & media item collection if available
+            if (!String.IsNullOrEmpty(userSettings.SelectedArtist) &&
+                SelectedMediaLocation.Name == userSettings.SelectedMediaLocation)
+            {
+                var artist = Artists.FirstOrDefault(a => a.Name == userSettings.SelectedArtist);
+                if (artist != null)
+                {
+                    SelectedArtist = artist;
+
+                    if (!String.IsNullOrEmpty(userSettings.SelectedMediaItemCollection))
+                    {
+                        var mediaItemCollection = MediaItemCollections.FirstOrDefault(mic => mic.Name == userSettings.SelectedMediaItemCollection);
+                        if (mediaItemCollection != null)
+                        {
+                            SelectedMediaItemCollection = mediaItemCollection;
+                        }
+                    }
+                }
+            }
+        }        
+
+        private void SelectFromSearchResult(SearchResult searchResult)
+        {
+            var mediaLocation = _mediaLocations.First(ml => ml.Name == searchResult.MediaLocationName);
+
+            // Select media location
+            SelectedMediaLocation = mediaLocation;
+
+            // Select relevant options. User may have selected artist, media item collection or media item
+            switch (searchResult.EntityType)
+            {
+                case EntityTypes.Artist:
+                    // Display media item collections for artist
+                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+                    break;
+                case EntityTypes.MediaItem:
+                    // Display media item for media item collection
+                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+                    SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
+                    SelectedMediaItem = _mediaItems.First(mi => mi.Name == searchResult.MediaItem!.Name);
+                    break;
+                case EntityTypes.MediaItemCollection:
+                    // Display media items for media item collection
+                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+                    SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
+                    break;                    
+            }
         }
 
         public ICurrentState CurrentState => _currentState;
@@ -873,7 +938,7 @@ namespace CFMediaPlayer.ViewModels
             // Notify properties on change of selected media location
             OnPropertyChanged(nameof(SelectedMediaLocation));
             OnPropertyChanged(nameof(SelectedMediaLocationAsync));
-            OnPropertyChanged(nameof(SearchBarPlaceholderText));
+            //OnPropertyChanged(nameof(SearchBarPlaceholderText));
 
             Task task = Task.CompletedTask;
             if (async)
@@ -1019,6 +1084,9 @@ namespace CFMediaPlayer.ViewModels
                 // Display media items for album, select default
                 if (_selectedMediaItemCollection != null)
                 {
+                    // Save selected options
+                    SaveSelectedOptions();
+
                     // Load media items
                     LoadMediaItems(_selectedArtist, _selectedMediaItemCollection);
 
@@ -1311,7 +1379,7 @@ namespace CFMediaPlayer.ViewModels
             ClearArtists();
             ClearMediaItemCollections();
             ClearMediaItems();
-            ClearSearchResults();   // Search results are for current media location
+            //ClearSearchResults();   // Search results are for current media location
 
             // Get all artists
             // Storage - Real, [Shuffle], [None]
@@ -1808,89 +1876,89 @@ namespace CFMediaPlayer.ViewModels
         //    }
         //}
 
-        /// <summary>
-        /// Command to start search. Runs asynchronously.
-        /// </summary>
-        /// <remarks>We could search all media locations but that could be slow</remarks>        
-        public ICommand StartSearchCommand => new Command<string>((string text) =>
-        {
-            var task = Task.Factory.StartNew(() =>
-            {
-                IsSearchBusy = true;
-                System.Diagnostics.Debug.WriteLine($"Search for {text}");
+        ///// <summary>
+        ///// Command to start search. Runs asynchronously.
+        ///// </summary>
+        ///// <remarks>We could search all media locations but that could be slow</remarks>        
+        //public ICommand StartSearchCommand => new Command<string>((string text) =>
+        //{
+        //    var task = Task.Factory.StartNew(() =>
+        //    {
+        //        IsSearchBusy = true;
+        //        System.Diagnostics.Debug.WriteLine($"Search for {text}");
 
-                // Clear results
-                SearchResults = new List<SearchResult>();
+        //        // Clear results
+        //        SearchResults = new List<SearchResult>();
 
-                //Thread.Sleep(5000); // Simulate delay
+        //        //Thread.Sleep(5000); // Simulate delay
 
-                var cancellationTokenSource = new CancellationTokenSource();
+        //        var cancellationTokenSource = new CancellationTokenSource();
 
-                // Get results
-                var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
-                var results = _mediaSearchService.SearchAsync(searchOptions, cancellationTokenSource.Token).Result;
+        //        // Get results
+        //        var searchOptions = new SearchOptions() { Text = text, MediaLocations = new() { _selectedMediaLocation! } };
+        //        var results = _mediaSearchService.SearchAsync(searchOptions, cancellationTokenSource.Token).Result;
                
-                // Set results
-                SearchResults = results;
+        //        // Set results
+        //        SearchResults = results;
 
-                System.Diagnostics.Debug.WriteLine($"Search for {text} found {results.Count} items");
-                IsSearchBusy = false;
-            });
-        });
+        //        System.Diagnostics.Debug.WriteLine($"Search for {text} found {results.Count} items");
+        //        IsSearchBusy = false;
+        //    });
+        //});
 
-        public bool IsSearchResults => _searchResults.Any();
+        //public bool IsSearchResults => _searchResults.Any();
 
-        /// <summary>
-        /// Search results
-        /// </summary>
-        private List<SearchResult> _searchResults = new List<SearchResult>();
-        public List<SearchResult> SearchResults
-        {
-            get
-            {
-                return _searchResults;
-            }
-            set
-            {
-                _searchResults = value;
+        ///// <summary>
+        ///// Search results
+        ///// </summary>
+        //private List<SearchResult> _searchResults = new List<SearchResult>();
+        //public List<SearchResult> SearchResults
+        //{
+        //    get
+        //    {
+        //        return _searchResults;
+        //    }
+        //    set
+        //    {
+        //        _searchResults = value;
 
-                OnPropertyChanged(nameof(SearchResults));
-                OnPropertyChanged(nameof(IsSearchResults));
-            }
-        }
+        //        OnPropertyChanged(nameof(SearchResults));
+        //        OnPropertyChanged(nameof(IsSearchResults));
+        //    }
+        //}
 
-        /// <summary>
-        /// Selects search result
-        /// </summary>
-        /// <param name="searchResult"></param>
-        public void SelectSearchResult(SearchResult searchResult)
-        {
-            // Get media location
-            var mediaLocation = _mediaLocations.First(ml => ml.Name == searchResult.MediaLocationName);
+        ///// <summary>
+        ///// Selects search result
+        ///// </summary>
+        ///// <param name="searchResult"></param>
+        //public void SelectSearchResult(SearchResult searchResult)
+        //{
+        //    // Get media location
+        //    var mediaLocation = _mediaLocations.First(ml => ml.Name == searchResult.MediaLocationName);
 
-            // Select media location
-            SelectedMediaLocation = mediaLocation;
+        //    // Select media location
+        //    SelectedMediaLocation = mediaLocation;
 
-            // Select relevant options. User may have selected artist, media item collection or media item
-            switch (searchResult.EntityType)
-            {
-                case EntityTypes.Artist:
-                    // Display media item collections for artist
-                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-                    break;
-                case EntityTypes.MediaItem:
-                    // Display media item for media item collection
-                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-                    SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
-                    SelectedMediaItem = _mediaItems.First(mi => mi.Name == searchResult.MediaItem!.Name);
-                    break;
-                case EntityTypes.MediaItemCollection:
-                    // Display media items for media item collection
-                    SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-                    SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
-                    break;
-            }
-        }
+        //    // Select relevant options. User may have selected artist, media item collection or media item
+        //    switch (searchResult.EntityType)
+        //    {
+        //        case EntityTypes.Artist:
+        //            // Display media item collections for artist
+        //            SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+        //            break;
+        //        case EntityTypes.MediaItem:
+        //            // Display media item for media item collection
+        //            SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+        //            SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
+        //            SelectedMediaItem = _mediaItems.First(mi => mi.Name == searchResult.MediaItem!.Name);
+        //            break;
+        //        case EntityTypes.MediaItemCollection:
+        //            // Display media items for media item collection
+        //            SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
+        //            SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
+        //            break;
+        //    }
+        //}
 
         //public void ApplyEqualizerTest()
         //{
@@ -1970,15 +2038,15 @@ namespace CFMediaPlayer.ViewModels
             SelectedMediaLocation = MediaLocations.First(ml => ml.Name == selectedMediaLocationName);
         }
 
-        /// <summary>
-        /// Clear search results
-        /// </summary>
-        public void ClearSearchResults()
-        {
-            SearchResults = new List<SearchResult>();
-        }
+        ///// <summary>
+        ///// Clear search results
+        ///// </summary>
+        //public void ClearSearchResults()
+        //{
+        //    SearchResults = new List<SearchResult>();
+        //}
 
-        public string SearchBarPlaceholderText => LocalizationResources.Instance["Search"].ToString();
+        //public string SearchBarPlaceholderText => LocalizationResources.Instance["Search"].ToString();
 
         /// <summary>
         /// Whether the Shuffle Play switch is visible
@@ -2066,6 +2134,20 @@ namespace CFMediaPlayer.ViewModels
         public void PlayMediaItemAsCurrent(MediaItem mediaItem)
         {
             _currentState.Events.RaiseOnPlayMediaItem(mediaItem);
+        }
+
+        /// <summary>
+        /// Saves selected options (Media location, artist, media item collection), restored on app start
+        /// </summary>
+        private void SaveSelectedOptions()
+        {
+            var userSettings = _userSettingsService.GetByUsername(Environment.UserName);
+
+            userSettings.SelectedMediaLocation = SelectedMediaLocation.Name;
+            userSettings.SelectedArtist = SelectedArtist == null ? "" : SelectedArtist.Name;
+            userSettings.SelectedMediaItemCollection = SelectedMediaItemCollection == null ? "" : SelectedMediaItemCollection.Name;
+
+            _userSettingsService.Update(userSettings);
         }
     }
 }

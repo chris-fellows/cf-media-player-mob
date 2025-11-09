@@ -28,9 +28,9 @@ namespace CFMediaPlayer.Utilities
             throw new ArgumentException($"Enum {item} does not have resource key indicated");
         }
 
-        //public static void Log(string message)
-        //{
-        //    new DebugLogWriter().Log(message);
-        //}
+        public static void Log(string message)
+        {
+            //new DebugLogWriter().Log(message);
+        }
     }
 }
