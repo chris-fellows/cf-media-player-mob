@@ -126,7 +126,21 @@ namespace CFMediaPlayer
                 }                
                 return systemSettingsService;
             });
-            
+
+            //// Set IArtistInfoService
+            //builder.Services.AddScoped<IArtistInfoService>((scope) =>
+            //{
+            //    var artistInfoService = new ArtistInfoService(FileSystem.AppDataDirectory);
+            //    return artistInfoService;            
+            //});
+
+            //// Set IArtistStatisticsService
+            //builder.Services.AddScoped<IArtistStatisticsService>((scope) =>
+            //{
+            //    var artistStatisticsService = new ArtistStatisticsService(FileSystem.AppDataDirectory);
+            //    return artistStatisticsService;
+            //});
+
             builder.Services.AddSingleton<IUIThemeService, UIThemeService>();
 
             // Register IMediaSources to provide one IMediaSource per MediaLocation

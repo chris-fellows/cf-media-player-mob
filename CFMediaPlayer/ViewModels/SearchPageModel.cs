@@ -195,29 +195,6 @@ namespace CFMediaPlayer.ViewModels
         public void SelectSearchResult(SearchResult searchResult)
         {            
             _currentState.SelectSearchResultAction(searchResult);
-
-            //// Select media location
-            //SelectedMediaLocation = mediaLocation;
-
-            //// Select relevant options. User may have selected artist, media item collection or media item
-            //switch (searchResult.EntityType)
-            //{
-            //    case EntityTypes.Artist:
-            //        // Display media item collections for artist
-            //        SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-            //        break;
-            //    case EntityTypes.MediaItem:
-            //        // Display media item for media item collection
-            //        SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-            //        SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
-            //        SelectedMediaItem = _mediaItems.First(mi => mi.Name == searchResult.MediaItem!.Name);
-            //        break;
-            //    case EntityTypes.MediaItemCollection:
-            //        // Display media items for media item collection
-            //        SelectedArtist = _artists.First(a => a.Name == searchResult.Artist!.Name);
-            //        SelectedMediaItemCollection = _mediaItemCollections.First(mic => mic.Name == searchResult.MediaItemCollection!.Name);
-            //        break;
-            //}
         }
     }
 }

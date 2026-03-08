@@ -9,6 +9,13 @@
         <VerticalStackLayout
         Padding="10,0"
         Spacing="2">
+            <Picker x:Name="MediaLocationPicker" 
+         ItemsSource="{Binding MediaLocations}"
+        ItemDisplayBinding="{Binding Name}"         
+        SelectedItem="{Binding SelectedMediaLocation, Mode=TwoWay}"
+        Title="{Binding LocalizationResources[MainSelectMediaLocationText], Mode=OneWay}">
+            </Picker>
+
             <Image
   Source="{Binding MainLogoImage}"
   HeightRequest="140"
